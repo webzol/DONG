@@ -7,6 +7,14 @@
 ?>
 </main><!-- #main -->
 
+<?php if ( is_active_sidebar( 'footer-widgets' ) ) : ?>
+	<div class="footer-widgets">
+		<div class="footer-widgets__inner">
+			<?php dynamic_sidebar( 'footer-widgets' ); ?>
+		</div>
+	</div>
+<?php endif; ?>
+
 <footer id="colophon" class="site-footer">
 	<div class="site-footer__inner">
 		<div class="site-info">
