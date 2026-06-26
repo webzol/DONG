@@ -1,151 +1,152 @@
 /* ============================================================
    OneDong · 设计令牌 (Design Tokens)
-   来源:Fuwari 视觉语言 · OKLCH 调色板 · 色相默认 250(蓝紫)
+   配色质感:参考 Apple 官店风(近白底 / 深灰字 / 苹果蓝 accent /
+            克制阴影 / 大圆角);主色相可由滑块实时调(默认 215 ≈ 苹果蓝)
    浅色 = :root  ;  暗色 = :root[data-theme="dark"]
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  /* —— 主色相(可由 functions.php 注入 customizer 覆盖) —— */
-  --hue: 250;
+  /* —— 主色相(滑块可实时覆盖,默认 215 ≈ 苹果蓝)—— */
+  --hue: 215;
 
-  /* —— 圆角体系 —— */
-  --radius-large: 1rem;
-  --radius-medium: 0.75rem;
-  --radius-small: 0.5rem;
+  /* —— 圆角体系(Apple 偏大圆角)—— */
+  --radius-large: 1.25rem;
+  --radius-medium: 1rem;
+  --radius-small: 0.625rem;
 
-  /* —— 浅色调色板 —— */
-  --page-bg: oklch(0.95 0.01 var(--hue));
+  /* —— 浅色调色板(Apple 风)—— */
+  --page-bg: #fbfbfd;
   --card-bg: #ffffff;
-  --text: oklch(0.25 0.02 var(--hue));
-  --text-muted: color-mix(in oklch, var(--text) 62%, transparent);
-  --text-faint: color-mix(in oklch, var(--text) 38%, transparent);
-  --primary: oklch(0.70 0.14 var(--hue));
-  --primary-strong: oklch(0.60 0.13 var(--hue));
-  --line: rgba(0, 0, 0, 0.10);
-  --line-strong: rgba(0, 0, 0, 0.18);
-  --shadow: 0 18px 48px rgba(65, 56, 98, 0.10), 0 4px 14px rgba(65, 56, 98, 0.06);
-  --window-bg: #f2f4fa;
-  --titlebar-bg: rgba(242, 244, 250, 0.88);
+  --text: #1d1d1f;
+  --text-muted: #6e6e73;
+  --text-faint: #86868b;
+  --primary: oklch(0.56 0.19 var(--hue));
+  --primary-strong: oklch(0.48 0.19 var(--hue));
+  --line: #d2d2d7;
+  --line-strong: #86868b;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --window-bg: #f5f5f7;
+  --titlebar-bg: rgba(251, 251, 251, 0.72);
 
-  --btn-bg: oklch(0.95 0.025 var(--hue));
-  --btn-hover: oklch(0.90 0.05 275);
-  --btn-active: oklch(0.85 0.08 var(--hue));
-  --panel-bg: rgba(255, 255, 255, 0.82);
-  --table-head: oklch(0.97 0.015 var(--hue));
-  --table-row: oklch(0.985 0.006 var(--hue));
+  --btn-bg: #f5f5f7;
+  --btn-hover: #ebebed;
+  --btn-active: #d2d2d7;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --table-head: #f5f5f7;
+  --table-row: #fafafa;
 
-  --inline-code-bg: #e2f0ff;
-  --inline-code-color: oklch(0.55 0.12 var(--hue));
+  --inline-code-bg: #f5f5f7;
+  --inline-code-color: #1d1d1f;
 
-  --selection-bg: oklch(0.90 0.05 var(--hue));
-  --link-underline: oklch(0.93 0.04 var(--hue));
-  --link-hover: oklch(0.95 0.025 var(--hue));
-  --link-active: oklch(0.90 0.05 var(--hue));
+  --selection-bg: rgba(0, 113, 227, 0.18);
+  --link-underline: transparent;
+  --link-hover: transparent;
+  --link-active: rgba(0, 113, 227, 0.08);
 
   /* —— 提示色(告警块) —— */
-  --tip: oklch(0.70 0.14 180);
-  --note: oklch(0.70 0.14 250);
-  --important: oklch(0.70 0.14 310);
-  --warning: oklch(0.70 0.14 60);
-  --caution: oklch(0.60 0.20 25);
+  --tip: oklch(0.7 0.15 165);
+  --note: oklch(0.6 0.19 250);
+  --important: oklch(0.6 0.19 310);
+  --warning: oklch(0.75 0.15 75);
+  --caution: oklch(0.62 0.21 25);
 
-  /* —— 代码块 "Slate Paper" —— */
-  --code-bg: #f6f7fc;
-  --code-topbar-bg: #eef0f7;
-  --code-text: #1a1e26;
-  --code-muted: #586070;
-  --code-selection: rgba(92, 82, 196, 0.20);
-  --code-border: rgba(26, 30, 38, 0.12);
-  --code-topbar-border: rgba(26, 30, 38, 0.08);
-  --code-dot: rgba(26, 30, 38, 0.20);
+  /* —— 代码块 "Slate Paper"(保留浅米纸观感)—— */
+  --code-bg: #f5f5f7;
+  --code-topbar-bg: #ebebed;
+  --code-text: #1d1d1f;
+  --code-muted: #6e6e73;
+  --code-selection: rgba(0, 113, 227, 0.18);
+  --code-border: rgba(0, 0, 0, 0.08);
+  --code-topbar-border: rgba(0, 0, 0, 0.06);
+  --code-dot: rgba(0, 0, 0, 0.18);
 
-  --code-token-keyword: #5540b8;
-  --code-token-operator: #36445e;
-  --code-token-constant: #b3500e;
+  --code-token-keyword: #ad3da4;
+  --code-token-operator: #1d1d1f;
+  --code-token-constant: #a03c1d;
   --code-token-entity: #1f5ca8;
-  --code-token-variable: #1a1e26;
+  --code-token-variable: #1d1d1f;
   --code-token-variable-special: #4a6090;
-  --code-token-string: #0b7870;
-  --code-token-comment: #586070;
+  --code-token-string: #3d7b41;
+  --code-token-comment: #6e6e73;
   --code-token-tag: #7448a0;
   --code-token-heading: #1f5ca8;
   --code-token-error: #b83038;
   --code-token-matching: #4a6090;
 
-  --code-font-size: 0.93rem;
-  --code-font-weight: 450;
+  --code-font-size: 0.92rem;
+  --code-font-weight: 440;
   --code-line-height: 1.72;
 
-  /* —— 字体 —— */
-  --font-sans: "Roboto", "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "WenQuanYi Micro Hei", Arial, sans-serif;
-  --font-mono: "Maple Mono Normal NF CN", "JetBrains Mono Variable", "JetBrains Mono",
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  /* —— 字体(Apple SF 优先)—— */
+  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Maple Mono Normal NF CN",
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 
   /* —— 布局尺寸 —— */
   --content-width: 860px;
-  --site-width: 1100px;
-  --topbar-height: 3.5rem;
+  --site-width: 1200px;
+  --topbar-height: 3.25rem;
 }
 
 /* ============================================================
-   暗色模式 —— 按色相 250 反演
+   暗色模式(Apple 深色)
    ============================================================ */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page-bg: oklch(0.18 0.018 var(--hue));
-  --card-bg: oklch(0.225 0.022 var(--hue));
-  --text: oklch(0.93 0.012 var(--hue));
-  --text-muted: color-mix(in oklch, var(--text) 66%, transparent);
-  --text-faint: color-mix(in oklch, var(--text) 40%, transparent);
-  --primary: oklch(0.72 0.14 var(--hue));
-  --primary-strong: oklch(0.80 0.13 var(--hue));
-  --line: rgba(255, 255, 255, 0.10);
-  --line-strong: rgba(255, 255, 255, 0.18);
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.42), 0 4px 14px rgba(0, 0, 0, 0.30);
-  --window-bg: oklch(0.155 0.02 var(--hue));
-  --titlebar-bg: rgba(20, 22, 32, 0.82);
+  --page-bg: #000000;
+  --card-bg: #1d1d1f;
+  --text: #f5f5f7;
+  --text-muted: #a1a1a6;
+  --text-faint: #86868b;
+  --primary: oklch(0.68 0.19 var(--hue));
+  --primary-strong: oklch(0.78 0.16 var(--hue));
+  --line: #424245;
+  --line-strong: #6e6e73;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --window-bg: #1d1d1f;
+  --titlebar-bg: rgba(0, 0, 0, 0.72);
 
-  --btn-bg: color-mix(in oklch, var(--card-bg) 80%, var(--primary) 20%);
-  --btn-hover: color-mix(in oklch, var(--card-bg) 70%, var(--primary) 30%);
-  --btn-active: color-mix(in oklch, var(--card-bg) 60%, var(--primary) 40%);
-  --panel-bg: rgba(28, 30, 42, 0.82);
-  --table-head: color-mix(in oklch, var(--card-bg) 88%, var(--primary) 12%);
-  --table-row: color-mix(in oklch, var(--card-bg) 96%, var(--primary) 4%);
+  --btn-bg: #2c2c2e;
+  --btn-hover: #3a3a3c;
+  --btn-active: #48484a;
+  --panel-bg: rgba(29, 29, 31, 0.72);
+  --table-head: #2c2c2e;
+  --table-row: #1d1d1f;
 
-  --inline-code-bg: color-mix(in oklch, var(--primary) 28%, var(--card-bg));
-  --inline-code-color: oklch(0.82 0.12 var(--hue));
+  --inline-code-bg: #2c2c2e;
+  --inline-code-color: #f5f5f7;
 
-  --selection-bg: oklch(0.50 0.10 var(--hue));
-  --link-underline: oklch(0.45 0.10 var(--hue));
-  --link-hover: color-mix(in oklch, var(--primary) 28%, transparent);
-  --link-active: color-mix(in oklch, var(--primary) 40%, transparent);
+  --selection-bg: rgba(10, 132, 255, 0.32);
+  --link-underline: transparent;
+  --link-hover: transparent;
+  --link-active: rgba(10, 132, 255, 0.18);
 
   /* 代码块暗色 */
-  --code-bg: oklch(0.20 0.018 260);
-  --code-topbar-bg: oklch(0.17 0.018 260);
-  --code-text: oklch(0.92 0.01 var(--hue));
-  --code-muted: oklch(0.65 0.02 var(--hue));
-  --code-selection: rgba(120, 110, 220, 0.28);
-  --code-border: rgba(255, 255, 255, 0.08);
-  --code-topbar-border: rgba(255, 255, 255, 0.05);
-  --code-dot: rgba(255, 255, 255, 0.22);
+  --code-bg: #1d1d1f;
+  --code-topbar-bg: #161617;
+  --code-text: #f5f5f7;
+  --code-muted: #a1a1a6;
+  --code-selection: rgba(10, 132, 255, 0.28);
+  --code-border: rgba(255, 255, 255, 0.1);
+  --code-topbar-border: rgba(255, 255, 255, 0.06);
+  --code-dot: rgba(255, 255, 255, 0.2);
 
-  --code-token-keyword: #b3a3ff;
-  --code-token-operator: #9fb0d0;
+  --code-token-keyword: #ff7ab2;
+  --code-token-operator: #d0d0d4;
   --code-token-constant: #ffb380;
   --code-token-entity: #7fc2ff;
-  --code-token-variable: oklch(0.92 0.01 var(--hue));
+  --code-token-variable: #f5f5f7;
   --code-token-variable-special: #ffb86c;
   --code-token-string: #6ee7c8;
-  --code-token-comment: oklch(0.65 0.02 var(--hue));
+  --code-token-comment: #86868b;
   --code-token-tag: #c79be0;
   --code-token-heading: #7fc2ff;
   --code-token-error: #ff6b6b;
-  --code-token-matching: #9fb0d0;
+  --code-token-matching: #d0d0d4;
 }

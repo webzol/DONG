@@ -1,64 +1,100 @@
 /**
- * OneDong · 暗色模式切换
+ * OneDong · 暗色模式切换(三态)+ 主题色相滑块
  * --------------------------------------------------------------
- * 首次 data-theme 由 header.php 内联的 anti-flash 脚本在渲染前设置;
- * 本脚本仅负责:点击切换按钮时翻转主题 + 写入 localStorage 记忆。
+ * 三态:light(亮) → dark(暗) → auto(跟随系统) → light …
+ * 首帧 data-theme 由 header.php 内联的 anti-flash 脚本在渲染前设置,避免闪白;
+ * 本脚本负责:点击按钮在三态间循环、跟随系统实时变化、色相滑块联动。
  */
 ( function () {
 	'use strict';
 
-	var STORAGE_KEY = 'onedong-theme';
+	var THEME_KEY = 'onedong-theme';
+	var HUE_KEY    = 'onedong-hue';
 
-	function applyTheme( theme ) {
-		document.documentElement.setAttribute( 'data-theme', theme );
+	function systemDark() {
+		return !!( window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches );
 	}
 
-	function currentTheme() {
-		var t = document.documentElement.getAttribute( 'data-theme' );
-		if ( t === 'light' || t === 'dark' ) {
-			return t;
-		}
+	// 偏好:light / dark / auto(默认 auto,即跟随系统)
+	function pref() {
 		try {
-			var saved = localStorage.getItem( STORAGE_KEY );
-			if ( saved === 'light' || saved === 'dark' ) {
-				return saved;
+			var s = localStorage.getItem( THEME_KEY );
+			if ( s === 'light' || s === 'dark' || s === 'auto' ) {
+				return s;
 			}
 		} catch ( e ) {}
-		if ( window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches ) {
-			return 'dark';
+		return 'auto';
+	}
+
+	function resolve( p ) {
+		if ( p === 'light' || p === 'dark' ) {
+			return p;
 		}
-		return 'light';
+		return systemDark() ? 'dark' : 'light';
+	}
+
+	function applyPref( p ) {
+		var el = document.documentElement;
+		el.setAttribute( 'data-theme', resolve( p ) );
+		el.setAttribute( 'data-theme-pref', p );
+	}
+
+	function setButtonState( toggle, p ) {
+		toggle.setAttribute( 'data-pref', p );
+		toggle.setAttribute( 'aria-pressed', resolve( p ) === 'dark' ? 'true' : 'false' );
+		toggle.setAttribute(
+			'title',
+			{ light: '当前:亮色', dark: '当前:暗色', auto: '当前:跟随系统' }[ p ] || ''
+		);
+	}
+
+	function nextPref( p ) {
+		return p === 'light' ? 'dark' : ( p === 'dark' ? 'auto' : 'light' );
+	}
+
+	// —— 主题色相滑块:实时改 --hue 并记忆 ——
+	function initHue( slider ) {
+		if ( ! slider ) {
+			return;
+		}
+		try {
+			var saved = localStorage.getItem( HUE_KEY );
+			if ( saved !== null && saved !== '' ) {
+				document.documentElement.style.setProperty( '--hue', saved );
+				slider.value = saved;
+			}
+		} catch ( e ) {}
+		slider.addEventListener( 'input', function () {
+			document.documentElement.style.setProperty( '--hue', this.value );
+			try { localStorage.setItem( HUE_KEY, this.value ); } catch ( e ) {}
+		} );
 	}
 
 	function init() {
 		var toggle = document.querySelector( '.theme-toggle' );
-		if ( ! toggle ) {
-			return;
+		var slider = document.getElementById( 'hue-slider' );
+
+		var p = pref();
+		applyPref( p );
+		if ( toggle ) {
+			setButtonState( toggle, p );
 		}
 
-		// 同步初始按钮状态
-		toggle.setAttribute( 'aria-pressed', currentTheme() === 'dark' ? 'true' : 'false' );
+		if ( toggle ) {
+			toggle.addEventListener( 'click', function () {
+				p = nextPref( p );
+				applyPref( p );
+				setButtonState( toggle, p );
+				try { localStorage.setItem( THEME_KEY, p ); } catch ( e ) {}
+			} );
+		}
 
-		toggle.addEventListener( 'click', function () {
-			var next = currentTheme() === 'dark' ? 'light' : 'dark';
-			applyTheme( next );
-			try {
-				localStorage.setItem( STORAGE_KEY, next );
-			} catch ( e ) {}
-			toggle.setAttribute( 'aria-pressed', next === 'dark' ? 'true' : 'false' );
-		} );
-
-		// 用户切换系统主题时,若未手动设置过,则跟随系统
+		// auto 偏好时,系统主题变化实时跟随
 		if ( window.matchMedia ) {
 			var mql = window.matchMedia( '(prefers-color-scheme: dark)' );
-			var onChange = function ( e ) {
-				var saved = null;
-				try {
-					saved = localStorage.getItem( STORAGE_KEY );
-				} catch ( err ) {}
-				if ( saved !== 'light' && saved !== 'dark' ) {
-					applyTheme( e.matches ? 'dark' : 'light' );
-					toggle.setAttribute( 'aria-pressed', e.matches ? 'true' : 'false' );
+			var onChange = function () {
+				if ( pref() === 'auto' ) {
+					document.documentElement.setAttribute( 'data-theme', systemDark() ? 'dark' : 'light' );
 				}
 			};
 			if ( mql.addEventListener ) {
@@ -67,6 +103,8 @@
 				mql.addListener( onChange );
 			}
 		}
+
+		initHue( slider );
 	}
 
 	if ( document.readyState === 'loading' ) {

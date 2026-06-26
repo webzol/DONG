@@ -37,20 +37,15 @@ h1, h2, h3, h4, h5, h6 {
 
 p { margin: 0; }
 
-/* —— 链接(虚线下划线 + 柔光悬停) —— */
+/* —— 链接(Apple 风:蓝色、无默认下划线、悬停下划线)—— */
 a {
-  color: var(--primary-strong);
-  font-weight: 600;
-  text-decoration-line: underline;
-  text-decoration-color: var(--link-underline);
-  text-decoration-style: dashed;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.24rem;
-  border-radius: 0.35rem;
-  transition: color 0.15s ease, background-color 0.15s ease, text-decoration-color 0.15s ease;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
-a:hover { background: var(--link-hover); text-decoration-color: transparent; }
-a:active { background: var(--link-active); }
+a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2rem; }
+a:active { color: var(--primary-strong); }
 
 /* —— 文章正文容器 —— */
 .entry-content {

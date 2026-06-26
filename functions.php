@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '1.0.0' );
+define( 'ONEDONG_VERSION', '1.1.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -88,9 +88,9 @@ function onedong_scripts() {
 	// 主样式(承载主题头注释版本)
 	wp_enqueue_style( 'onedong-style', get_stylesheet_uri(), array( 'onedong-layout' ), $ver );
 
-	// 注入主色相(Customizer 可覆盖默认 250)
-	$hue = (int) get_theme_mod( 'onedong_hue', 250 );
-	if ( 250 !== $hue ) {
+	// 注入主色相(Customizer 可覆盖默认 215,对齐 Fuwari 演示)
+	$hue = (int) get_theme_mod( 'onedong_hue', 215 );
+	if ( 215 !== $hue ) {
 		wp_add_inline_style( 'onedong-tokens', ':root{--hue:' . $hue . ';}' );
 	}
 
@@ -147,6 +147,23 @@ function onedong_excerpt_length( $length ) {
 	return 28;
 }
 add_filter( 'excerpt_length', 'onedong_excerpt_length' );
+
+/**
+ * 输出文章字数与预计阅读时长(中文友好,约 300 字/分钟)。
+ * 供 template-parts/content.php 卡片复用,对齐 Fuwari 演示的「字数 · 分钟」。
+ */
+function onedong_reading_stats() {
+	$text    = wp_strip_all_tags( get_the_content() );
+	$text    = preg_replace( '/\s+/u', '', $text );
+	$count   = function_exists( 'mb_strlen' ) ? mb_strlen( $text, 'UTF-8' ) : strlen( $text );
+	$minutes = max( 1, (int) round( $count / 300 ) );
+	printf(
+		/* translators: 1: 字数, 2: 分钟数 */
+		esc_html__( '%1$s 字 · %2$s 分钟', 'onedong' ),
+		number_format_i18n( $count ),
+		$minutes
+	);
+}
 
 /**
  * 输出文章元信息(日期 / 作者 / 分类 / 评论数)。
@@ -235,7 +252,7 @@ function onedong_customize_register( $wp_customize ) {
 	$wp_customize->add_setting(
 		'onedong_hue',
 		array(
-			'default'           => 250,
+			'default'           => 215,
 			'sanitize_callback' => 'absint',
 			'transport'         => 'refresh',
 		)
@@ -245,7 +262,7 @@ function onedong_customize_register( $wp_customize ) {
 		'onedong_hue',
 		array(
 			'label'       => __( '主色色相', 'onedong' ),
-			'description' => __( '示例:200 青绿、250 蓝紫(默认)、310 紫粉、345 粉红。', 'onedong' ),
+			'description' => __( '默认 215(对齐 Fuwari 演示)。示例:200 青绿、250 蓝紫、310 紫粉、345 粉红。', 'onedong' ),
 			'section'     => 'onedong_theme',
 			'type'        => 'range',
 			'input_attrs' => array(

@@ -12,10 +12,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="profile" href="https://gmpg.org/xfn/11">
 	<?php
-	// Anti-flash:渲染前根据 localStorage/系统设置 data-theme,避免刷新闪白。
+	// Anti-flash:渲染前据 localStorage 偏好(light/dark/auto)与系统设置 data-theme,避免刷新闪白。
 	?>
 	<script>
-	(function(){try{var k='onedong-theme',s=localStorage.getItem(k);var d=(s==='light'||s==='dark')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+	(function(){try{var k='onedong-theme',s=localStorage.getItem(k);var d=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=(s==='light'||s==='dark')?s:(d?'dark':'light');document.documentElement.setAttribute('data-theme',r);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
 	</script>
 	<?php wp_head(); ?>
 </head>
@@ -68,10 +68,18 @@
 			?>
 		</nav>
 
-		<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" aria-pressed="false" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
-			<span class="theme-toggle__moon" aria-hidden="true">🌙</span>
-			<span class="theme-toggle__sun" aria-hidden="true">☀️</span>
-		</button>
+		<div class="header-controls">
+			<label class="hue-control" title="<?php esc_attr_e( '主题色', 'onedong' ); ?>">
+				<span class="sr-only"><?php esc_html_e( '主题色', 'onedong' ); ?></span>
+				<input type="range" min="0" max="360" step="1" value="<?php echo esc_attr( (int) get_theme_mod( 'onedong_hue', 215 ) ); ?>" class="hue-slider" id="hue-slider" aria-label="<?php esc_attr_e( '主题色相', 'onedong' ); ?>">
+			</label>
+
+			<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" data-pref="auto" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
+				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true">☀️</span>
+				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true">🌙</span>
+				<span class="theme-toggle__icon theme-toggle__auto" aria-hidden="true">🖥️</span>
+			</button>
+		</div>
 	</div>
 </header>
 
