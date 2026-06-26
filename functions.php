@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '1.2.0' );
+define( 'ONEDONG_VERSION', '2.0.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -90,12 +90,6 @@ function onedong_scripts() {
 
 	// 主样式(承载主题头注释版本)
 	wp_enqueue_style( 'onedong-style', get_stylesheet_uri(), array( 'onedong-layout' ), $ver );
-
-	// 注入主色相(Customizer 可覆盖默认 215,对齐 Fuwari 演示)
-	$hue = (int) get_theme_mod( 'onedong_hue', 215 );
-	if ( 215 !== $hue ) {
-		wp_add_inline_style( 'onedong-tokens', ':root{--hue:' . $hue . ';}' );
-	}
 
 	// 注入卡片摘要行数(默认 2;非默认时注入 CSS 变量覆盖)
 	$excerpt_lines = (int) get_theme_mod( 'onedong_excerpt_lines', 2 );
@@ -350,43 +344,11 @@ function onedong_sanitize_avatar_source( $value ) {
 }
 
 /**
- * Customizer:主色色相 + 文章卡 / 侧栏作者卡 显示项。
+ * Customizer:文章卡 / 侧栏作者卡 显示项(v2.0:已移除主色色相滑块,主色固定 suxing blue)。
  *
  * @param WP_Customize_Manager $wp_customize Customizer 实例。
  */
 function onedong_customize_register( $wp_customize ) {
-	$wp_customize->add_section(
-		'onedong_theme',
-		array(
-			'title'    => __( 'OneDong 主题', 'onedong' ),
-			'priority' => 30,
-		)
-	);
-
-	$wp_customize->add_setting(
-		'onedong_hue',
-		array(
-			'default'           => 215,
-			'sanitize_callback' => 'absint',
-			'transport'         => 'refresh',
-		)
-	);
-
-	$wp_customize->add_control(
-		'onedong_hue',
-		array(
-			'label'       => __( '主色色相', 'onedong' ),
-			'description' => __( '默认 215(对齐 Fuwari 演示)。示例:200 青绿、250 蓝紫、310 紫粉、345 粉红。', 'onedong' ),
-			'section'     => 'onedong_theme',
-			'type'        => 'range',
-			'input_attrs' => array(
-				'min'  => 0,
-				'max'  => 360,
-				'step' => 1,
-			),
-		)
-	);
-
 	// —— 文章卡设置 ——
 	$wp_customize->add_section(
 		'onedong_cards',

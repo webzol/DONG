@@ -7,7 +7,9 @@
 
 get_header();
 ?>
-<div class="site-content site-content--two-col">
+<div class="site-content site-content--three-col">
+	<?php get_sidebar( 'left' ); ?>
+
 	<div class="content-main">
 		<header class="page-header">
 			<?php

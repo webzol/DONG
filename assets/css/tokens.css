@@ -1,63 +1,64 @@
 /* ============================================================
-   OneDong · 设计令牌 (Design Tokens)
-   配色质感:参考 Apple 官店风(近白底 / 深灰字 / 苹果蓝 accent /
-            克制阴影 / 大圆角);主色相可由滑块实时调(默认 215 ≈ 苹果蓝)
+   OneDong · 设计令牌 (Design Tokens) — v2.0 suxing.me 还原
+   配色/圆角/字体全部对齐 suxing.me 的 Alright 主题(reset.css):
+     gray 灰阶 8 级 + blue #3858F6(primary)+ 双模式(浅白底/暗黑底)
+   去掉 --hue 色相滑块(primary 固定 blue,对齐 suxing)
    浅色 = :root  ;  暗色 = :root[data-theme="dark"]
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  /* —— 主色相(滑块可实时覆盖,默认 215 ≈ 苹果蓝)—— */
-  --hue: 215;
+  /* —— 主色(suxing blue,固定)—— */
+  --primary: #3858F6;
+  --primary-strong: #2b47d1;
 
-  /* —— 圆角体系(Apple 偏大圆角)—— */
-  --radius-large: 1.25rem;
-  --radius-medium: 1rem;
-  --radius-small: 0.625rem;
+  /* —— 圆角(对齐 suxing border-radius:xs4/sm6/md12/lg24/max999)—— */
+  --radius-small: 6px;
+  --radius-medium: 8px;
+  --radius-large: 12px;   /* 卡片圆角 = suking border-radius-md */
+  --radius-max: 999px;
 
-  /* —— 浅色调色板(Apple 风)—— */
-  --page-bg: #fbfbfd;
-  --card-bg: #ffffff;
-  --text: #1d1d1f;
-  --text-muted: #6e6e73;
-  --text-faint: #86868b;
-  --primary: oklch(0.56 0.19 var(--hue));
-  --primary-strong: oklch(0.48 0.19 var(--hue));
-  --line: #d2d2d7;
-  --line-strong: #86868b;
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  --window-bg: #f5f5f7;
-  --titlebar-bg: rgba(251, 251, 251, 0.72);
+  /* —— 浅色调色板(suxing :root)—— */
+  --page-bg: #F7F8FA;       /* gray-1 / bg-body */
+  --card-bg: #ffffff;       /* card-bg */
+  --text: #1D2129;          /* gray-8 / color-body */
+  --text-muted: #4E5969;    /* gray-6 / color-muted */
+  --text-faint: #86909C;    /* gray-5 */
+  --line: #F2F3F5;          /* gray-2 / border-color */
+  --line-strong: #E5E6EB;   /* gray-3 / border-light */
+  --shadow: 0 6px 16px 0 rgb(27 26 49 / 1%);   /* suking shadow */
+  --window-bg: #F2F3F5;
+  --titlebar-bg: rgba(255, 255, 255, 0.8);     /* navbar is-sticky 半透明 */
 
-  --btn-bg: #f5f5f7;
-  --btn-hover: #ebebed;
-  --btn-active: #d2d2d7;
+  --btn-bg: #F2F3F5;        /* gray-2 / bg-light */
+  --btn-hover: #E5E6EB;     /* gray-3 / bg-muted */
+  --btn-active: #C9CDD4;    /* gray-4 */
   --panel-bg: rgba(255, 255, 255, 0.72);
-  --table-head: #f5f5f7;
-  --table-row: #fafafa;
+  --table-head: #F2F3F5;
+  --table-row: #F7F8FA;
 
-  --inline-code-bg: #f5f5f7;
-  --inline-code-color: #1d1d1f;
+  --inline-code-bg: #F2F3F5;
+  --inline-code-color: #1D2129;
 
-  --selection-bg: rgba(0, 113, 227, 0.18);
+  --selection-bg: rgba(56, 88, 246, 0.18);
   --link-underline: transparent;
   --link-hover: transparent;
-  --link-active: rgba(0, 113, 227, 0.08);
+  --link-active: rgba(56, 88, 246, 0.08);
 
-  /* —— 提示色(告警块) —— */
+  /* —— 提示色 —— */
   --tip: oklch(0.7 0.15 165);
-  --note: oklch(0.6 0.19 250);
+  --note: #3858F6;
   --important: oklch(0.6 0.19 310);
   --warning: oklch(0.75 0.15 75);
   --caution: oklch(0.62 0.21 25);
 
-  /* —— 代码块 "Slate Paper"(保留浅米纸观感)—— */
-  --code-bg: #f5f5f7;
-  --code-topbar-bg: #ebebed;
-  --code-text: #1d1d1f;
-  --code-muted: #6e6e73;
-  --code-selection: rgba(0, 113, 227, 0.18);
+  /* —— 代码块 "Slate Paper"(保留)—— */
+  --code-bg: #F2F3F5;
+  --code-topbar-bg: #E5E6EB;
+  --code-text: #1D2129;
+  --code-muted: #86909C;
+  --code-selection: rgba(56, 88, 246, 0.18);
   --code-border: rgba(0, 0, 0, 0.08);
   --code-topbar-border: rgba(0, 0, 0, 0.06);
   --code-dot: rgba(0, 0, 0, 0.18);
@@ -69,7 +70,7 @@
   --code-token-variable: #1d1d1f;
   --code-token-variable-special: #4a6090;
   --code-token-string: #3d7b41;
-  --code-token-comment: #6e6e73;
+  --code-token-comment: #86909c;
   --code-token-tag: #7448a0;
   --code-token-heading: #1f5ca8;
   --code-token-error: #b83038;
@@ -79,10 +80,10 @@
   --code-font-weight: 440;
   --code-line-height: 1.72;
 
-  /* —— 字体(Apple SF 优先)—— */
-  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* —— 字体(suking base-font-family 系统栈)—— */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    Helvetica, "Segoe UI", Arial, Roboto, "PingFang SC", "miui",
+    "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "Maple Mono Normal NF CN",
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
@@ -90,49 +91,50 @@
   /* —— 布局尺寸 —— */
   --content-width: 860px;
   --site-width: 1200px;
-  --topbar-height: 3.25rem;
+  --topbar-height: 3.5rem;
 }
 
 /* ============================================================
-   暗色模式(Apple 深色)
+   暗色模式(suxing body[data-scheme="dark"] 还原)
    ============================================================ */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page-bg: #000000;
-  --card-bg: #1d1d1f;
-  --text: #f5f5f7;
-  --text-muted: #a1a1a6;
-  --text-faint: #86868b;
-  --primary: oklch(0.68 0.19 var(--hue));
-  --primary-strong: oklch(0.78 0.16 var(--hue));
-  --line: #424245;
-  --line-strong: #6e6e73;
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --window-bg: #1d1d1f;
-  --titlebar-bg: rgba(0, 0, 0, 0.72);
+  --primary: #4d6bff;        /* 暗底提亮,保证对比 */
+  --primary-strong: #6b87ff;
 
-  --btn-bg: #2c2c2e;
-  --btn-hover: #3a3a3c;
-  --btn-active: #48484a;
-  --panel-bg: rgba(29, 29, 31, 0.72);
-  --table-head: #2c2c2e;
-  --table-row: #1d1d1f;
+  --page-bg: #0f0f11;        /* gray-8 */
+  --card-bg: #202022;        /* gray-7 */
+  --text: #F7F8FA;           /* gray-1 */
+  --text-muted: #C9CDD4;     /* gray-4 */
+  --text-faint: #86909C;
+  --line: #303030;           /* gray-6 */
+  --line-strong: #494949;    /* gray-5 */
+  --shadow: none;            /* suking 暗色卡 box-shadow:none */
+  --window-bg: #202022;
+  --titlebar-bg: rgba(15, 15, 17, 0.72);
 
-  --inline-code-bg: #2c2c2e;
-  --inline-code-color: #f5f5f7;
+  --btn-bg: #303030;         /* gray-6 / bg-light */
+  --btn-hover: #494949;      /* gray-5 / bg-muted */
+  --btn-active: #303030;
+  --panel-bg: rgba(32, 32, 34, 0.72);
+  --table-head: #303030;
+  --table-row: #202022;
 
-  --selection-bg: rgba(10, 132, 255, 0.32);
+  --inline-code-bg: #303030;
+  --inline-code-color: #F7F8FA;
+
+  --selection-bg: rgba(77, 107, 255, 0.32);
   --link-underline: transparent;
   --link-hover: transparent;
-  --link-active: rgba(10, 132, 255, 0.18);
+  --link-active: rgba(77, 107, 255, 0.18);
 
   /* 代码块暗色 */
-  --code-bg: #1d1d1f;
+  --code-bg: #202022;
   --code-topbar-bg: #161617;
-  --code-text: #f5f5f7;
-  --code-muted: #a1a1a6;
-  --code-selection: rgba(10, 132, 255, 0.28);
+  --code-text: #F7F8FA;
+  --code-muted: #C9CDD4;
+  --code-selection: rgba(77, 107, 255, 0.28);
   --code-border: rgba(255, 255, 255, 0.1);
   --code-topbar-border: rgba(255, 255, 255, 0.06);
   --code-dot: rgba(255, 255, 255, 0.2);
@@ -144,7 +146,7 @@
   --code-token-variable: #f5f5f7;
   --code-token-variable-special: #ffb86c;
   --code-token-string: #6ee7c8;
-  --code-token-comment: #86868b;
+  --code-token-comment: #86968b;
   --code-token-tag: #c79be0;
   --code-token-heading: #7fc2ff;
   --code-token-error: #ff6b6b;

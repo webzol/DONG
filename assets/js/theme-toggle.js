@@ -1,15 +1,15 @@
 /**
- * OneDong · 暗色模式切换(三态)+ 主题色相滑块
+ * OneDong · 暗色模式切换(三态)
  * --------------------------------------------------------------
  * 三态:light(亮) → dark(暗) → auto(跟随系统) → light …
  * 首帧 data-theme 由 header.php 内联的 anti-flash 脚本在渲染前设置,避免闪白;
- * 本脚本负责:点击按钮在三态间循环、跟随系统实时变化、色相滑块联动。
+ * 本脚本负责:点击按钮在三态间循环、跟随系统实时变化。
+ * v2.0:已移除主题色相滑块逻辑(主色固定 suxing blue)。
  */
 ( function () {
 	'use strict';
 
 	var THEME_KEY = 'onedong-theme';
-	var HUE_KEY    = 'onedong-hue';
 
 	function systemDark() {
 		return !!( window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches );
@@ -52,27 +52,8 @@
 		return p === 'light' ? 'dark' : ( p === 'dark' ? 'auto' : 'light' );
 	}
 
-	// —— 主题色相滑块:实时改 --hue 并记忆 ——
-	function initHue( slider ) {
-		if ( ! slider ) {
-			return;
-		}
-		try {
-			var saved = localStorage.getItem( HUE_KEY );
-			if ( saved !== null && saved !== '' ) {
-				document.documentElement.style.setProperty( '--hue', saved );
-				slider.value = saved;
-			}
-		} catch ( e ) {}
-		slider.addEventListener( 'input', function () {
-			document.documentElement.style.setProperty( '--hue', this.value );
-			try { localStorage.setItem( HUE_KEY, this.value ); } catch ( e ) {}
-		} );
-	}
-
 	function init() {
 		var toggle = document.querySelector( '.theme-toggle' );
-		var slider = document.getElementById( 'hue-slider' );
 
 		var p = pref();
 		applyPref( p );
@@ -103,8 +84,6 @@
 				mql.addListener( onChange );
 			}
 		}
-
-		initHue( slider );
 	}
 
 	if ( document.readyState === 'loading' ) {

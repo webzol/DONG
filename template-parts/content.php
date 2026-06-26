@@ -3,15 +3,15 @@
  * 文章列表项卡片(Template Part)
  * 供 home.php / archive.php / search.php / index.php 复用。
  *
- * v1.2.0:横向 media-object 卡(左封面图 + 右内容),吸收 suxing.me 的内容呈现。
- * 无特色图回退纯文字卡(满宽);显示项受 Customizer「文章卡」开关控制。
+ * v2.0.0:suxing.me list-item 卡(上图下文 · 16:9 封面在顶 + 标题 + 摘要 + 底部 stats)。
+ * 无特色图时不渲染封面区,卡片自然降级为纯文字竖向卡;显示项受 Customizer「文章卡」开关控制。
  *
  * @package OneDong
  */
 
 $has_thumb = has_post_thumbnail() && get_theme_mod( 'onedong_show_thumbnail', 1 );
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' . ( $has_thumb ? '' : ' post-card--no-thumb' ) ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' ); ?>>
 	<?php if ( $has_thumb ) : ?>
 		<a class="post-card__thumb" href="<?php echo esc_url( get_permalink() ); ?>" tabindex="-1" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
 			<?php the_post_thumbnail( 'onedong-card', array( 'loading' => 'lazy', 'class' => 'post-card__img' ) ); ?>

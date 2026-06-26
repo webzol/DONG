@@ -69,11 +69,6 @@
 		</nav>
 
 		<div class="header-controls">
-			<label class="hue-control" title="<?php esc_attr_e( '主题色', 'onedong' ); ?>">
-				<span class="sr-only"><?php esc_html_e( '主题色', 'onedong' ); ?></span>
-				<input type="range" min="0" max="360" step="1" value="<?php echo esc_attr( (int) get_theme_mod( 'onedong_hue', 215 ) ); ?>" class="hue-slider" id="hue-slider" aria-label="<?php esc_attr_e( '主题色相', 'onedong' ); ?>">
-			</label>
-
 			<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" data-pref="auto" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
 				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true">☀️</span>
 				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true">🌙</span>
