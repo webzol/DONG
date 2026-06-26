@@ -1,0 +1,71 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"useRootPaddingAwareAlignments": true,
+		"layout": {
+			"contentSize": "860px",
+			"wideSize": "1100px"
+		},
+		"color": {
+			"link": true,
+			"custom": true,
+			"customGradient": true,
+			"defaultPalette": false,
+			"palette": [
+				{ "slug": "background", "name": "页面背景", "color": "#f2f4fa" },
+				{ "slug": "card", "name": "卡片", "color": "#ffffff" },
+				{ "slug": "foreground", "name": "正文", "color": "#2b2933" },
+				{ "slug": "primary", "name": "主色", "color": "#7c6fe0" },
+				{ "slug": "primary-strong", "name": "主色加深", "color": "#5b48b8" },
+				{ "slug": "muted", "name": "弱化文字", "color": "#6f6a7d" },
+				{ "slug": "line", "name": "分隔线", "color": "rgba(0,0,0,0.10)" },
+				{ "slug": "inline-code", "name": "行内代码底色", "color": "#e2f0ff" }
+			]
+		},
+		"typography": {
+			"customFontSize": true,
+			"dropCap": true,
+			"fontFamilies": [
+				{
+					"slug": "sans",
+					"name": "正文无衬线",
+					"fontFamily": "\"Roboto\", \"Inter\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+				},
+				{
+					"slug": "mono",
+					"name": "代码等宽",
+					"fontFamily": "\"JetBrains Mono\", \"Maple Mono Normal NF CN\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+				}
+			],
+			"fontSizes": [
+				{ "slug": "small", "name": "小", "size": "0.9rem" },
+				{ "slug": "medium", "name": "中", "size": "1rem" },
+				{ "slug": "large", "name": "大", "size": "1.4rem" },
+				{ "slug": "x-large", "name": "特大", "size": "2.25rem" }
+			]
+		},
+		"spacing": {
+			"units": [ "px", "em", "rem", "%", "vw" ]
+		}
+	},
+	"styles": {
+		"color": {
+			"background": "var(--page-bg)",
+			"text": "var(--text)"
+		},
+		"typography": {
+			"fontFamily": "var(--font-sans)",
+			"lineHeight": "1.78"
+		},
+		"elements": {
+			"link": {
+				"color": { "text": "var(--primary-strong)" }
+			},
+			"h1": { "typography": { "fontWeight": "760", "letterSpacing": "-0.025em" } },
+			"h2": { "typography": { "fontWeight": "750" } },
+			"h3": { "typography": { "fontWeight": "750" } }
+		}
+	}
+}

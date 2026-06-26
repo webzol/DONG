@@ -1,0 +1,78 @@
+<?php
+/**
+ * 页头模板
+ *
+ * @package OneDong
+ */
+?>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+	<meta charset="<?php bloginfo( 'charset' ); ?>">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="https://gmpg.org/xfn/11">
+	<?php
+	// Anti-flash:渲染前根据 localStorage/系统设置 data-theme,避免刷新闪白。
+	?>
+	<script>
+	(function(){try{var k='onedong-theme',s=localStorage.getItem(k);var d=(s==='light'||s==='dark')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',d);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+	</script>
+	<?php wp_head(); ?>
+</head>
+
+<body <?php body_class(); ?>>
+<?php wp_body_open(); ?>
+<a class="skip-link" href="#main"><?php esc_html_e( '跳到正文', 'onedong' ); ?></a>
+
+<header id="masthead" class="site-header">
+	<div class="site-header__inner">
+		<div class="site-brand">
+			<?php
+			if ( has_custom_logo() ) {
+				the_custom_logo();
+			} else {
+				?>
+				<h1 class="site-title">
+					<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
+				</h1>
+				<?php
+				$onedong_description = get_bloginfo( 'description', 'display' );
+				if ( $onedong_description || is_customize_preview() ) {
+					printf( '<p class="site-description">%s</p>', esc_html( $onedong_description ) );
+				}
+			}
+			?>
+		</div>
+
+		<nav class="primary-nav" aria-label="<?php esc_attr_e( '主导航', 'onedong' ); ?>">
+			<?php
+			if ( has_nav_menu( 'primary' ) ) {
+				wp_nav_menu(
+					array(
+						'theme_location' => 'primary',
+						'container'      => false,
+						'menu_class'     => 'menu',
+						'depth'          => 2,
+					)
+				);
+			} else {
+				wp_page_menu(
+					array(
+						'container' => false,
+						'menu_class' => 'menu',
+						'before'     => '<ul id="primary-menu" class="menu">',
+						'after'      => '</ul>',
+					)
+				);
+			}
+			?>
+		</nav>
+
+		<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" aria-pressed="false" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
+			<span class="theme-toggle__moon" aria-hidden="true">🌙</span>
+			<span class="theme-toggle__sun" aria-hidden="true">☀️</span>
+		</button>
+	</div>
+</header>
+
+<main id="main" class="site-main">

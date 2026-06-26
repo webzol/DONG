@@ -1,0 +1,119 @@
+/* ============================================================
+   OneDong · 代码块外观 + Prism.js token 配色
+   复刻 Fuwari "Slate Paper":三圆点顶栏 + 圆角浅纸背景。
+   适配 <pre><code>、古腾堡 .wp-block-code、以及 Prism 高亮。
+   ============================================================ */
+
+/* —— 代码块容器 —— */
+.entry-content pre,
+.entry-content .wp-block-code,
+.comment-content pre {
+  position: relative;
+  margin: 1rem 0;
+  padding: 3.4rem 1.25rem 1.15rem;
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-large);
+  background: var(--code-bg);
+  color: var(--code-text);
+  font-family: var(--font-mono);
+  font-size: var(--code-font-size);
+  font-weight: var(--code-font-weight);
+  line-height: var(--code-line-height);
+  overflow: auto;
+  isolation: isolate;
+}
+
+/* 顶部三圆点 + 顶栏(macOS 窗口感) */
+.entry-content pre::before,
+.entry-content .wp-block-code::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+  height: 2.55rem;
+  border-radius: var(--radius-large) var(--radius-large) 0 0;
+  background:
+    radial-gradient(circle at 1.44rem 1.19rem, var(--code-dot) 0 0.29rem, transparent 0.3rem),
+    radial-gradient(circle at 2.29rem 1.19rem, var(--code-dot) 0 0.29rem, transparent 0.3rem),
+    radial-gradient(circle at 3.14rem 1.19rem, var(--code-dot) 0 0.29rem, transparent 0.3rem),
+    linear-gradient(var(--code-topbar-bg), var(--code-topbar-bg));
+  border-bottom: 1px solid var(--code-topbar-border);
+  pointer-events: none;
+}
+
+/* 代码块内 code:重置行内样式 */
+.entry-content pre code,
+.entry-content .wp-block-code code {
+  display: block;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  border: 0;
+  border-radius: 0;
+  white-space: pre;
+}
+
+/* 代码区横向滚动条收窄 */
+.entry-content pre::-webkit-scrollbar { height: 8px; width: 8px; }
+
+/* ============================================================
+   Prism.js token —— 覆盖默认主题,套用 Fuwari Slate Paper 配色
+   ============================================================ */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--code-text);
+  background: none;
+  font-family: var(--font-mono);
+  text-shadow: none;
+  white-space: pre;
+}
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata { color: var(--code-token-comment); font-style: italic; }
+.token.punctuation { color: var(--code-token-operator); }
+.token.namespace { opacity: 0.7; }
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted { color: var(--code-token-tag); }
+.token.boolean,
+.token.number { color: var(--code-token-constant); }
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted { color: var(--code-token-string); }
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string { color: var(--code-token-operator); }
+.token.atrule,
+.token.attr-value,
+.token.keyword { color: var(--code-token-keyword); }
+.token.function,
+.token.class-name { color: var(--code-token-entity); }
+.token.regex,
+.token.important,
+.token.variable { color: var(--code-token-variable-special); }
+.token.important,
+.token.bold { font-weight: 700; }
+.token.italic { font-style: italic; }
+.token.entity { cursor: help; }
+
+/* Prism 行号插件(prism-line-numbers) */
+pre[class*="language-"].line-numbers { padding-left: 3.6rem; }
+.line-numbers .line-numbers-rows { border-right: 1px solid var(--code-topbar-border); }
+.line-numbers-rows > span::before { color: var(--code-muted); }
+
+/* 代码区选区 */
+.entry-content pre ::selection,
+.entry-content .wp-block-code ::selection { background: var(--code-selection); }

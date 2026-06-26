@@ -1,0 +1,151 @@
+/* ============================================================
+   OneDong · 设计令牌 (Design Tokens)
+   来源:Fuwari 视觉语言 · OKLCH 调色板 · 色相默认 250(蓝紫)
+   浅色 = :root  ;  暗色 = :root[data-theme="dark"]
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* —— 主色相(可由 functions.php 注入 customizer 覆盖) —— */
+  --hue: 250;
+
+  /* —— 圆角体系 —— */
+  --radius-large: 1rem;
+  --radius-medium: 0.75rem;
+  --radius-small: 0.5rem;
+
+  /* —— 浅色调色板 —— */
+  --page-bg: oklch(0.95 0.01 var(--hue));
+  --card-bg: #ffffff;
+  --text: oklch(0.25 0.02 var(--hue));
+  --text-muted: color-mix(in oklch, var(--text) 62%, transparent);
+  --text-faint: color-mix(in oklch, var(--text) 38%, transparent);
+  --primary: oklch(0.70 0.14 var(--hue));
+  --primary-strong: oklch(0.60 0.13 var(--hue));
+  --line: rgba(0, 0, 0, 0.10);
+  --line-strong: rgba(0, 0, 0, 0.18);
+  --shadow: 0 18px 48px rgba(65, 56, 98, 0.10), 0 4px 14px rgba(65, 56, 98, 0.06);
+  --window-bg: #f2f4fa;
+  --titlebar-bg: rgba(242, 244, 250, 0.88);
+
+  --btn-bg: oklch(0.95 0.025 var(--hue));
+  --btn-hover: oklch(0.90 0.05 275);
+  --btn-active: oklch(0.85 0.08 var(--hue));
+  --panel-bg: rgba(255, 255, 255, 0.82);
+  --table-head: oklch(0.97 0.015 var(--hue));
+  --table-row: oklch(0.985 0.006 var(--hue));
+
+  --inline-code-bg: #e2f0ff;
+  --inline-code-color: oklch(0.55 0.12 var(--hue));
+
+  --selection-bg: oklch(0.90 0.05 var(--hue));
+  --link-underline: oklch(0.93 0.04 var(--hue));
+  --link-hover: oklch(0.95 0.025 var(--hue));
+  --link-active: oklch(0.90 0.05 var(--hue));
+
+  /* —— 提示色(告警块) —— */
+  --tip: oklch(0.70 0.14 180);
+  --note: oklch(0.70 0.14 250);
+  --important: oklch(0.70 0.14 310);
+  --warning: oklch(0.70 0.14 60);
+  --caution: oklch(0.60 0.20 25);
+
+  /* —— 代码块 "Slate Paper" —— */
+  --code-bg: #f6f7fc;
+  --code-topbar-bg: #eef0f7;
+  --code-text: #1a1e26;
+  --code-muted: #586070;
+  --code-selection: rgba(92, 82, 196, 0.20);
+  --code-border: rgba(26, 30, 38, 0.12);
+  --code-topbar-border: rgba(26, 30, 38, 0.08);
+  --code-dot: rgba(26, 30, 38, 0.20);
+
+  --code-token-keyword: #5540b8;
+  --code-token-operator: #36445e;
+  --code-token-constant: #b3500e;
+  --code-token-entity: #1f5ca8;
+  --code-token-variable: #1a1e26;
+  --code-token-variable-special: #4a6090;
+  --code-token-string: #0b7870;
+  --code-token-comment: #586070;
+  --code-token-tag: #7448a0;
+  --code-token-heading: #1f5ca8;
+  --code-token-error: #b83038;
+  --code-token-matching: #4a6090;
+
+  --code-font-size: 0.93rem;
+  --code-font-weight: 450;
+  --code-line-height: 1.72;
+
+  /* —— 字体 —— */
+  --font-sans: "Roboto", "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "WenQuanYi Micro Hei", Arial, sans-serif;
+  --font-mono: "Maple Mono Normal NF CN", "JetBrains Mono Variable", "JetBrains Mono",
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* —— 布局尺寸 —— */
+  --content-width: 860px;
+  --site-width: 1100px;
+  --topbar-height: 3.5rem;
+}
+
+/* ============================================================
+   暗色模式 —— 按色相 250 反演
+   ============================================================ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page-bg: oklch(0.18 0.018 var(--hue));
+  --card-bg: oklch(0.225 0.022 var(--hue));
+  --text: oklch(0.93 0.012 var(--hue));
+  --text-muted: color-mix(in oklch, var(--text) 66%, transparent);
+  --text-faint: color-mix(in oklch, var(--text) 40%, transparent);
+  --primary: oklch(0.72 0.14 var(--hue));
+  --primary-strong: oklch(0.80 0.13 var(--hue));
+  --line: rgba(255, 255, 255, 0.10);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.42), 0 4px 14px rgba(0, 0, 0, 0.30);
+  --window-bg: oklch(0.155 0.02 var(--hue));
+  --titlebar-bg: rgba(20, 22, 32, 0.82);
+
+  --btn-bg: color-mix(in oklch, var(--card-bg) 80%, var(--primary) 20%);
+  --btn-hover: color-mix(in oklch, var(--card-bg) 70%, var(--primary) 30%);
+  --btn-active: color-mix(in oklch, var(--card-bg) 60%, var(--primary) 40%);
+  --panel-bg: rgba(28, 30, 42, 0.82);
+  --table-head: color-mix(in oklch, var(--card-bg) 88%, var(--primary) 12%);
+  --table-row: color-mix(in oklch, var(--card-bg) 96%, var(--primary) 4%);
+
+  --inline-code-bg: color-mix(in oklch, var(--primary) 28%, var(--card-bg));
+  --inline-code-color: oklch(0.82 0.12 var(--hue));
+
+  --selection-bg: oklch(0.50 0.10 var(--hue));
+  --link-underline: oklch(0.45 0.10 var(--hue));
+  --link-hover: color-mix(in oklch, var(--primary) 28%, transparent);
+  --link-active: color-mix(in oklch, var(--primary) 40%, transparent);
+
+  /* 代码块暗色 */
+  --code-bg: oklch(0.20 0.018 260);
+  --code-topbar-bg: oklch(0.17 0.018 260);
+  --code-text: oklch(0.92 0.01 var(--hue));
+  --code-muted: oklch(0.65 0.02 var(--hue));
+  --code-selection: rgba(120, 110, 220, 0.28);
+  --code-border: rgba(255, 255, 255, 0.08);
+  --code-topbar-border: rgba(255, 255, 255, 0.05);
+  --code-dot: rgba(255, 255, 255, 0.22);
+
+  --code-token-keyword: #b3a3ff;
+  --code-token-operator: #9fb0d0;
+  --code-token-constant: #ffb380;
+  --code-token-entity: #7fc2ff;
+  --code-token-variable: oklch(0.92 0.01 var(--hue));
+  --code-token-variable-special: #ffb86c;
+  --code-token-string: #6ee7c8;
+  --code-token-comment: oklch(0.65 0.02 var(--hue));
+  --code-token-tag: #c79be0;
+  --code-token-heading: #7fc2ff;
+  --code-token-error: #ff6b6b;
+  --code-token-matching: #9fb0d0;
+}
