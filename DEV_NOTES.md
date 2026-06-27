@@ -179,3 +179,15 @@
 - 默认缩略图当前**仅列表卡**(content.php);`single.php` 页头、侧栏最新/热门文章缩略图无图时仍各自回退(不显示 / 占位图标),未统一铺开,如需一致可后续扩展。
 - `screenshot.png` / `default-thumb.png` 为二进制,git 正常追踪;微信临时源图(`xwechat_files\...\temp`)可能被占用,已先 PowerShell 读尺寸再 FromFile 处理。
 - `onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.2(2026-06-27)· 作者卡统计分离 + 黄V认证
+
+### 改动
+- **统计独立成卡**(`sidebar-left.php` + `layout.css`):作者卡的「文章数 / 评论数」从作者信息卡(头像+名字+描述)里**分离**,成为下方独立的 `.widget-profile-stats` 卡片(仍由 `onedong_left_author` + `onedong_show_author_stats` 开关控制),不再与头像信息挤在一起。原 `.widget-profile__stats` 的 `border-top` / `margin-top` 移除(独立卡自带 padding/边框)。
+- **黄V认证图标**:头像右下角加 `.widget-profile__verified`(内联 SVG:黄圆 `#FFB300` + 白勾),卡色描边(`card-bg` 垫底 + `line-strong` ring)与头像描边一致,暗色模式自动适配。头像包 `.widget-profile__avatar-wrap`(relative)承载徽章。
+- 版本 2.3.1→2.3.2。
+
+### 坑 / 注意
+- 黄V 固定黄色(认证色),不随暗色模式变。
+- 统计卡与作者卡现为两个独立 `.widget`,中间有间距,视觉上"分开"。
+- `onedong.zip` 仍为外部不明改动,未纳入本次提交。

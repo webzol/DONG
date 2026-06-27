@@ -27,39 +27,49 @@ if ( ! $any_left ) {
 
 	<?php if ( get_theme_mod( 'onedong_left_author', 1 ) ) : ?>
 		<section class="widget widget-profile">
-			<?php
-			$avatar_source = get_theme_mod( 'onedong_avatar_source', 'logo' );
-			if ( 'logo' === $avatar_source && has_custom_logo() ) :
-				$logo_id = get_theme_mod( 'custom_logo' );
-				echo wp_get_attachment_image(
-					$logo_id,
-					array( 96, 96 ),
-					false,
-					array(
-						'class' => 'widget-profile__avatar',
-						'alt'   => esc_attr( get_bloginfo( 'name' ) ),
-					)
-				);
-			elseif ( 'gravatar' === $avatar_source ) :
-				echo get_avatar(
-					get_bloginfo( 'admin_email' ),
-					96,
-					'retro',
-					esc_attr( get_bloginfo( 'name' ) ),
-					array( 'class' => 'widget-profile__avatar' )
-				);
-			endif;
-			?>
+			<div class="widget-profile__avatar-wrap">
+				<?php
+				$avatar_source = get_theme_mod( 'onedong_avatar_source', 'logo' );
+				if ( 'logo' === $avatar_source && has_custom_logo() ) :
+					$logo_id = get_theme_mod( 'custom_logo' );
+					echo wp_get_attachment_image(
+						$logo_id,
+						array( 96, 96 ),
+						false,
+						array(
+							'class' => 'widget-profile__avatar',
+							'alt'   => esc_attr( get_bloginfo( 'name' ) ),
+						)
+					);
+				elseif ( 'gravatar' === $avatar_source ) :
+					echo get_avatar(
+						get_bloginfo( 'admin_email' ),
+						96,
+						'retro',
+						esc_attr( get_bloginfo( 'name' ) ),
+						array( 'class' => 'widget-profile__avatar' )
+					);
+				endif;
+				?>
+				<span class="widget-profile__verified" aria-label="<?php esc_attr_e( '认证作者', 'onedong' ); ?>">
+					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<circle cx="12" cy="12" r="11" fill="#FFB300"/>
+						<path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</span>
+			</div>
 			<h2 class="widget-profile__name"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h2>
 			<?php if ( get_bloginfo( 'description' ) ) : ?>
 				<p class="widget-profile__desc"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></p>
 			<?php endif; ?>
+		</section>
 
-			<?php if ( get_theme_mod( 'onedong_show_author_stats', 1 ) ) : ?>
-				<?php
-				$post_count    = (int) wp_count_posts()->publish;
-				$comment_count = (int) wp_count_comments()->approved;
-				?>
+		<?php if ( get_theme_mod( 'onedong_show_author_stats', 1 ) ) : ?>
+			<?php
+			$post_count    = (int) wp_count_posts()->publish;
+			$comment_count = (int) wp_count_comments()->approved;
+			?>
+			<section class="widget widget-profile-stats">
 				<div class="widget-profile__stats">
 					<span class="widget-profile__stat">
 						<strong><?php onedong_icon( 'hash' ); ?><?php echo esc_html( number_format_i18n( $post_count ) ); ?></strong>
@@ -70,8 +80,8 @@ if ( ! $any_left ) {
 						<small><?php esc_html_e( '评论', 'onedong' ); ?></small>
 					</span>
 				</div>
-			<?php endif; ?>
-		</section>
+			</section>
+		<?php endif; ?>
 	<?php endif; ?>
 
 	<?php if ( get_theme_mod( 'onedong_left_text', 0 ) ) { onedong_widget_text( 'left' ); } ?>
