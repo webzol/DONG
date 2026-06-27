@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.3.6' );
+define( 'ONEDONG_VERSION', '2.3.7' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -505,6 +505,27 @@ function onedong_sanitize_avatar_source( $value ) {
 }
 
 /**
+ * 右侧栏模块顺序净化:逗号分隔 key,仅留合法值并去重;空则回退默认顺序。
+ *
+ * @param string $value 原始输入。
+ * @return string
+ */
+function onedong_sanitize_order( $value ) {
+	$valid = array( 'cats', 'tags', 'recent', 'popular', 'archive', 'text' );
+	$parts = array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
+	$out   = array();
+	foreach ( $parts as $p ) {
+		if ( in_array( $p, $valid, true ) && ! in_array( $p, $out, true ) ) {
+			$out[] = $p;
+		}
+	}
+	if ( empty( $out ) ) {
+		return 'cats,tags,recent,popular,archive,text';
+	}
+	return implode( ',', $out );
+}
+
+/**
  * Customizer:文章卡 / 侧栏作者卡 显示项(v2.0:已移除主色色相滑块,主色固定 suxing blue)。
  *
  * @param WP_Customize_Manager $wp_customize Customizer 实例。
@@ -661,6 +682,79 @@ function onedong_customize_register( $wp_customize ) {
 		)
 	);
 
+	// 左侧栏:图片模块(开关 + 上传/URL + 标题 + 描述)
+	$wp_customize->add_setting(
+		'onedong_left_image',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'onedong_sanitize_checkbox',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_left_image',
+		array(
+			'label'   => __( '显示图片模块', 'onedong' ),
+			'section' => 'onedong_sidebar',
+			'type'    => 'checkbox',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_left_image_url',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_left_image_url',
+			array(
+				'label'       => __( '图片', 'onedong' ),
+				'description' => __( '点击选择 / 上传,或直接粘贴图片地址。开启「显示图片模块」后显示。', 'onedong' ),
+				'section'     => 'onedong_sidebar',
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_left_image_title',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_left_image_title',
+		array(
+			'label'   => __( '图片标题', 'onedong' ),
+			'section' => 'onedong_sidebar',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_left_image_desc',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'wp_kses_post',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_left_image_desc',
+		array(
+			'label'       => __( '图片描述', 'onedong' ),
+			'description' => __( '支持基础 HTML。', 'onedong' ),
+			'section'     => 'onedong_sidebar',
+			'type'        => 'textarea',
+		)
+	);
+
 	// —— 右侧栏模块(新 section;分类/标签默认开,其余默认关)——
 	$wp_customize->add_section(
 		'onedong_sidebar_right',
@@ -714,6 +808,25 @@ function onedong_customize_register( $wp_customize ) {
 			'description' => __( '支持基础 HTML(粗体 / 链接 / 列表)。开启「自定义文本块」后显示。', 'onedong' ),
 			'section'     => 'onedong_sidebar_right',
 			'type'        => 'textarea',
+		)
+	);
+
+	// 右侧栏:模块显示顺序(逗号分隔 key;空/非法回退默认)
+	$wp_customize->add_setting(
+		'onedong_right_order',
+		array(
+			'default'           => 'cats,tags,recent,popular,archive,text',
+			'sanitize_callback' => 'onedong_sanitize_order',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_order',
+		array(
+			'label'       => __( '模块显示顺序', 'onedong' ),
+			'description' => __( '从上到下的模块顺序,逗号分隔。可选:cats(分类)/ tags(标签)/ recent(最新)/ popular(热门)/ archive(归档)/ text(文本)。例:tags,cats,recent', 'onedong' ),
+			'section'     => 'onedong_sidebar_right',
+			'type'        => 'text',
 		)
 	);
 
@@ -977,6 +1090,125 @@ function onedong_widget_text( $side ) {
 		<?php echo wp_kses_post( $text ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 已 wp_kses_post 校验 ?>
 	</section>
 	<?php
+}
+
+/**
+ * 侧栏模块:分类(带文章数,按文章数倒序,前 12)。
+ */
+function onedong_widget_cats() {
+	$cats = get_categories(
+		array(
+			'orderby' => 'count',
+			'order'   => 'DESC',
+			'number'  => 12,
+		)
+	);
+	if ( empty( $cats ) || is_wp_error( $cats ) ) {
+		return;
+	}
+	?>
+	<section class="widget widget-cats">
+		<h2 class="widget-title"><?php esc_html_e( '分类', 'onedong' ); ?></h2>
+		<ul class="widget-cats__list">
+			<?php foreach ( $cats as $cat ) : ?>
+				<li>
+					<a href="<?php echo esc_url( get_category_link( $cat ) ); ?>"><?php echo esc_html( $cat->name ); ?></a>
+					<span class="count"><?php echo esc_html( number_format_i18n( $cat->count ) ); ?></span>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+	</section>
+	<?php
+}
+
+/**
+ * 侧栏模块:标签云(药丸)。
+ */
+function onedong_widget_tags() {
+	$tags = get_tags();
+	if ( empty( $tags ) || is_wp_error( $tags ) ) {
+		return;
+	}
+	?>
+	<section class="widget widget-tags">
+		<h2 class="widget-title"><?php esc_html_e( '标签', 'onedong' ); ?></h2>
+		<div class="widget-tags__cloud">
+			<?php
+			foreach ( $tags as $tag ) {
+				printf(
+					'<a href="%1$s" class="tag-link">%2$s</a>',
+					esc_url( get_tag_link( $tag ) ),
+					esc_html( $tag->name )
+				);
+			}
+			?>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * 侧栏模块:图片(上传 / URL)+ 标题 + 描述。
+ * setting:onedong_left_image_url / _title / _desc。
+ */
+function onedong_widget_image() {
+	$url   = get_theme_mod( 'onedong_left_image_url', '' );
+	$title = get_theme_mod( 'onedong_left_image_title', '' );
+	$desc  = get_theme_mod( 'onedong_left_image_desc', '' );
+	if ( ! $url ) {
+		return;
+	}
+	?>
+	<section class="widget widget-image">
+		<img class="widget-image__img" src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( wp_strip_all_tags( $title ) ); ?>" loading="lazy">
+		<?php if ( $title ) : ?>
+			<h2 class="widget-image__title"><?php echo esc_html( $title ); ?></h2>
+		<?php endif; ?>
+		<?php if ( trim( wp_strip_all_tags( $desc ) ) ) : ?>
+			<div class="widget-image__desc"><?php echo wp_kses_post( $desc ); ?></div>
+		<?php endif; ?>
+	</section>
+	<?php
+}
+
+/**
+ * 右侧栏模块分发(按 key 渲染对应模块;内部按各自开关判断是否输出)。
+ *
+ * @param string $k cats / tags / recent / popular / archive / text。
+ */
+function onedong_render_right_module( $k ) {
+	switch ( $k ) {
+		case 'cats':
+			if ( get_theme_mod( 'onedong_right_cats', 1 ) ) {
+				onedong_widget_cats();
+			}
+			break;
+		case 'tags':
+			if ( get_theme_mod( 'onedong_right_tags', 1 ) ) {
+				onedong_widget_tags();
+			}
+			break;
+		case 'recent':
+			if ( get_theme_mod( 'onedong_right_recent', 0 ) ) {
+				onedong_widget_recent_posts();
+			}
+			break;
+		case 'popular':
+			if ( get_theme_mod( 'onedong_right_popular', 0 ) ) {
+				onedong_widget_popular_posts();
+			}
+			break;
+		case 'archive':
+			if ( get_theme_mod( 'onedong_right_archive', 0 ) ) {
+				onedong_widget_archive();
+			}
+			break;
+		case 'text':
+			if ( get_theme_mod( 'onedong_right_text', 0 ) ) {
+				onedong_widget_text( 'right' );
+			}
+			break;
+	}
 }
 
 /**

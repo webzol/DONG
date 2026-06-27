@@ -241,3 +241,15 @@
 - 占位走 CSS 容器背景(非 img `src`),`<img>` 仍在 DOM(SEO/可访问性不受影响);仅视觉加载态。
 - 150KB PNG 占位仍偏大,如需更轻可转 jpg 或进一步缩小尺寸。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.7(2026-06-27)· 右栏模块顺序可调 + 左栏图片模块
+
+### 改动
+- **右栏模块顺序可调**(`functions.php` + `sidebar.php`):新增 `onedong_right_order`(text,逗号分隔 key,默认 `cats,tags,recent,popular,archive,text`)+ `onedong_sanitize_order`。抽出 `onedong_widget_cats()` / `onedong_widget_tags()`(原 sidebar.php 内联)+ `onedong_render_right_module($k)` 分发。`sidebar.php` 改为解析 order 顺序渲染(用户 order 优先,未列出的按默认顺序兜底),各模块仍受各自开关控制。
+- **左栏图片模块**(`functions.php` + `sidebar-left.php` + `layout.css`):新增模块。Customizer 提供:开关 `onedong_left_image`、`WP_Customize_Image_Control`(`onedong_left_image_url`,支持上传 / 媒体库 / 粘贴地址)、标题 `onedong_left_image_title`、描述 `onedong_left_image_desc`(`wp_kses_post`)。`onedong_widget_image()` 渲染(图 + 标题 + 描述)。sidebar-left 顺序:作者卡 → **图片** → 文本 → 最新 → 热门。
+- 版本 2.3.6→2.3.7。
+
+### 坑 / 注意
+- 顺序用 text 框填 key(**非拖拽**,WP Customizer 原生无拖拽排序控件,要做得写自定义 JS);description 已列 key 含义。
+- `WP_Customize_Image_Control` 存的是图片 **URL**(非 attachment ID);前端 `<img src=url>`,外链图直接可用,无需媒体库。
+- 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

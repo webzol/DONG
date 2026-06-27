@@ -1198,3 +1198,25 @@ html.js [data-reveal].is-revealed {
 .site-icp { font-size: 0.78rem; color: var(--text-faint); }
 .site-icp a { color: var(--text-faint); text-decoration: none; }
 .site-icp a:hover { color: var(--primary); text-decoration: underline; }
+
+/* —— 左侧栏:图片模块 —— */
+.widget-image { text-align: center; }
+.widget-image__img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  display: block;
+}
+.widget-image__title {
+  margin: 0.6rem 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.widget-image__desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.widget-image__desc a { color: var(--primary); text-decoration: underline; }
