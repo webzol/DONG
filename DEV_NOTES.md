@@ -124,3 +124,22 @@
 ### 坑 / 注意
 - 开发机无 php,`php -l` 未跑,待线上/本地 WP 启用时复验(建议 `Theme Check` 插件复查)。
 - 分类贴片 `pointer-events:none` → 贴片本身不可点跳分类页(纯展示);若需可点,需把封面 `<a class="post-card__thumb">` 重构为非链接容器,但会牵动 stretched-link 整卡点击逻辑,本期不动。
+
+## v2.2.0(2026-06-27)· 评论 + Article schema + 滚动入场动画
+
+### 改动
+- **评论功能**(`comments.php` 新建 + `single.php` + `functions.php` + `assets/css/layout.css`):补齐 v1.0 遗留缺口。
+  - 新建 `comments.php`:评论列表(自定义回调 `onedong_comment_callback`:头像 + 作者 + 日期 + 内容 + 回复/编辑)+ pingback/trackback 简化行 + 分页 + `comment_form()` 表单。
+  - `single.php` 末尾挂 `comments_template()`(`comments_open() || get_comments_number()` 才显示)。
+  - 回调设 `$GLOBALS['comment']`(评论惯例,`comment_text`/`comment_author_link` 等依赖全局);`comment_reply_link` 用 `div-comment` 锚点(嵌套回复 add_below)。
+  - layout.css 补 `.comments-area` 全套(列表 / 嵌套缩进 / 头像 / 待审药丸 / 表单 / 取消回复 / 移动端)。
+- **Article schema**(`functions.php`):`onedong_article_schema()` 挂 `wp_head`,仅单篇 post 输出 `BlogPosting` JSON-LD(headline / datePublished / dateModified / author / publisher+logo / image / description / mainEntityOfPage)。无特色图时 image 回退站点图标。
+- **滚动入场动画**(零依赖自写 IntersectionObserver,**非** AOS 库,符合主题零依赖调性):`assets/js/reveal.js` 给 `[data-reveal]` 入视口加 `.is-revealed`;`template-parts/content.php` 文章卡加 `data-reveal`。反 FOUC:`<html class="no-js">` + header anti-flash 脚本首帧前同步替换 no-js→js,CSS 用 `html.js [data-reveal]{opacity:0}` 隐藏;**无 JS / 无 IO 兜底可见**;`prefers-reduced-motion` 禁用。侧栏首屏可见未加(避免初始隐藏影响布局感知)。
+- 版本 2.1.0→2.2.0(`style.css` + `ONEDONG_VERSION`,刷资产 URL 缓存)。
+
+### 坑 / 注意
+- 开发机无 php,`php -l` 未跑,待线上/本地 WP 启用时复验(建议 `Theme Check` 插件 + Google 富结果测试验 schema + 后台开启评论实测)。
+- `get_the_excerpt( $post_id )` 在 `wp_head` 阶段调用:WP 主查询已 setup 单篇,可用;已 `wp_strip_all_tags` 防 HTML 进 description。
+- 评论回调 `$GLOBALS['comment']`:phpcs 报 `WordPress.WP.GlobalVariablesOverride`,加 `ignore` 注释(标准主题惯例)。
+- **评论默认需后台开启**:「设置 → 讨论」勾「允许他人提交评论」;主题只出模板,开关由站点控制。
+- 入场动画:`[data-reveal]` 初始 `opacity:0`,依赖 JS 把 no-js→js 才隐藏;若 JS 禁用则 `<html>` 保持 no-js、元素可见,**无内容丢失风险**(对 SEO/可访问性友好)。

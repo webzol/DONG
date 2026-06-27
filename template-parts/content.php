@@ -12,7 +12,7 @@
 $has_thumb = has_post_thumbnail() && get_theme_mod( 'onedong_show_thumbnail', 1 );
 $cats      = get_the_category();
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' ); ?> data-reveal>
 	<?php if ( $has_thumb ) : ?>
 		<a class="post-card__thumb" href="<?php echo esc_url( get_permalink() ); ?>" tabindex="-1" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
 			<?php the_post_thumbnail( 'onedong-card', array( 'loading' => 'lazy', 'class' => 'post-card__img' ) ); ?>

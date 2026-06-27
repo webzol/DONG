@@ -46,6 +46,13 @@ get_header();
 		</article>
 
 		<?php onedong_post_nav(); ?>
+
+		<?php
+		// 评论(开启评论或有评论时显示)
+		if ( comments_open() || get_comments_number() ) {
+			comments_template();
+		}
+		?>
 	<?php endwhile; ?>
 </div>
 <?php

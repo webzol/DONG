@@ -6,7 +6,7 @@
  */
 ?>
 <!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?> class="no-js">
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,7 @@
 	?>
 	<script>
 	(function(){try{var k='onedong-theme',s=localStorage.getItem(k);var d=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=(s==='light'||s==='dark')?s:(d?'dark':'light');document.documentElement.setAttribute('data-theme',r);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+	document.documentElement.className=document.documentElement.className.replace(/\bno-js\b/,' js');
 	</script>
 	<?php wp_head(); ?>
 </head>

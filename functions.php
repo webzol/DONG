@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.1.0' );
+define( 'ONEDONG_VERSION', '2.2.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -105,6 +105,9 @@ function onedong_scripts() {
 
 	// 暗色切换
 	wp_enqueue_script( 'onedong-toggle', ONEDONG_URI . '/assets/js/theme-toggle.js', array(), $ver, true );
+
+	// 滚动入场动画(渐进增强 · 零依赖)
+	wp_enqueue_script( 'onedong-reveal', ONEDONG_URI . '/assets/js/reveal.js', array(), $ver, true );
 
 	// 线程评论(若日后开启评论)
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -249,6 +252,80 @@ function onedong_reading_stats() {
 }
 
 /**
+ * 单篇文章输出 BlogPosting JSON-LD 结构化数据(SEO 富结果)。
+ * 挂 wp_head,仅 is_singular('post') 输出。无特色图时图片字段回退站点图标。
+ */
+function onedong_article_schema() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+	$post_id = get_the_ID();
+	if ( ! $post_id ) {
+		return;
+	}
+
+	$author_id = (int) get_post_field( 'post_author', $post_id );
+
+	// 图片:特色图 full,缺则站点图标
+	$image_url = '';
+	if ( has_post_thumbnail( $post_id ) ) {
+		$img = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
+		if ( ! empty( $img[0] ) ) {
+			$image_url = $img[0];
+		}
+	}
+	if ( ! $image_url ) {
+		$image_url = get_site_icon_url();
+	}
+
+	$description = wp_strip_all_tags( get_the_excerpt( $post_id ) );
+	if ( '' === $description ) {
+		$description = wp_strip_all_tags( get_the_title( $post_id ) );
+	}
+
+	$schema = array(
+		'@context'         => 'https://schema.org',
+		'@type'            => 'BlogPosting',
+		'mainEntityOfPage' => array(
+			'@type' => 'WebPage',
+			'@id'   => get_permalink( $post_id ),
+		),
+		'headline'         => wp_strip_all_tags( get_the_title( $post_id ) ),
+		'description'      => $description,
+		'datePublished'    => get_the_date( 'c', $post_id ),
+		'dateModified'     => get_the_modified_date( 'c', $post_id ),
+		'author'           => array(
+			'@type' => 'Person',
+			'name'  => get_the_author_meta( 'display_name', $author_id ),
+			'url'   => get_author_posts_url( $author_id ),
+		),
+		'publisher'        => array(
+			'@type' => 'Organization',
+			'name'  => get_bloginfo( 'name' ),
+			'url'   => home_url( '/' ),
+		),
+	);
+
+	if ( $image_url ) {
+		$schema['image'] = array(
+			'@type' => 'ImageObject',
+			'url'   => $image_url,
+		);
+	}
+
+	$logo = get_site_icon_url();
+	if ( $logo ) {
+		$schema['publisher']['logo'] = array(
+			'@type' => 'ImageObject',
+			'url'   => $logo,
+		);
+	}
+
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'onedong_article_schema', 20 );
+
+/**
  * 输出文章元信息(日期 / 作者 / 分类 / 评论数)。
  * 供 template-parts/content.php 与 single.php 复用。
  */
@@ -322,6 +399,79 @@ function onedong_post_nav() {
 			</a>
 		<?php endif; ?>
 	</nav>
+	<?php
+}
+
+/**
+ * 单条评论 / pingback 渲染回调(wp_list_comments callback)。
+ * 评论:头像 + 作者 + 日期 + 内容 + 回复/编辑;pingback/trackback 简化为一行。
+ *
+ * @param WP_Comment $comment 当前评论对象。
+ * @param array      $args     wp_list_comments 参数。
+ * @param int        $depth    嵌套深度。
+ */
+function onedong_comment_callback( $comment, $args, $depth ) {
+	$GLOBALS['comment'] = $comment; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- 评论回调惯例,comment_text/author 等依赖全局
+
+	// pingback / trackback:简化渲染
+	if ( 'pingback' === $comment->comment_type || 'trackback' === $comment->comment_type ) {
+		?>
+		<li id="comment-<?php comment_ID(); ?>" <?php comment_class( 'pingback' ); ?>>
+			<div class="pingback__body">
+				<?php onedong_icon( 'chat' ); ?>
+				<span class="pingback__text"><?php comment_author_link(); ?> · <?php echo esc_html( get_comment_date() ); ?></span>
+			</div>
+		<?php
+		return;
+	}
+	?>
+	<li id="comment-<?php comment_ID(); ?>" <?php comment_class( 'comment' ); ?>>
+		<article class="comment__body" id="div-comment-<?php comment_ID(); ?>">
+			<div class="comment__avatar">
+				<?php
+				echo get_avatar(
+					$comment,
+					empty( $args['avatar_size'] ) ? 44 : $args['avatar_size'],
+					'',
+					'',
+					array( 'class' => 'avatar' )
+				);
+				?>
+			</div>
+			<div class="comment__content">
+				<header class="comment__meta">
+					<cite class="comment__author"><?php comment_author_link(); ?></cite>
+					<time class="comment__date" datetime="<?php echo esc_attr( get_comment_time( 'c' ) ); ?>">
+						<?php onedong_icon( 'calendar' ); ?>
+						<?php echo esc_html( get_comment_date() . ' · ' . get_comment_time() ); ?>
+					</time>
+				</header>
+
+				<?php if ( '0' === $comment->comment_approved ) : ?>
+					<p class="comment__pending"><?php esc_html_e( '该评论正在等待审核。', 'onedong' ); ?></p>
+				<?php endif; ?>
+
+				<div class="comment__text"><?php comment_text(); ?></div>
+
+				<footer class="comment__actions">
+					<?php
+					comment_reply_link(
+						array_merge(
+							$args,
+							array(
+								'add_below' => 'div-comment',
+								'depth'     => $depth,
+								'max_depth' => $args['max_depth'],
+								'before'    => '<span class="comment-reply-wrap">',
+								'after'     => '</span>',
+							)
+						)
+					);
+					edit_comment_link( __( '编辑', 'onedong' ), '<span class="comment-edit-wrap">', '</span>' );
+					?>
+				</footer>
+			</div>
+		</article>
 	<?php
 }
 
