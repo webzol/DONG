@@ -79,7 +79,7 @@ if ( ! $any_left ) {
 			<section class="widget widget-profile-stats">
 				<div class="widget-profile__stats">
 					<span class="widget-profile__stat">
-						<strong><?php onedong_icon( 'hash' ); ?><?php echo esc_html( number_format_i18n( $post_count ) ); ?></strong>
+						<strong><?php onedong_icon( 'document' ); ?><?php echo esc_html( number_format_i18n( $post_count ) ); ?></strong>
 						<small><?php esc_html_e( '文章', 'onedong' ); ?></small>
 					</span>
 					<span class="widget-profile__stat">

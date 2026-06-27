@@ -218,3 +218,15 @@
 - 取 `display_name`(后台「公开显示为」);若要 `nickname` 字段改 `->nickname`。
 - admin_email 对应用户须存在且 display_name 已设,否则回退站点名。
 - 绿色固定(在线色),不随暗色变;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.5(2026-06-27)· 文章卡作者 byline + 文章数图标
+
+### 改动
+- **文章卡作者 byline**(`template-parts/content.php` + `assets/css/layout.css`):文章卡 meta 行新增作者信息——头像(`get_avatar( get_the_author_meta('ID') )`,1.5rem 圆,带黄V `.post-card__verified`)+ 昵称(`the_author()`)+ 在线绿点(复用 `.online-dot`)。位置:标题下 meta 行,与日期同行(紧凑协调,不额外占行)。
+- **文章数图标**(`sidebar-left.php` + `functions.php`):左栏作者卡「文章」数旁的 `#`(hash)换成 **`document`**(文档)图标,更贴切;评论数仍用 `chat`。
+- 版本 2.3.4→2.3.5。
+
+### 坑 / 注意
+- 文章卡作者取**单篇文章作者**(`get_the_author_meta`),与左栏作者卡(取 `admin_email` 用户)在多作者博客可能不同;单作者博客一致。
+- ⚠️ 线上 `dingxudong.com` 仍跑 **Once-main** 主题(非 OneDong),所有改动需部署 + 启用 OneDong + 刷腾讯云 CDN 才生效。
+- `onedong.zip` 仍为外部不明改动,未纳入本次提交。
