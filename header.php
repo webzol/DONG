@@ -70,9 +70,9 @@
 
 		<div class="header-controls">
 			<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" data-pref="auto" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
-				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true">☀️</span>
-				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true">🌙</span>
-				<span class="theme-toggle__icon theme-toggle__auto" aria-hidden="true">🖥️</span>
+				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true"><?php onedong_icon( 'sun' ); ?></span>
+				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true"><?php onedong_icon( 'moon' ); ?></span>
+				<span class="theme-toggle__icon theme-toggle__auto" aria-hidden="true"><?php onedong_icon( 'monitor' ); ?></span>
 			</button>
 		</div>
 	</div>

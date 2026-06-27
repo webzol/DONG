@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.0.0' );
+define( 'ONEDONG_VERSION', '2.1.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -154,7 +154,7 @@ add_filter( 'excerpt_length', 'onedong_excerpt_length' );
 /**
  * 内联 SVG 图标(零依赖;符合「禁用 emoji 当图标」规范)。
  *
- * @param string $name 图标名:calendar / eye / chat / clock / hash / user。
+ * @param string $name 图标名:calendar / eye / chat / clock / hash / user / sun / moon / monitor。
  * @return string SVG 标记(未知名返回空串)。
  */
 function onedong_get_icon( $name ) {
@@ -165,6 +165,9 @@ function onedong_get_icon( $name ) {
 		'clock'    => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
 		'hash'     => '<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
 		'user'     => '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+		'sun'      => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+		'moon'     => '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+		'monitor'  => '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
