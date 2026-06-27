@@ -230,3 +230,14 @@
 - 文章卡作者取**单篇文章作者**(`get_the_author_meta`),与左栏作者卡(取 `admin_email` 用户)在多作者博客可能不同;单作者博客一致。
 - ⚠️ 线上 `dingxudong.com` 仍跑 **Once-main** 主题(非 OneDong),所有改动需部署 + 启用 OneDong + 刷腾讯云 CDN 才生效。
 - `onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.6(2026-06-27)· 文章封面懒加载占位图
+
+### 改动
+- **懒加载占位图**(`assets/img/lazy-placeholder.png` + `assets/css/layout.css`):用户提供的图(`UI.png`)经 PowerShell `System.Drawing` resize 1448×1086 → 600×450(745KB→150KB)入主题。文章卡封面容器 `.post-card__thumb` 背景改用该占位图(`url('../img/lazy-placeholder.png') center/cover no-repeat`),特色图 / 默认缩略图 `<img>` 加载前由容器背景显示占位,加载完成后 `<img>`(`object-fit:cover`)覆盖。
+- 版本 2.3.5→2.3.6。
+
+### 坑 / 注意
+- 占位走 CSS 容器背景(非 img `src`),`<img>` 仍在 DOM(SEO/可访问性不受影响);仅视觉加载态。
+- 150KB PNG 占位仍偏大,如需更轻可转 jpg 或进一步缩小尺寸。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

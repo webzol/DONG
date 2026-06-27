@@ -244,7 +244,7 @@
   display: block;
   width: 100%;
   padding-top: 56.25%;                  /* 16:9 比例 */
-  background: var(--btn-bg);
+  background: url('../img/lazy-placeholder.png') center/cover no-repeat, var(--btn-bg);
   overflow: hidden;
 }
 .post-card__img {
