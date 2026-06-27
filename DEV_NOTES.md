@@ -166,3 +166,16 @@
 - **全关侧栏不输出 aside**:三栏 grid 仍保留列宽(留白);默认 author/cats/tags 开,不会出现空栏。
 - 开发机无 php/WP,`php -l` 与后台实测未跑,待上线「外观 → 自定义」逐开关复验 + 前端实测。
 - **theme_mod key 一致性**:每个开关 key 在「注册(default+sanitize)→ 模板 get_theme_mod 读取」两处一致(grep 自检过)。
+
+## v2.3.1(2026-06-27)· 换主题封面 + 内置默认缩略图
+
+### 改动
+- **主题封面** `screenshot.png`:换用用户提供的新封面(原图 1448×1086 jpg),PowerShell + System.Drawing 等比缩放到 1200×900 png(本机无 Pillow,走 .NET)。原图与目标同为 4:3,纯缩放无裁剪。
+- **内置默认缩略图** `assets/img/default-thumb.png`(600×450 png):`template-parts/content.php` 无特色图时**不再降级为纯文字卡**,改用默认缩略图当封面(`get_theme_file_uri('assets/img/default-thumb.png')`,`object-fit:cover` 适配 16:9 封面区),分类贴片照常贴封面。仅当 Customizer「显示封面图」关闭(`onedong_show_thumbnail=0`)时才回退纯文字卡 + meta 行分类。
+- 变量重构:`$has_thumb`(原含开关)拆为 `$show_thumb`(开关)+ `$has_thumb`(纯 `has_post_thumbnail()`);meta 行分类回退条件 `! $has_thumb` → `! $show_thumb`。
+- 版本 2.3.0→2.3.1。
+
+### 坑 / 注意
+- 默认缩略图当前**仅列表卡**(content.php);`single.php` 页头、侧栏最新/热门文章缩略图无图时仍各自回退(不显示 / 占位图标),未统一铺开,如需一致可后续扩展。
+- `screenshot.png` / `default-thumb.png` 为二进制,git 正常追踪;微信临时源图(`xwechat_files\...\temp`)可能被占用,已先 PowerShell 读尺寸再 FromFile 处理。
+- `onedong.zip` 仍为外部不明改动,未纳入本次提交。

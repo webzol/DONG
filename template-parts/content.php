@@ -9,13 +9,19 @@
  * @package OneDong
  */
 
-$has_thumb = has_post_thumbnail() && get_theme_mod( 'onedong_show_thumbnail', 1 );
-$cats      = get_the_category();
+$show_thumb = (bool) get_theme_mod( 'onedong_show_thumbnail', 1 );
+$has_thumb  = has_post_thumbnail();
+$cats       = get_the_category();
+// 有特色图用特色图;无特色图但开启封面 → 用内置默认缩略图;关闭封面 → 纯文字卡
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' ); ?> data-reveal>
-	<?php if ( $has_thumb ) : ?>
+	<?php if ( $show_thumb ) : ?>
 		<a class="post-card__thumb" href="<?php echo esc_url( get_permalink() ); ?>" tabindex="-1" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
-			<?php the_post_thumbnail( 'onedong-card', array( 'loading' => 'lazy', 'class' => 'post-card__img' ) ); ?>
+			<?php if ( $has_thumb ) : ?>
+				<?php the_post_thumbnail( 'onedong-card', array( 'loading' => 'lazy', 'class' => 'post-card__img' ) ); ?>
+			<?php else : ?>
+				<img class="post-card__img" src="<?php echo esc_url( get_theme_file_uri( 'assets/img/default-thumb.png' ) ); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" width="600" height="450">
+			<?php endif; ?>
 			<?php if ( ! empty( $cats ) ) : ?>
 				<span class="post-card__cat-badge"><?php echo esc_html( $cats[0]->name ); ?></span>
 			<?php endif; ?>
@@ -34,7 +40,7 @@ $cats      = get_the_category();
 					<?php echo esc_html( get_the_date() ); ?>
 				</time>
 
-				<?php if ( ! $has_thumb && ! empty( $cats ) ) : ?>
+				<?php if ( ! $show_thumb && ! empty( $cats ) ) : ?>
 					<span class="post-card__cats">
 						<?php onedong_icon( 'hash' ); ?>
 						<?php
