@@ -191,3 +191,18 @@
 - 黄V 固定黄色(认证色),不随暗色模式变。
 - 统计卡与作者卡现为两个独立 `.widget`,中间有间距,视觉上"分开"。
 - `onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.3(2026-06-27)· 页脚备案号 + 自定义版权
+
+### 改动
+- **页脚设置**(`functions.php` 新 section `onedong_footer` + `footer.php` + `layout.css`):
+  - `onedong_footer_copyright`(textarea,`wp_kses_post`):自定义版权信息,留空显示默认「© 年份 站点 · OneDong 主题」。
+  - `onedong_footer_icp`(text,`sanitize_text_field`):ICP 备案号,留空不显示。
+  - `onedong_footer_icp_url`(url,`esc_url_raw`,默认 `https://beian.miit.gov.cn`):备案号点击跳转网址。
+- `footer.php` `.site-info` 改 flex column:版权(自定义 / 默认)+ 备案号(可点击,`target=_blank rel=noopener nofollow`)。
+- 版本 2.3.2→2.3.3。
+
+### 坑 / 注意
+- 备案号链接默认指向工信部 `beian.miit.gov.cn`,可后台改(如公安备案 `beian.mps.gov.cn` 可另填)。
+- **无限下拉加载曾实现后按用户要求移除**(`infinite-scroll.js` 删除、enqueue / 样式撤销),保留传统 `the_posts_pagination` 分页。
+- `onedong.zip` 仍为外部不明改动,未纳入本次提交。

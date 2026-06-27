@@ -1129,3 +1129,9 @@ html.js [data-reveal].is-revealed {
 .widget-text ol { margin: 0 0 0.6rem 1.2em; padding: 0; }
 .widget-text ul:last-child,
 .widget-text ol:last-child { margin-bottom: 0; }
+
+/* —— 页脚版权 + 备案号 —— */
+.site-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.site-icp { font-size: 0.78rem; color: var(--text-faint); }
+.site-icp a { color: var(--text-faint); text-decoration: none; }
+.site-icp a:hover { color: var(--primary); text-decoration: underline; }

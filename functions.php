@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.3.2' );
+define( 'ONEDONG_VERSION', '2.3.3' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -768,6 +768,69 @@ function onedong_customize_register( $wp_customize ) {
 				'max'  => 10,
 				'step' => 1,
 			),
+		)
+	);
+
+	// —— 页脚:版权 + 备案号 ——
+	$wp_customize->add_section(
+		'onedong_footer',
+		array(
+			'title'    => __( '页脚', 'onedong' ),
+			'priority' => 34,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_footer_copyright',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'wp_kses_post',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_footer_copyright',
+		array(
+			'label'       => __( '版权信息', 'onedong' ),
+			'description' => __( '自定义页脚版权;留空显示默认「© 年份 站点 · OneDong 主题」。支持基础 HTML。', 'onedong' ),
+			'section'     => 'onedong_footer',
+			'type'        => 'textarea',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_footer_icp',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_footer_icp',
+		array(
+			'label'       => __( 'ICP 备案号', 'onedong' ),
+			'description' => __( '如「沪ICP备12345678号」;留空不显示。', 'onedong' ),
+			'section'     => 'onedong_footer',
+			'type'        => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_footer_icp_url',
+		array(
+			'default'           => 'https://beian.miit.gov.cn',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_footer_icp_url',
+		array(
+			'label'       => __( '备案号链接网址', 'onedong' ),
+			'description' => __( '点击备案号跳转的网址,默认工信部 beian.miit.gov.cn。', 'onedong' ),
+			'section'     => 'onedong_footer',
+			'type'        => 'url',
 		)
 	);
 }
