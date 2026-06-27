@@ -143,3 +143,26 @@
 - 评论回调 `$GLOBALS['comment']`:phpcs 报 `WordPress.WP.GlobalVariablesOverride`,加 `ignore` 注释(标准主题惯例)。
 - **评论默认需后台开启**:「设置 → 讨论」勾「允许他人提交评论」;主题只出模板,开关由站点控制。
 - 入场动画:`[data-reveal]` 初始 `opacity:0`,依赖 JS 把 no-js→js 才隐藏;若 JS 禁用则 `<html>` 保持 no-js、元素可见,**无内容丢失风险**(对 SEO/可访问性友好)。
+
+## v2.3.0(2026-06-27)· 后台模块化侧栏 + 宽屏可调
+
+### 背景
+- 用户(TD)要:① 左右侧栏后台自定义显示哪些模块;② 可新增文章列表/标签/归档等模块;③ 站点宽度(宽屏)可调。用 ui-ux-pro-max skill 验证 UX(field-grouping / progressive-disclosure / input-helper-text)。
+- 取舍:**固定顺序 + 开关**(模块顺序在模板硬编码,后台只勾选显示哪些),**不做**拖拽排序(避免自定义 sortable 控件的复杂度与测试成本);宽屏用 **range 滑块**(1100–1600,默认 1280),与「摘要行数」滑块体验一致。本机无 Python → skill 的 search.py 跑不了,直接用 skill 文档内 §5 §8 规则指导。
+
+### 改动
+- **Customizer 扩展**(`functions.php` `onedong_customize_register`):
+  - 新 section `onedong_layout`(priority 30):`onedong_site_width` range 1100–1600 默认 1280(step 20);`onedong_widget_count` range 3–10 默认 5(最新/热门文章条数,左右栏共用,避免控件爆炸)。
+  - `onedong_sidebar` 重命名「左侧栏模块」+ description;加开关 `onedong_left_author/text/recent/popular`(仅 author 默认开)+ textarea `onedong_left_textarea`(`wp_kses_post`)。
+  - 新 section `onedong_sidebar_right`(priority 33):开关 `onedong_right_cats/tags/recent/popular/archive/text`(cats/tags 默认开)+ textarea `onedong_right_textarea`。
+- **模块渲染函数**(`functions.php`):`onedong_widget_recent_posts()` / `onedong_widget_popular_posts()`(按 `_onedong_views` meta 的 `meta_value_num` DESC,复用浏览计数)/ `onedong_widget_archive()`(`wp_get_archives` monthly limit12 show_post_count)/ `onedong_widget_text($side)`(读 textarea,`wp_kses_post` 输出)。各包 `.widget` 容器,复用现有卡片样式。
+- **宽屏注入**(`onedong_scripts`):`onedong_site_width` 非 1280 时 `wp_add_inline_style('onedong-layout', ':root{--site-width:Npx}')`,clamp 1100–1600(仿 `onedong_excerpt_lines` 模式)。
+- **模板改造**:`sidebar-left.php` / `sidebar.php` 按固定顺序 + `get_theme_mod` 开关依次渲染模块;全关时 `return`(不输出空 aside)。
+- **样式**(`layout.css`):`.widget-posts`(缩略图 3rem + 两行截断标题 + 日期/浏览数)、`.widget-archive`、`.widget-text`;复用 `.widget` / `.widget-title`。
+- 版本 2.2.0→2.3.0(`style.css` + `ONEDONG_VERSION`,刷资产 URL 缓存)。
+
+### 坑 / 注意
+- **热门文章依赖 `_onedong_views` meta**:无浏览记录的老文章不上榜(产生浏览后才出现);若要兜底可加 `meta_query` EXISTS 或 date fallback,本期不做。
+- **全关侧栏不输出 aside**:三栏 grid 仍保留列宽(留白);默认 author/cats/tags 开,不会出现空栏。
+- 开发机无 php/WP,`php -l` 与后台实测未跑,待上线「外观 → 自定义」逐开关复验 + 前端实测。
+- **theme_mod key 一致性**:每个开关 key 在「注册(default+sanitize)→ 模板 get_theme_mod 读取」两处一致(grep 自检过)。

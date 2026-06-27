@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.2.0' );
+define( 'ONEDONG_VERSION', '2.3.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -95,6 +95,13 @@ function onedong_scripts() {
 	$excerpt_lines = (int) get_theme_mod( 'onedong_excerpt_lines', 2 );
 	if ( 2 !== $excerpt_lines ) {
 		wp_add_inline_style( 'onedong-layout', ':root{--excerpt-lines:' . $excerpt_lines . ';}' );
+	}
+
+	// 注入站点宽度(默认 1280;非默认时覆盖 --site-width,clamp 到 1100–1600)
+	$site_width = (int) get_theme_mod( 'onedong_site_width', 1280 );
+	if ( 1280 !== $site_width ) {
+		$site_width = max( 1100, min( 1600, $site_width ) );
+		wp_add_inline_style( 'onedong-layout', ':root{--site-width:' . $site_width . 'px;}' );
 	}
 
 	// 代码高亮 Prism.js —— 默认 CDN;若需离线/自托管,
@@ -564,8 +571,9 @@ function onedong_customize_register( $wp_customize ) {
 	$wp_customize->add_section(
 		'onedong_sidebar',
 		array(
-			'title'    => __( '侧栏作者卡', 'onedong' ),
-			'priority' => 32,
+			'title'       => __( '左侧栏模块', 'onedong' ),
+			'description' => __( '三栏布局左侧栏显示哪些模块(按固定顺序渲染:作者卡 → 文本 → 最新文章 → 热门文章)。', 'onedong' ),
+			'priority'    => 32,
 		)
 	);
 
@@ -607,8 +615,305 @@ function onedong_customize_register( $wp_customize ) {
 			),
 		)
 	);
+
+	// —— 左侧栏模块开关(固定顺序渲染;作者卡默认开,其余默认关)——
+	$left_toggles = array(
+		'onedong_left_author'  => __( '显示作者卡', 'onedong' ),
+		'onedong_left_text'    => __( '显示自定义文本块', 'onedong' ),
+		'onedong_left_recent'  => __( '显示最新文章', 'onedong' ),
+		'onedong_left_popular' => __( '显示热门文章(按浏览数)', 'onedong' ),
+	);
+	foreach ( $left_toggles as $key => $label ) {
+		$wp_customize->add_setting(
+			$key,
+			array(
+				'default'           => ( 'onedong_left_author' === $key ) ? 1 : 0,
+				'sanitize_callback' => 'onedong_sanitize_checkbox',
+				'transport'         => 'refresh',
+			)
+		);
+		$wp_customize->add_control(
+			$key,
+			array(
+				'label'   => $label,
+				'section' => 'onedong_sidebar',
+				'type'    => 'checkbox',
+			)
+		);
+	}
+
+	$wp_customize->add_setting(
+		'onedong_left_textarea',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'wp_kses_post',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_left_textarea',
+		array(
+			'label'       => __( '左侧自定义文本', 'onedong' ),
+			'description' => __( '支持基础 HTML(粗体 / 链接 / 列表)。开启「自定义文本块」后显示。', 'onedong' ),
+			'section'     => 'onedong_sidebar',
+			'type'        => 'textarea',
+		)
+	);
+
+	// —— 右侧栏模块(新 section;分类/标签默认开,其余默认关)——
+	$wp_customize->add_section(
+		'onedong_sidebar_right',
+		array(
+			'title'       => __( '右侧栏模块', 'onedong' ),
+			'description' => __( '三栏布局右侧栏显示哪些模块(固定顺序:分类 → 标签 → 最新 → 热门 → 归档 → 文本)。', 'onedong' ),
+			'priority'    => 33,
+		)
+	);
+
+	$right_toggles = array(
+		'onedong_right_cats'    => __( '显示分类', 'onedong' ),
+		'onedong_right_tags'    => __( '显示标签云', 'onedong' ),
+		'onedong_right_recent'  => __( '显示最新文章', 'onedong' ),
+		'onedong_right_popular' => __( '显示热门文章(按浏览数)', 'onedong' ),
+		'onedong_right_archive' => __( '显示归档(按月)', 'onedong' ),
+		'onedong_right_text'    => __( '显示自定义文本块', 'onedong' ),
+	);
+	foreach ( $right_toggles as $key => $label ) {
+		$is_default = ( 'onedong_right_cats' === $key || 'onedong_right_tags' === $key );
+		$wp_customize->add_setting(
+			$key,
+			array(
+				'default'           => $is_default ? 1 : 0,
+				'sanitize_callback' => 'onedong_sanitize_checkbox',
+				'transport'         => 'refresh',
+			)
+		);
+		$wp_customize->add_control(
+			$key,
+			array(
+				'label'   => $label,
+				'section' => 'onedong_sidebar_right',
+				'type'    => 'checkbox',
+			)
+		);
+	}
+
+	$wp_customize->add_setting(
+		'onedong_right_textarea',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'wp_kses_post',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_textarea',
+		array(
+			'label'       => __( '右侧自定义文本', 'onedong' ),
+			'description' => __( '支持基础 HTML(粗体 / 链接 / 列表)。开启「自定义文本块」后显示。', 'onedong' ),
+			'section'     => 'onedong_sidebar_right',
+			'type'        => 'textarea',
+		)
+	);
+
+	// —— 布局:站点宽度 + 模块文章条数 ——
+	$wp_customize->add_section(
+		'onedong_layout',
+		array(
+			'title'    => __( '布局', 'onedong' ),
+			'priority' => 30,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_site_width',
+		array(
+			'default'           => 1280,
+			'sanitize_callback' => 'absint',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_site_width',
+		array(
+			'label'       => __( '站点宽度(px)', 'onedong' ),
+			'description' => __( '三栏容器最大宽度,1100–1600,默认 1280。', 'onedong' ),
+			'section'     => 'onedong_layout',
+			'type'        => 'range',
+			'input_attrs' => array(
+				'min'  => 1100,
+				'max'  => 1600,
+				'step' => 20,
+			),
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_widget_count',
+		array(
+			'default'           => 5,
+			'sanitize_callback' => 'absint',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_widget_count',
+		array(
+			'label'       => __( '侧栏文章列表条数', 'onedong' ),
+			'description' => __( '最新 / 热门文章模块显示的条数(3–10)。', 'onedong' ),
+			'section'     => 'onedong_layout',
+			'type'        => 'range',
+			'input_attrs' => array(
+				'min'  => 3,
+				'max'  => 10,
+				'step' => 1,
+			),
+		)
+	);
 }
 add_action( 'customize_register', 'onedong_customize_register' );
+
+/**
+ * 侧栏模块:最新文章列表(条数取 onedong_widget_count)。
+ * 复用 onedong-card 之外的小缩略图;无特色图显示占位图标。
+ */
+function onedong_widget_recent_posts() {
+	$count = (int) get_theme_mod( 'onedong_widget_count', 5 );
+	if ( $count < 1 ) {
+		$count = 5;
+	}
+	$q = new WP_Query(
+		array(
+			'post_type'           => 'post',
+			'posts_per_page'      => $count,
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
+		)
+	);
+	if ( ! $q->have_posts() ) {
+		return;
+	}
+	?>
+	<section class="widget widget-posts">
+		<h2 class="widget-title"><?php esc_html_e( '最新文章', 'onedong' ); ?></h2>
+		<ul class="widget-posts__list">
+			<?php
+			while ( $q->have_posts() ) :
+				$q->the_post();
+				?>
+				<li class="widget-posts__item">
+					<a class="widget-posts__thumb" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+						<?php if ( has_post_thumbnail() ) : ?>
+							<?php the_post_thumbnail( array( 72, 54 ) ); ?>
+						<?php else : ?>
+							<span class="widget-posts__thumb-ph"><?php onedong_icon( 'hash' ); ?></span>
+						<?php endif; ?>
+					</a>
+					<div class="widget-posts__body">
+						<a class="widget-posts__title" href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+						<time class="widget-posts__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+					</div>
+				</li>
+				<?php
+			endwhile;
+			?>
+		</ul>
+	</section>
+	<?php
+	wp_reset_postdata();
+}
+
+/**
+ * 侧栏模块:热门文章(按浏览数 _onedong_views 倒序;复用浏览计数 meta)。
+ * 无浏览记录的文章不出现(老文章需产生浏览后才上榜)。
+ */
+function onedong_widget_popular_posts() {
+	$count = (int) get_theme_mod( 'onedong_widget_count', 5 );
+	if ( $count < 1 ) {
+		$count = 5;
+	}
+	$q = new WP_Query(
+		array(
+			'post_type'           => 'post',
+			'posts_per_page'      => $count,
+			'meta_key'            => '_onedong_views',
+			'orderby'             => 'meta_value_num',
+			'order'               => 'DESC',
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
+		)
+	);
+	if ( ! $q->have_posts() ) {
+		return;
+	}
+	?>
+	<section class="widget widget-posts">
+		<h2 class="widget-title"><?php esc_html_e( '热门文章', 'onedong' ); ?></h2>
+		<ul class="widget-posts__list">
+			<?php
+			while ( $q->have_posts() ) :
+				$q->the_post();
+				?>
+				<li class="widget-posts__item">
+					<a class="widget-posts__thumb" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+						<?php if ( has_post_thumbnail() ) : ?>
+							<?php the_post_thumbnail( array( 72, 54 ) ); ?>
+						<?php else : ?>
+							<span class="widget-posts__thumb-ph"><?php onedong_icon( 'eye' ); ?></span>
+						<?php endif; ?>
+					</a>
+					<div class="widget-posts__body">
+						<a class="widget-posts__title" href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+						<span class="widget-posts__date"><?php onedong_icon( 'eye' ); ?> <?php echo esc_html( number_format_i18n( onedong_get_views() ) ); ?></span>
+					</div>
+				</li>
+				<?php
+			endwhile;
+			?>
+		</ul>
+	</section>
+	<?php
+	wp_reset_postdata();
+}
+
+/**
+ * 侧栏模块:归档(按月,带文章数,近 12 个月)。
+ */
+function onedong_widget_archive() {
+	?>
+	<section class="widget widget-archive">
+		<h2 class="widget-title"><?php esc_html_e( '归档', 'onedong' ); ?></h2>
+		<ul class="widget-archive__list">
+			<?php
+			wp_get_archives(
+				array(
+					'type'            => 'monthly',
+					'limit'           => 12,
+					'show_post_count' => true,
+				)
+			);
+			?>
+		</ul>
+	</section>
+	<?php
+}
+
+/**
+ * 侧栏模块:自定义文本块(读 onedong_{side}_textarea,wp_kses_post 输出)。
+ *
+ * @param string $side 'left' 或 'right'。
+ */
+function onedong_widget_text( $side ) {
+	$text = get_theme_mod( "onedong_{$side}_textarea", '' );
+	if ( '' === trim( wp_strip_all_tags( $text ) ) ) {
+		return;
+	}
+	?>
+	<section class="widget widget-text">
+		<?php echo wp_kses_post( $text ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 已 wp_kses_post 校验 ?>
+	</section>
+	<?php
+}
 
 /**
  * 顶部菜单兜底:未设置菜单时显示页面列表。
