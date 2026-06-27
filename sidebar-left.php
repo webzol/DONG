@@ -58,7 +58,14 @@ if ( ! $any_left ) {
 					</svg>
 				</span>
 			</div>
-			<h2 class="widget-profile__name"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h2>
+			<?php
+			$author_user = get_user_by( 'email', get_bloginfo( 'admin_email' ) );
+			$author_name = $author_user ? $author_user->display_name : get_bloginfo( 'name' );
+			?>
+			<h2 class="widget-profile__name">
+				<?php echo esc_html( $author_name ); ?>
+				<span class="online-dot" aria-label="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span>
+			</h2>
 			<?php if ( get_bloginfo( 'description' ) ) : ?>
 				<p class="widget-profile__desc"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></p>
 			<?php endif; ?>

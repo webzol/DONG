@@ -206,3 +206,15 @@
 - 备案号链接默认指向工信部 `beian.miit.gov.cn`,可后台改(如公安备案 `beian.mps.gov.cn` 可另填)。
 - **无限下拉加载曾实现后按用户要求移除**(`infinite-scroll.js` 删除、enqueue / 样式撤销),保留传统 `the_posts_pagination` 分页。
 - `onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.4(2026-06-27)· 作者卡昵称取后台 + 在线呼吸圆点
+
+### 改动
+- **作者名取后台昵称**(`sidebar-left.php`):作者卡名字由站点名(`get_bloginfo('name')`)改为**作者后台公开名称**——`get_user_by('email', admin_email)->display_name`,找不到用户时回退站点名。与头像(gravatar 也用 admin_email)同源。
+- **在线状态呼吸圆点**:昵称右侧加 `.online-dot`(绿色 `#22c55e` 圆 + `box-shadow` 扩散呼吸动画 `onedong-pulse` 1.8s),`prefers-reduced-motion` 禁用。
+- 版本 2.3.3→2.3.4。
+
+### 坑 / 注意
+- 取 `display_name`(后台「公开显示为」);若要 `nickname` 字段改 `->nickname`。
+- admin_email 对应用户须存在且 display_name 已设,否则回退站点名。
+- 绿色固定(在线色),不随暗色变;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
