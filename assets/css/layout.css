@@ -52,15 +52,18 @@
   min-height: var(--topbar-height);
   margin: 0 auto;
   padding: 0 clamp(1rem, 4vw, 2rem);
-  display: flex;
+  /* 三栏列对齐:与 .site-content--three-col 同列宽(16rem / 中 / 16rem)+ 同列距(1.5rem),
+     brand 落左栏、nav 落中间栏左对齐(左缘 = 文章流左缘)、控件落右栏右对齐 → 顶栏与正文协调。 */
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr) 16rem;
   align-items: center;
-  gap: 1.25rem;
+  column-gap: 1.5rem;
 }
 .site-brand {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin-right: auto;
+  justify-self: start;
 }
 .site-title {
   margin: 0;
@@ -81,7 +84,7 @@
 }
 
 /* —— 主导航(suxing:灰色文字、悬浮淡背景、当前项 primary)—— */
-.primary-nav { display: flex; align-items: center; gap: 0.2rem; }
+.primary-nav { display: flex; align-items: center; gap: 0.2rem; justify-self: start; }
 .primary-nav ul {
   list-style: none;
   margin: 0;
@@ -118,6 +121,7 @@
   align-items: center;
   gap: 0.6rem;
   flex: 0 0 auto;
+  justify-self: end;
 }
 
 /* —— 主题切换按钮(三态:亮 / 暗 / 跟随系统)—— */
@@ -923,13 +927,16 @@ select:focus {
   background-clip: content-box;
 }
 
+/* —— 响应式:平板(≤1180 三栏降双栏,左栏隐藏)—— */
+@media (max-width: 1180px) {
+  .site-header__inner { display: flex; gap: 1.25rem; }
+  .header-controls { margin-left: auto; }
+}
 /* —— 响应式:移动端 —— */
 @media (max-width: 768px) {
   .site-header__inner { flex-wrap: wrap; gap: 0.75rem; }
-  .site-brand { margin-right: 0; }
   .primary-nav { order: 3; width: 100%; }
   .primary-nav ul { justify-content: flex-start; }
-  .header-controls { margin-left: auto; }
 }
 @media (max-width: 640px) {
   .post-nav { grid-template-columns: 1fr; }

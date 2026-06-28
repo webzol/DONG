@@ -253,3 +253,21 @@
 - 顺序用 text 框填 key(**非拖拽**,WP Customizer 原生无拖拽排序控件,要做得写自定义 JS);description 已列 key 含义。
 - `WP_Customize_Image_Control` 存的是图片 **URL**(非 attachment ID);前端 `<img src=url>`,外链图直接可用,无需媒体库。
 - 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.8(2026-06-28)· 顶部导航居中对齐中间栏 + 封面图加载优化
+
+### 改动
+- **顶部导航对齐中间栏**(`assets/css/layout.css`):`.site-header__inner` 由 flex 改 **grid 三栏列对齐** `grid-template-columns: 16rem minmax(0,1fr) 16rem` + `column-gap:1.5rem`(与 `.site-content--three-col` 同列宽同间距)→ brand 落左栏列、nav 落中间栏列、控件落右栏列。nav `justify-self:start` 使其**左缘 = 中间栏左缘 = 下方文章流左缘**,顶栏与正文严格列对齐即「协调」。(初版用 `1fr auto 1fr` 让 nav 绝对居中,用户反馈偏右、要再往左对齐中间栏,遂改为列对齐 + 左对齐。)`.site-brand` `justify-self:start`、`.header-controls` `justify-self:end`。≤1180px(左栏隐藏)降 `display:flex`(brand+nav 靠左成组、控件 `margin-left:auto` 推右);≤768px flex-wrap + nav 占整行(order:3 width:100%)。
+- **封面图加载优化**(`template-parts/content.php` + `single.php`):
+  - **首屏 LCP 优先**:主查询第一篇(`$wp_query->current_post === 0`)封面改 `loading=eager` + `fetchpriority=high` + `decoding=async`(原全 `lazy` 导致首屏大图被延迟,拖慢 LCP);其余篇仍 `loading=lazy`。内页 `single.php` 页头特色图同理(LCP)eager+high。
+  - **自适应 srcset/sizes**:封面图改用 `wp_get_attachment_image()` + 传 `sizes="(max-width:768px) 92vw,(max-width:1180px) 62vw,720px"`,WP 据注册尺寸(thumbnail/medium/onedong-card/medium_large/large)自动生成 srcset,浏览器按视口/DPR 选源——高 DPR 不糊、低带宽不浪费(原固定 `onedong-card` 单尺寸不自适应)。默认缩略图(无特色图)同步按 `is_lcp` 切 eager/lazy。
+  - CSS 容器自适应基础已具备(`.post-card__img` width/height:100% + object-fit:cover,16:9 padding-top 容器 + 懒加载占位背景),本期补 HTML 层 srcset/sizes + LCP。
+- 版本 2.3.7→2.3.8(`style.css` + `ONEDONG_VERSION`,刷资产 URL 缓存)。
+
+### 坑 / 注意
+- **fetchpriority 需 WP 6.3+**:`wp_get_attachment_image`/`the_post_thumbnail` 才认 `$attr['fetchpriority']` 原样输出;6.3+ 另有自动 LCP 增强(会跳过已手动设的,不重复)。低版本 fetchpriority 被忽略(无害降级),loading/decoding/sizes 全版本有效。
+- **srcset 依赖原图够大 + 多尺寸已生成**:老文章若只生成了 `onedong-card`、原图 <768px,srcset 候选少 → 近似单尺寸;上线跑一次 Regenerate Thumbnails 补全 medium_large/large 后自适应才完整。
+- **`sizes` 是渲染宽度 hint**:三栏中间栏约 720px、移动端近全宽;值是估值,浏览器据此选 srcset。
+- **grid 列与 site-content 同宽对齐**:第 1/3 列固定 `16rem`(= 左右栏),第 2 列 `minmax(0,1fr)`(= 中间栏);brand/logo 若超 16rem 会溢入中列(边缘情况,常规 logo 不超)。
+- 开发机无 php/WP,待上线复验(导航居中视觉 + Lighthouse LCP/srcset)。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

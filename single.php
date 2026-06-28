@@ -20,7 +20,17 @@ get_header();
 
 			<?php if ( has_post_thumbnail() ) : ?>
 				<div class="post-thumbnail">
-					<?php the_post_thumbnail( 'large' ); ?>
+					<?php
+					// 文章内页头图 = LCP:急切加载 + 高优先级 + 异步解码。
+					the_post_thumbnail(
+						'large',
+						array(
+							'loading'       => 'eager',
+							'fetchpriority' => 'high',
+							'decoding'      => 'async',
+						)
+					);
+					?>
 				</div>
 			<?php endif; ?>
 

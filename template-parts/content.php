@@ -16,11 +16,33 @@ $cats       = get_the_category();
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'post-card' ); ?> data-reveal>
 	<?php if ( $show_thumb ) : ?>
+		<?php
+		// 首屏(主查询第一篇)封面 = LCP:急切加载 + fetchpriority=high 优先拉取;
+		// 其余懒加载。srcset 由 WP 依据注册尺寸自动生成,sizes 引导浏览器按视口选源(自适应)。
+		global $wp_query;
+		$is_lcp    = $wp_query && $wp_query->is_main_query() && 0 === (int) $wp_query->current_post;
+		$img_attr  = array(
+			'class'    => 'post-card__img',
+			'decoding' => 'async',
+			'loading'  => $is_lcp ? 'eager' : 'lazy',
+			// 封面在卡片中显示宽度:移动端近全宽 / 平板双栏 / 桌面三栏中间栏约 720px。
+			'sizes'    => '(max-width: 768px) 92vw, (max-width: 1180px) 62vw, 720px',
+		);
+		if ( $is_lcp ) {
+			$img_attr['fetchpriority'] = 'high';
+		}
+		?>
 		<a class="post-card__thumb" href="<?php echo esc_url( get_permalink() ); ?>" tabindex="-1" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
 			<?php if ( $has_thumb ) : ?>
-				<?php the_post_thumbnail( 'onedong-card', array( 'loading' => 'lazy', 'class' => 'post-card__img' ) ); ?>
+				<?php echo wp_get_attachment_image( get_post_thumbnail_id(), 'onedong-card', false, $img_attr ); ?>
 			<?php else : ?>
-				<img class="post-card__img" src="<?php echo esc_url( get_theme_file_uri( 'assets/img/default-thumb.png' ) ); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" width="600" height="450">
+				<img class="post-card__img"
+					src="<?php echo esc_url( get_theme_file_uri( 'assets/img/default-thumb.png' ) ); ?>"
+					alt="<?php the_title_attribute(); ?>"
+					decoding="async"
+					loading="<?php echo $is_lcp ? 'eager' : 'lazy'; ?>"
+					<?php echo $is_lcp ? 'fetchpriority="high"' : ''; ?>
+					width="600" height="450">
 			<?php endif; ?>
 			<?php if ( ! empty( $cats ) ) : ?>
 				<span class="post-card__cat-badge"><?php echo esc_html( $cats[0]->name ); ?></span>
