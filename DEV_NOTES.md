@@ -371,3 +371,12 @@
 - `.post-card__body` padding-top `0.6rem → 0.2rem`(头像几乎贴卡片顶)。
 - `.post-card__stats` padding-bottom `0.65rem → 0.25rem`(底部数据几乎贴卡片底)。
 - 版本 2.4.3→2.4.4。
+
+## v2.4.5(2026-06-28)· 文章卡上下内边距对齐侧栏作者卡
+
+### 改动
+- 文章卡上下内边距参照侧栏 `.widget`(padding `1.25rem 1.4rem`):
+  - `.post-card__body` padding-top `0.2rem → 1.25rem`(头像到卡片顶,对齐作者卡头像上方间距)。
+  - `.post-card__stats` padding-bottom `0.25rem → 1.25rem`(点赞行到卡片底,对齐作者卡底部间距)。
+  - 左右 padding 仍 `1.1rem`(保持 v2.4.2 封面图缩进对齐不变)。
+- 版本 2.4.4→2.4.5。
