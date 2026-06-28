@@ -346,3 +346,14 @@
 - **废弃开关**:`onedong_show_views/comments/reading/tags` 卡片不再查询(Customizer 控件保留,不影响);`onedong_reading_stats` 卡片不再用(函数保留)。
 - 开发机无 php/WP,待上线 `php -l` + 点赞 REST 实测(curl POST)+ 卡片布局/默认缩略图实测。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.4.2(2026-06-28)· 文章卡封面图缩进对齐
+
+### 改动
+- **封面图缩进对齐**(`assets/css/layout.css` `.post-card__thumb`):封面图加 `margin: 0 1.1rem` 左右缩进(与 `.post-card__body` / `.post-card__stats` 的 `1.1rem` padding 对齐),去 `width:100%`(靠 flex stretch + margin),加 `border-radius: var(--radius-medium)` 自成圆角。作者 / 标题 / 摘要 / 封面图 / 底部数据**左边全部对齐成一条线**(v2.4.1 图全宽贴卡片边与正文错位 1.1rem;用户选「图与内容统一缩进对齐」方案)。
+- 版本 2.4.1→2.4.2。
+
+### 坑 / 注意
+- 图缩进后左右露出 `card-bg`(图片内嵌、不再贴卡片边);16:9 `padding-top` 基于缩进后宽度(图高度略减)。
+- 图角圆角 `--radius-medium`,不再依赖卡片 `overflow:hidden` 裁剪。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

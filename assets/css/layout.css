@@ -246,9 +246,10 @@
   position: relative;
   z-index: 2;
   display: block;
-  width: 100%;
-  padding-top: 56.25%;                  /* 16:9 比例 */
+  margin: 0 1.1rem;                     /* 左右缩进,与正文/底部 padding 左边对齐成一线 */
+  padding-top: 56.25%;                  /* 16:9(基于缩进后宽度) */
   background: url('../img/lazy-placeholder.png') center/cover no-repeat, var(--btn-bg);
+  border-radius: var(--radius-medium);  /* 缩进脱离卡片边,自成圆角 */
   overflow: hidden;
 }
 .post-card__img {
