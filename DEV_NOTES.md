@@ -357,3 +357,10 @@
 - 图缩进后左右露出 `card-bg`(图片内嵌、不再贴卡片边);16:9 `padding-top` 基于缩进后宽度(图高度略减)。
 - 图角圆角 `--radius-medium`,不再依赖卡片 `overflow:hidden` 裁剪。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.4.3(2026-06-28)· 文章卡上下内边距收窄
+
+### 改动
+- `.post-card__body` padding-top `1rem → 0.6rem`(头像上方间距收窄)。
+- `.post-card__stats` padding-bottom `1.05rem → 0.65rem`(底部阅读/点赞到卡片底的间距收窄)。
+- 版本 2.4.2→2.4.3。
