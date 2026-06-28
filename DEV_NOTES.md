@@ -380,3 +380,23 @@
   - `.post-card__stats` padding-bottom `0.25rem → 1.25rem`(点赞行到卡片底,对齐作者卡底部间距)。
   - 左右 padding 仍 `1.1rem`(保持 v2.4.2 封面图缩进对齐不变)。
 - 版本 2.4.4→2.4.5。
+
+## v2.4.6(2026-06-28)· 文章卡作者头像放大(参考截图)
+
+### 背景
+- 用户给出参考截图(微博/suxing 风),要求中间栏文章卡「作者头像区域」参考该图调整。
+- 对比截图 vs 现状,核心差异:**头像偏小**(现状 1.5rem/24px,截图 ~40px 圆形)。其余(黄V 右下角、横向排列)现状已具备。
+
+### 改动(`assets/css/layout.css` + `template-parts/content.php`)
+- **头像放大**:`.post-card__avatar` width/height `1.5rem → 2.5rem`(24px→40px),border `1.5px → 2px`(描边随尺寸等比),保留 card-bg 描边 + line-strong box-shadow 双线(与黄V 徽章垫底配套)。
+- **黄V 徽章等比放大**:`.post-card__verified` `0.95rem → 1.3rem`,right/bottom `-0.2rem → -0.28rem`(大头像外缘位置微调)。
+- **昵称加大配大头像**:`.post-card__author-name` `0.8rem → 0.875rem`(14px)。
+- **头像-昵称间距**:`.post-card__author` gap `0.4rem → 0.5rem`。
+- **头像源图分辨率**(`content.php`):`get_avatar` size `48 → 96`(适配 2x DPR,放大后不糊)。
+- 版本 2.4.5→2.4.6(`style.css` + `ONEDONG_VERSION`,刷资产 URL 缓存)。
+
+### 坑 / 注意
+- **在线绿点保留**:参考截图里昵称旁无在线状态点,但 OneDong 的 `.online-dot`(v2.3.4 主动加的 OneDong 特色)本期**保留未删**;如需完全贴合参考图去掉,移除 `content.php` 里 `.online-dot` span 即可。
+- **保留双线描边**:参考图头像「无明显描边」,但现状 card-bg 描边与黄V 徽章的 card-bg 垫底是配套的,去掉会让黄V 衔接突兀,故保留(仅等比加粗到 2px)。如想要参考图那种无描边内阴影风,可去 border/box-shadow 改 `box-shadow: inset 0 0 2px rgba(0,0,0,.1)`。
+- 头像放大后 `.post-card__meta` 行变高(~40px),标题相应下移;顶部 padding 沿用 v2.4.5 的 1.25rem,视觉协调。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

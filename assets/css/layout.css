@@ -337,7 +337,7 @@
 .post-card__author {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 .post-card__avatar-wrap {
@@ -347,20 +347,20 @@
   line-height: 0;
 }
 .post-card__avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2.5rem;       /* 参考图 ~40px 圆形头像(原 1.5rem/24px 偏小) */
+  height: 2.5rem;
   border-radius: 50%;
   object-fit: cover;
   display: block;
-  border: 1.5px solid var(--card-bg);
+  border: 2px solid var(--card-bg);
   box-shadow: 0 0 0 1px var(--line-strong);
 }
 .post-card__verified {
   position: absolute;
-  right: -0.2rem;
-  bottom: -0.2rem;
-  width: 0.95rem;
-  height: 0.95rem;
+  right: -0.28rem;
+  bottom: -0.28rem;
+  width: 1.3rem;
+  height: 1.3rem;
   background: var(--card-bg);
   border-radius: 50%;
   padding: 1px;
@@ -374,7 +374,7 @@
 .post-card__author-name {
   display: inline-flex;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: 0.875rem;   /* 配大头像,14px(原 0.8rem) */
   font-weight: 500;
   color: var(--text-muted);
 }

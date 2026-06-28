@@ -21,7 +21,7 @@ $cats       = get_the_category();
 			<div class="post-card__meta">
 				<span class="post-card__author">
 					<span class="post-card__avatar-wrap">
-						<?php echo get_avatar( get_the_author_meta( 'ID' ), 48, '', '', array( 'class' => 'post-card__avatar' ) ); ?>
+						<?php echo get_avatar( get_the_author_meta( 'ID' ), 96, '', '', array( 'class' => 'post-card__avatar' ) ); ?>
 						<span class="post-card__verified" aria-label="<?php esc_attr_e( '认证作者', 'onedong' ); ?>">
 							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFB300"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 						</span>
