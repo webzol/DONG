@@ -8,6 +8,8 @@
 get_header();
 ?>
 <div class="site-content post-single">
+	<?php // 阅读进度条(fixed 顶部,single.js 驱动) ?>
+	<div class="reading-progress" aria-hidden="true"><span class="reading-progress__bar"></span></div>
 	<?php
 	while ( have_posts() ) :
 		the_post();
@@ -34,6 +36,8 @@ get_header();
 				</div>
 			<?php endif; ?>
 
+			<?php onedong_toc(); ?>
+
 			<div class="entry-content">
 				<?php
 				the_content();
@@ -56,6 +60,8 @@ get_header();
 		</article>
 
 		<?php onedong_post_nav(); ?>
+
+		<?php onedong_related_posts(); ?>
 
 		<?php
 		// 评论(开启评论或有评论时显示)

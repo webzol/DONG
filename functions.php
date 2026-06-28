@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.3.9' );
+define( 'ONEDONG_VERSION', '2.4.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -115,6 +115,11 @@ function onedong_scripts() {
 
 	// 滚动入场动画(渐进增强 · 零依赖)
 	wp_enqueue_script( 'onedong-reveal', ONEDONG_URI . '/assets/js/reveal.js', array(), $ver, true );
+
+	// 文章详情页脚本(阅读进度条 / 代码块复制 / TOC 当前段高亮)
+	if ( is_singular( 'post' ) ) {
+		wp_enqueue_script( 'onedong-single', ONEDONG_URI . '/assets/js/single.js', array(), $ver, true );
+	}
 
 	// 线程评论(若日后开启评论)
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -1020,6 +1025,73 @@ function onedong_customize_register( $wp_customize ) {
 			'type'        => 'url',
 		)
 	);
+
+	// —— 文章详情页:TOC 目录 / 相关文章 ——
+	$wp_customize->add_section(
+		'onedong_single',
+		array(
+			'title'    => __( '文章详情页', 'onedong' ),
+			'priority' => 35,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_show_toc',
+		array(
+			'default'           => 1,
+			'sanitize_callback' => 'onedong_sanitize_checkbox',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_show_toc',
+		array(
+			'label'       => __( '显示文章目录(TOC)', 'onedong' ),
+			'description' => __( '正文前自动生成 h2/h3 目录(少于 2 个标题时不显示)。', 'onedong' ),
+			'section'     => 'onedong_single',
+			'type'        => 'checkbox',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_show_related',
+		array(
+			'default'           => 1,
+			'sanitize_callback' => 'onedong_sanitize_checkbox',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_show_related',
+		array(
+			'label'   => __( '显示相关文章', 'onedong' ),
+			'section' => 'onedong_single',
+			'type'    => 'checkbox',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_related_count',
+		array(
+			'default'           => 4,
+			'sanitize_callback' => 'absint',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_related_count',
+		array(
+			'label'       => __( '相关文章条数', 'onedong' ),
+			'description' => __( '2–8 篇。', 'onedong' ),
+			'section'     => 'onedong_single',
+			'type'        => 'range',
+			'input_attrs' => array(
+				'min'  => 2,
+				'max'  => 8,
+				'step' => 1,
+			),
+		)
+	);
 }
 add_action( 'customize_register', 'onedong_customize_register' );
 
@@ -1323,3 +1395,156 @@ function onedong_widgets_init() {
 	);
 }
 add_action( 'widgets_init', 'onedong_widgets_init' );
+
+/**
+ * 给正文 h2/h3 注入锚点 id,并收集到全局 $onedong_toc 供目录渲染。
+ * 挂 the_content(仅 single post 主循环)。已有 id 沿用;中文标题用 sanitize_title 生成 slug 并去重。
+ *
+ * @param string $content 正文 HTML。
+ * @return string
+ */
+function onedong_inject_heading_ids( $content ) {
+	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
+		return $content;
+	}
+	global $onedong_toc;
+	$onedong_toc = array();
+	$used        = array();
+
+	$content = preg_replace_callback(
+		'/<h([23])\b([^>]*)>(.*?)<\/h\1>/is',
+		function ( $m ) use ( &$onedong_toc, &$used ) {
+			$level = (int) $m[1];
+			$attrs = $m[2];
+			$inner = $m[3];
+			$text  = trim( wp_strip_all_tags( $inner ) );
+
+			if ( preg_match( '/\bid=["\']([^"\']+)["\']/i', $attrs, $idm ) ) {
+				$id = $idm[1];
+			} else {
+				$id = sanitize_title( $text );
+				if ( '' === $id ) {
+					$id = 'section';
+				}
+				$base = $id;
+				$i    = 2;
+				while ( in_array( $id, $used, true ) ) {
+					$id = $base . '-' . $i;
+					$i++;
+				}
+			}
+			$used[]        = $id;
+			$onedong_toc[] = array(
+				'level' => $level,
+				'id'    => $id,
+				'text'  => $text,
+			);
+
+			if ( preg_match( '/\bid=/i', $attrs ) ) {
+				return $m[0]; // 已有 id,原样返回
+			}
+			return '<h' . $level . ' id="' . esc_attr( $id ) . '"' . $attrs . '>';
+		},
+		$content
+	);
+
+	return $content;
+}
+add_filter( 'the_content', 'onedong_inject_heading_ids', 20 );
+
+/**
+ * 渲染文章目录(TOC)。读取 onedong_inject_heading_ids 收集的全局 $onedong_toc。
+ * 受 Customizer「显示文章目录」开关控制;少于 2 个标题不显示。
+ */
+function onedong_toc() {
+	if ( ! get_theme_mod( 'onedong_show_toc', 1 ) ) {
+		return;
+	}
+	global $onedong_toc;
+	if ( empty( $onedong_toc ) || count( $onedong_toc ) < 2 ) {
+		return;
+	}
+	?>
+	<nav class="toc" aria-label="<?php esc_attr_e( '文章目录', 'onedong' ); ?>">
+		<div class="toc__header">
+			<?php onedong_icon( 'document' ); ?>
+			<span class="toc__title"><?php esc_html_e( '目录', 'onedong' ); ?></span>
+		</div>
+		<ol class="toc__list">
+			<?php foreach ( $onedong_toc as $h ) : ?>
+				<li class="toc__item toc__item--l<?php echo (int) $h['level']; ?>">
+					<a href="#<?php echo esc_attr( $h['id'] ); ?>"><?php echo esc_html( $h['text'] ); ?></a>
+				</li>
+			<?php endforeach; ?>
+		</ol>
+	</nav>
+	<?php
+}
+
+/**
+ * 相关文章:按当前文章分类(不足按标签)取若干篇;post__not_in 排除自身。
+ * 受 Customizer「显示相关文章」开关与条数控制;仅在 single post 调用。
+ */
+function onedong_related_posts() {
+	if ( ! get_theme_mod( 'onedong_show_related', 1 ) ) {
+		return;
+	}
+	$post_id = get_the_ID();
+	if ( ! $post_id ) {
+		return;
+	}
+	$count = (int) get_theme_mod( 'onedong_related_count', 4 );
+	if ( $count < 2 ) {
+		$count = 4;
+	}
+
+	$args = array(
+		'post_type'           => 'post',
+		'posts_per_page'      => $count,
+		'post__not_in'        => array( $post_id ),
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+	);
+
+	$cats = wp_get_post_categories( $post_id, array( 'fields' => 'ids' ) );
+	if ( $cats ) {
+		$args['category__in'] = $cats;
+	} else {
+		$tags = wp_get_post_tags( $post_id, array( 'fields' => 'ids' ) );
+		if ( $tags ) {
+			$args['tag__in'] = $tags;
+		}
+	}
+
+	$q = new WP_Query( $args );
+	if ( ! $q->have_posts() ) {
+		wp_reset_postdata();
+		return;
+	}
+	?>
+	<section class="related-posts">
+		<h2 class="related-posts__title"><?php esc_html_e( '相关文章', 'onedong' ); ?></h2>
+		<ul class="related-posts__list">
+			<?php
+			while ( $q->have_posts() ) :
+				$q->the_post();
+				?>
+				<li class="related-posts__item">
+					<a class="related-posts__link" href="<?php the_permalink(); ?>">
+						<?php if ( has_post_thumbnail() ) : ?>
+							<span class="related-posts__thumb"><?php the_post_thumbnail( array( 120, 90 ) ); ?></span>
+						<?php endif; ?>
+						<span class="related-posts__body">
+							<span class="related-posts__name"><?php the_title(); ?></span>
+							<time class="related-posts__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+						</span>
+					</a>
+				</li>
+				<?php
+			endwhile;
+			?>
+		</ul>
+	</section>
+	<?php
+	wp_reset_postdata();
+}

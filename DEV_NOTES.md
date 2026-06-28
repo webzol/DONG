@@ -289,3 +289,28 @@
 - `WP_Customize_Image_Control` 存 URL(非 attachment ID),外链图直接可用,无需媒体库。
 - 开发机无 php/WP,待上线「外观 → 自定义 → 右侧栏模块」逐项实测。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.4.0(2026-06-28)· 文章详情页增强 + 文章卡作者行上移/stats 微博风
+
+### A. 文章详情页增强(single.php)
+
+- **TOC 文章目录**(`functions.php` `onedong_inject_heading_ids` 挂 `the_content` 优先级 20 + `onedong_toc()`):正则给 h2/h3 注入锚点 id(`sanitize_title` 生成 slug + 去重,已有 id 沿用),收集到全局 `$onedong_toc`;single.php 正文前渲染目录(**少于 2 个标题不显示**)。Customizer「文章详情页 → 显示文章目录(TOC)」开关。
+- **顶部阅读进度条**(`assets/js/single.js` + `.reading-progress`):fixed 顶部 3px 进度条,按 `<article>` 可滚动进度填充,`requestAnimationFrame` 节流。z-index 60(高于 header 50)。仅 single 显示。
+- **代码块复制按钮**(`single.js` + `.code-copy-btn`):遍历 `.entry-content / .comment-content pre` 注入复制按钮,`navigator.clipboard` 优先 + `execCommand` 兜底(非 HTTPS);hover 显示 / 触屏(`@media hover:none`)常显,适配 macOS 三圆点顶栏与双模式。
+- **相关文章推荐**(`functions.php` `onedong_related_posts()`):按分类(不足按标签)`WP_Query` 取 N 篇,`post__not_in` 排除自身;single.php `post_nav` 后渲染 2 列网格卡(≤640 单列)。Customizer「显示相关文章」+ 条数(2–8)。
+- `single.js` 仅 `is_singular('post')` enqueue;另含 TOC scrollspy(`IntersectionObserver` 高亮当前段)。
+- Customizer 新 section `onedong_single`(priority 35):`onedong_show_toc` / `onedong_show_related` / `onedong_related_count`。
+
+### B. 文章卡(列表 `template-parts/content.php`)
+
+- **作者行移到标题上方**:原 `title → meta(作者)` 改为 `meta(头像+黄V+昵称+在线点+日期) → title`(作者在标题上方、图片下方正文区顶部)。布局仍 **上图下文**(封面 16:9 在顶)——用户初要求横向(media-object)后澄清「图片还是在上面」改回上图下文。
+- **底部 stats 微博风**(`.post-card__stats`):项间距加宽(0.9→1.3rem)、图标 1rem、hover 变 primary,贴近微博「转发/评论/点赞」水平排列风格(数据项 = 浏览 / 评论 / 阅读时长,WP 无原生点赞)。
+- 版本 2.3.9→2.4.0。
+
+### 坑 / 注意
+- **TOC id 依赖 the_content 过滤**:`onedong_inject_heading_ids` 挂 `the_content`(优先级 20,WP 自带过滤后);古腾堡 heading 块默认无 id,本过滤补上。`is_singular('post') && in_the_loop() && is_main_query()` 防误伤 feed/REST/副查询。
+- **Clipboard API 需 HTTPS**:`navigator.clipboard` 仅 secure context(HTTPS/localhost)可用;非 HTTPS 走 `execCommand` 兜底(已实现)。
+- **相关文章依赖分类/标签**:无分类无标签的独立文章不出相关;老文章需有分类。
+- **阅读进度条 z-index 60** 贴屏幕顶,高于 header(50)。
+- ⚠️ content.php 曾误写 `endthrough` + 重复 foreach 块(已修复,控制结构配对 grep 自检通过);开发机无 php,待上线 `php -l` + 逐功能实测(TOC/复制/进度条/相关文章)。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
