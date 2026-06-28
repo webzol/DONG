@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$valid = array( 'cats', 'tags', 'recent', 'popular', 'archive', 'text' );
+$valid = array( 'cats', 'tags', 'recent', 'popular', 'archive', 'text', 'image' );
 $defs  = array(
 	'cats'    => 1,
 	'tags'    => 1,
@@ -20,6 +20,7 @@ $defs  = array(
 	'popular' => 0,
 	'archive' => 0,
 	'text'    => 0,
+	'image'   => 0,
 );
 
 // 任一模块开启才输出 aside

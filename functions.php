@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.3.8' );
+define( 'ONEDONG_VERSION', '2.3.9' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -511,7 +511,7 @@ function onedong_sanitize_avatar_source( $value ) {
  * @return string
  */
 function onedong_sanitize_order( $value ) {
-	$valid = array( 'cats', 'tags', 'recent', 'popular', 'archive', 'text' );
+	$valid = array( 'cats', 'tags', 'recent', 'popular', 'archive', 'text', 'image' );
 	$parts = array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
 	$out   = array();
 	foreach ( $parts as $p ) {
@@ -520,7 +520,7 @@ function onedong_sanitize_order( $value ) {
 		}
 	}
 	if ( empty( $out ) ) {
-		return 'cats,tags,recent,popular,archive,text';
+		return 'cats,tags,recent,popular,archive,text,image';
 	}
 	return implode( ',', $out );
 }
@@ -811,11 +811,84 @@ function onedong_customize_register( $wp_customize ) {
 		)
 	);
 
+	// 右侧栏:图片模块(开关 + 上传/URL + 标题 + 描述;与左侧栏一致)
+	$wp_customize->add_setting(
+		'onedong_right_image',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'onedong_sanitize_checkbox',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_image',
+		array(
+			'label'   => __( '显示图片模块', 'onedong' ),
+			'section' => 'onedong_sidebar_right',
+			'type'    => 'checkbox',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_right_image_url',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_right_image_url',
+			array(
+				'label'       => __( '图片', 'onedong' ),
+				'description' => __( '点击选择 / 上传,或直接粘贴图片地址。开启「显示图片模块」后显示。', 'onedong' ),
+				'section'     => 'onedong_sidebar_right',
+			)
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_right_image_title',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_image_title',
+		array(
+			'label'   => __( '图片标题', 'onedong' ),
+			'section' => 'onedong_sidebar_right',
+			'type'    => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
+		'onedong_right_image_desc',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'wp_kses_post',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_image_desc',
+		array(
+			'label'       => __( '图片描述', 'onedong' ),
+			'description' => __( '支持基础 HTML。', 'onedong' ),
+			'section'     => 'onedong_sidebar_right',
+			'type'        => 'textarea',
+		)
+	);
+
 	// 右侧栏:模块显示顺序(逗号分隔 key;空/非法回退默认)
 	$wp_customize->add_setting(
 		'onedong_right_order',
 		array(
-			'default'           => 'cats,tags,recent,popular,archive,text',
+			'default'           => 'cats,tags,recent,popular,archive,text,image',
 			'sanitize_callback' => 'onedong_sanitize_order',
 			'transport'         => 'refresh',
 		)
@@ -824,7 +897,7 @@ function onedong_customize_register( $wp_customize ) {
 		'onedong_right_order',
 		array(
 			'label'       => __( '模块显示顺序', 'onedong' ),
-			'description' => __( '从上到下的模块顺序,逗号分隔。可选:cats(分类)/ tags(标签)/ recent(最新)/ popular(热门)/ archive(归档)/ text(文本)。例:tags,cats,recent', 'onedong' ),
+			'description' => __( '从上到下的模块顺序,逗号分隔。可选:cats(分类)/ tags(标签)/ recent(最新)/ popular(热门)/ archive(归档)/ text(文本)/ image(图片)。例:tags,cats,recent', 'onedong' ),
 			'section'     => 'onedong_sidebar_right',
 			'type'        => 'text',
 		)
@@ -1148,19 +1221,20 @@ function onedong_widget_tags() {
 }
 
 /**
- * 侧栏模块:图片(上传 / URL)+ 标题 + 描述。
- * setting:onedong_left_image_url / _title / _desc。
+ * 侧栏模块:图片(上传 / URL)+ 标题 + 描述。左/右栏共用,$side 读对应 setting。
+ *
+ * @param string $side 'left' 或 'right'。
  */
-function onedong_widget_image() {
-	$url   = get_theme_mod( 'onedong_left_image_url', '' );
-	$title = get_theme_mod( 'onedong_left_image_title', '' );
-	$desc  = get_theme_mod( 'onedong_left_image_desc', '' );
+function onedong_widget_image( $side = 'left' ) {
+	$url   = get_theme_mod( "onedong_{$side}_image_url", '' );
+	$title = get_theme_mod( "onedong_{$side}_image_title", '' );
+	$desc  = get_theme_mod( "onedong_{$side}_image_desc", '' );
 	if ( ! $url ) {
 		return;
 	}
 	?>
 	<section class="widget widget-image">
-		<img class="widget-image__img" src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( wp_strip_all_tags( $title ) ); ?>" loading="lazy">
+		<img class="widget-image__img" src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( wp_strip_all_tags( $title ) ); ?>" loading="lazy" decoding="async">
 		<?php if ( $title ) : ?>
 			<h2 class="widget-image__title"><?php echo esc_html( $title ); ?></h2>
 		<?php endif; ?>
@@ -1206,6 +1280,11 @@ function onedong_render_right_module( $k ) {
 		case 'text':
 			if ( get_theme_mod( 'onedong_right_text', 0 ) ) {
 				onedong_widget_text( 'right' );
+			}
+			break;
+		case 'image':
+			if ( get_theme_mod( 'onedong_right_image', 0 ) ) {
+				onedong_widget_image( 'right' );
 			}
 			break;
 	}

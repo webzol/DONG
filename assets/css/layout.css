@@ -1206,7 +1206,7 @@ html.js [data-reveal].is-revealed {
 .site-icp a { color: var(--text-faint); text-decoration: none; }
 .site-icp a:hover { color: var(--primary); text-decoration: underline; }
 
-/* —— 左侧栏:图片模块 —— */
+/* —— 侧栏:图片模块(左/右栏共用)—— */
 .widget-image { text-align: center; }
 .widget-image__img {
   width: 100%;

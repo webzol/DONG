@@ -271,3 +271,21 @@
 - **grid 列与 site-content 同宽对齐**:第 1/3 列固定 `16rem`(= 左右栏),第 2 列 `minmax(0,1fr)`(= 中间栏);brand/logo 若超 16rem 会溢入中列(边缘情况,常规 logo 不超)。
 - 开发机无 php/WP,待上线复验(导航居中视觉 + Lighthouse LCP/srcset)。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.3.9(2026-06-28)· 右侧栏图片模块 + 图片模块左右栏共用
+
+### 背景
+- 用户反馈:① 左侧栏图片模块「新增了不显示」;② 右侧栏也要一个跟左侧栏一样的图片模块。
+- 排查:左侧栏代码逻辑本身无误(开关 `onedong_left_image` 默认关 + URL 空 → 不显示),「不显示」多为开关未开 / Customizer 未发布;借此把图片模块**参数化**并补齐右侧栏。
+
+### 改动
+- **图片模块参数化**(`functions.php` `onedong_widget_image( $side = 'left' )`):原仅左侧栏的 `onedong_widget_image()` 改接收 `$side`,读 `onedong_{$side}_image_url/_title/_desc`;`sidebar-left.php` 调用改传 `'left'`。左/右栏渲染同源,样式复用 `.widget-image`;`<img>` 补 `decoding="async"`。
+- **右侧栏图片模块**(与左侧栏一致,`functions.php` `onedong_sidebar_right` section):新增 `onedong_right_image`(开关,默认关)+ `onedong_right_image_url`(`WP_Customize_Image_Control`)+ `_title` + `_desc`。`onedong_render_right_module` 加 `'image'` case 调 `onedong_widget_image('right')`;`onedong_sanitize_order` valid + 默认 order 末尾 + fallback + description 均加 `image`;`sidebar.php` `$valid`/`$defs` 加 `image`(默认关)→ `$any_right` 循环与 `$sequence` 兜底自动覆盖。layout.css `.widget-image` 注释改「左/右共用」。
+- 版本 2.3.8→2.3.9。
+
+### 坑 / 注意
+- **图片显示三条件(左/右栏同)**:① 勾「显示图片模块」开关 ② 填图片 URL ③ Customizer 点「发布」。左侧栏之前「不显示」多为开关默认关 / 未点发布,代码逻辑无误(已 grep 自检 key 注册↔读取一致)。
+- 右侧栏图片默认关,顺序默认 `…,text,image`(末尾);要提前在「模块显示顺序」填 `image`(如 `cats,image,tags`)。
+- `WP_Customize_Image_Control` 存 URL(非 attachment ID),外链图直接可用,无需媒体库。
+- 开发机无 php/WP,待上线「外观 → 自定义 → 右侧栏模块」逐项实测。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

@@ -92,7 +92,7 @@ if ( ! $any_left ) {
 		<?php endif; ?>
 	<?php endif; ?>
 
-	<?php if ( get_theme_mod( 'onedong_left_image', 0 ) ) { onedong_widget_image(); } ?>
+	<?php if ( get_theme_mod( 'onedong_left_image', 0 ) ) { onedong_widget_image( 'left' ); } ?>
 	<?php if ( get_theme_mod( 'onedong_left_text', 0 ) ) { onedong_widget_text( 'left' ); } ?>
 	<?php if ( get_theme_mod( 'onedong_left_recent', 0 ) ) { onedong_widget_recent_posts(); } ?>
 	<?php if ( get_theme_mod( 'onedong_left_popular', 0 ) ) { onedong_widget_popular_posts(); } ?>
