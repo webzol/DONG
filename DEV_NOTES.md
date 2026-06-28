@@ -364,3 +364,10 @@
 - `.post-card__body` padding-top `1rem → 0.6rem`(头像上方间距收窄)。
 - `.post-card__stats` padding-bottom `1.05rem → 0.65rem`(底部阅读/点赞到卡片底的间距收窄)。
 - 版本 2.4.2→2.4.3。
+
+## v2.4.4(2026-06-28)· 文章卡上下内边距近无
+
+### 改动
+- `.post-card__body` padding-top `0.6rem → 0.2rem`(头像几乎贴卡片顶)。
+- `.post-card__stats` padding-bottom `0.65rem → 0.25rem`(底部数据几乎贴卡片底)。
+- 版本 2.4.3→2.4.4。
