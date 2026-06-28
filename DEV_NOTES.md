@@ -314,3 +314,35 @@
 - **阅读进度条 z-index 60** 贴屏幕顶,高于 header(50)。
 - ⚠️ content.php 曾误写 `endthrough` + 重复 foreach 块(已修复,控制结构配对 grep 自检通过);开发机无 php,待上线 `php -l` + 逐功能实测(TOC/复制/进度条/相关文章)。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.4.1(2026-06-28)· 文章卡重新设计 + 点赞功能 + 默认缩略图设置
+
+### A. 文章卡重新设计(`template-parts/content.php` + `assets/css/layout.css`)
+- **新布局(自上而下)**:作者行(头像+黄V+昵称+在线点 + 发布时间)→ 标题 → 摘要 → 封面图(16:9 全宽)→ 底部三项(左阅读 / 中字数 / 右点赞)。
+  - 作者行 + 发布时间移到图片**上方**(原 v2.4.0 在图片下方正文区);标题/摘要在作者行下、图片上。
+  - `.post-card__body` 仅包图片上方内容(作者+标题+摘要,底部 padding 0.85rem);`.post-card__thumb` 全宽居中;`.post-card__stats` 独立成图片下方区(左右 + 底部 padding)。
+- **底部三项均分**(`.post-card__stats` `justify-content:space-between`):阅读(eye)/ 字数(type)/ 点赞(heart),左中右。废弃原 views/comments/reading/tags 开关查询(固定三项)。
+
+### B. 点赞功能(WP 无原生,自实现)
+- **REST 路由**(`functions.php`):`POST /wp-json/onedong/v1/like { post_id }` → `_onedong_likes` post_meta +1;`permission_callback` 开放(匿名可赞),`post_id` 校验为 post。
+- **`onedong_get_likes($post_id)`** 读取;前端 `assets/js/likes.js` 点 `.post-card__like` → fetch REST → +1,`localStorage`(key `onedong-liked-{id}`)防同一浏览器重复赞;已赞置 `is-liked`(心形 `#ff3b5c` 实心)。
+- `wp_localize_script('onedong-likes','onedongLike',{url,nonce})` 注入 REST url + `wp_rest` nonce;likes.js 全局 enqueue(列表页有点赞按钮)。
+- 点赞按钮浮于 stretched-link `::after`(z-index 1)之上(`.post-card__stats` z-index 2);`e.stopPropagation()` 阻止整卡跳转。
+
+### C. 字数 + 图标
+- **`onedong_word_count()`**:去标签去空白后 `mb_strlen`,供卡片「字数」项(区别于 `onedong_reading_stats` 的「字数·分钟」)。
+- 新增图标 `heart`(点赞)、`type`(字数)。
+
+### D. 默认缩略图设置
+- Customizer「文章卡」section 加 `onedong_default_thumb`(`WP_Customize_Image_Control`):无特色图时用此图;留空回退主题内置 `assets/img/default-thumb.png`。`content.php` 无特色图分支读 `get_theme_mod('onedong_default_thumb')`,空则回退。
+
+- 版本 2.4.0→2.4.1。
+
+### 坑 / 注意
+- **点赞匿名开放 + 前端防刷**:服务端不强制认证(允许匿名赞),防刷靠前端 localStorage(同一浏览器一次);清缓存/换浏览器可重复赞。严格防刷需服务端 IP/账号限流(本期不做)。
+- **点赞数显示**:PHP 端 `number_format_i18n`(千分位),JS 端 +1 后用原始数字(无千分位);轻微不一致,可接受。
+- **REST 需 pretty permalink**:`/wp-json/...` 需固定链接非默认;默认链接(`?rest_route=`)也兼容。
+- **点赞按钮 vs stretched-link**:按钮在 `.post-card__stats`(z-index 2)内,高于标题 `::after`(1),可点;`stopPropagation` 防误跳整卡。
+- **废弃开关**:`onedong_show_views/comments/reading/tags` 卡片不再查询(Customizer 控件保留,不影响);`onedong_reading_stats` 卡片不再用(函数保留)。
+- 开发机无 php/WP,待上线 `php -l` + 点赞 REST 实测(curl POST)+ 卡片布局/默认缩略图实测。
+- ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。

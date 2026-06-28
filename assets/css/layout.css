@@ -293,7 +293,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 1rem 1.1rem 1.1rem;
+  padding: 1rem 1.1rem 0.85rem;          /* 底部留白给紧随的封面图 */
 }
 .post-card__title {
   margin: 0 0 0.5rem;
@@ -413,12 +413,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem 1.3rem;                 /* 微博风:项间距加宽,水平排列 */
-  margin-top: auto;
-  padding-top: 0.7rem;
+  justify-content: space-between;     /* 阅读 / 字数 / 点赞 三项左中右均分 */
+  gap: 0.4rem 1rem;
+  padding: 0.7rem 1.1rem 1.05rem;       /* 图片下方独立区(原在 body 内,现独立成区) */
   border-top: 1px solid var(--line);
   color: var(--text-faint);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
 }
 .post-card__stat {
@@ -429,6 +429,27 @@
 }
 .post-card__stat .icon { width: 1rem; height: 1rem; }
 .post-card__stat:hover { color: var(--primary); }
+
+/* 点赞按钮(可点击 +1;REST _onedong_likes;浮于 stretched-link ::at 之上) */
+.post-card__like {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.post-card__like .icon { width: 1rem; height: 1rem; transition: fill 0.15s ease; }
+.post-card__like:hover { color: #ff3b5c; }
+.post-card__like:active { transform: scale(0.9); }
+.post-card__like.is-liked { color: #ff3b5c; }
+.post-card__like.is-liked .icon { fill: #ff3b5c; }
 .post-card__tag {
   position: relative;
   z-index: 2;

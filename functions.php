@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.4.0' );
+define( 'ONEDONG_VERSION', '2.4.1' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -116,6 +116,17 @@ function onedong_scripts() {
 	// 滚动入场动画(渐进增强 · 零依赖)
 	wp_enqueue_script( 'onedong-reveal', ONEDONG_URI . '/assets/js/reveal.js', array(), $ver, true );
 
+	// 文章卡点赞(列表页;post_meta _onedong_likes + REST /onedong/v1/like)
+	wp_enqueue_script( 'onedong-likes', ONEDONG_URI . '/assets/js/likes.js', array(), $ver, true );
+	wp_localize_script(
+		'onedong-likes',
+		'onedongLike',
+		array(
+			'url'   => esc_url_raw( rest_url( 'onedong/v1/like' ) ),
+			'nonce' => wp_create_nonce( 'wp_rest' ),
+		)
+	);
+
 	// 文章详情页脚本(阅读进度条 / 代码块复制 / TOC 当前段高亮)
 	if ( is_singular( 'post' ) ) {
 		wp_enqueue_script( 'onedong-single', ONEDONG_URI . '/assets/js/single.js', array(), $ver, true );
@@ -169,7 +180,7 @@ add_filter( 'excerpt_length', 'onedong_excerpt_length' );
 /**
  * 内联 SVG 图标(零依赖;符合「禁用 emoji 当图标」规范)。
  *
- * @param string $name 图标名:calendar / eye / chat / clock / hash / user / sun / moon / monitor / document。
+ * @param string $name 图标名:calendar / eye / chat / clock / hash / user / sun / moon / monitor / document / heart / type。
  * @return string SVG 标记(未知名返回空串)。
  */
 function onedong_get_icon( $name ) {
@@ -184,6 +195,8 @@ function onedong_get_icon( $name ) {
 		'moon'     => '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
 		'monitor'  => '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
 		'document' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
+		'heart'    => '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+		'type'     => '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
@@ -262,6 +275,66 @@ function onedong_reading_stats() {
 		number_format_i18n( $count ),
 		$minutes
 	);
+}
+
+/**
+ * 输出文章字数(中文友好:去标签去空白后 mb_strlen)。供文章卡「字数」数据项复用。
+ */
+function onedong_word_count() {
+	$text  = wp_strip_all_tags( get_the_content() );
+	$text  = preg_replace( '/\s+/u', '', $text );
+	$count = function_exists( 'mb_strlen' ) ? mb_strlen( $text, 'UTF-8' ) : strlen( $text );
+	echo esc_html( number_format_i18n( $count ) );
+}
+
+/**
+ * 读取文章点赞数。
+ *
+ * @param int $post_id 文章 ID(缺省取当前)。
+ * @return int
+ */
+function onedong_get_likes( $post_id = 0 ) {
+	$post_id = $post_id ? (int) $post_id : get_the_ID();
+	return (int) get_post_meta( $post_id, '_onedong_likes', true );
+}
+
+/**
+ * 注册点赞 REST 路由:POST /wp-json/onedong/v1/like { post_id }。
+ * 匿名可赞(permission 开放);防刷由前端 localStorage 标记同一浏览器只赞一次。
+ */
+function onedong_register_likes_route() {
+	register_rest_route(
+		'onedong/v1',
+		'/like',
+		array(
+			'methods'             => 'POST',
+			'callback'            => 'onedong_handle_like',
+			'permission_callback' => '__return_true',
+			'args'                => array(
+				'post_id' => array(
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+					'validate_callback' => function ( $v ) {
+						return get_post_type( (int) $v ) === 'post';
+					},
+				),
+			),
+		)
+	);
+}
+add_action( 'rest_api_init', 'onedong_register_likes_route' );
+
+/**
+ * 点赞处理:post_meta _onedong_likes +1。
+ *
+ * @param WP_REST_Request $request REST 请求。
+ * @return WP_REST_Response
+ */
+function onedong_handle_like( WP_REST_Request $request ) {
+	$post_id = (int) $request['post_id'];
+	$likes   = onedong_get_likes( $post_id ) + 1;
+	update_post_meta( $post_id, '_onedong_likes', $likes );
+	return rest_ensure_response( array( 'success' => true, 'likes' => $likes ) );
 }
 
 /**
@@ -591,6 +664,27 @@ function onedong_customize_register( $wp_customize ) {
 				'max'  => 6,
 				'step' => 1,
 			),
+		)
+	);
+
+	// 默认缩略图(无特色图时用;留空回退主题内置 default-thumb.png)
+	$wp_customize->add_setting(
+		'onedong_default_thumb',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_default_thumb',
+			array(
+				'label'       => __( '默认缩略图', 'onedong' ),
+				'description' => __( '文章无特色图时显示的默认封面;留空用主题内置占位图。', 'onedong' ),
+				'section'     => 'onedong_cards',
+			)
 		)
 	);
 
