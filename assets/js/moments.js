@@ -248,3 +248,49 @@
 		}
 	} );
 }() );
+
+/**
+ * 实况图片(Live Photo):悬停(桌面)/ 长按(移动)播放配对视频 · v2.5.11
+ */
+( function () {
+	'use strict';
+	var liveImgs = document.querySelectorAll( '.moment__img[data-video]' );
+	if ( ! liveImgs.length ) {
+		return;
+	}
+	Array.prototype.forEach.call( liveImgs, function ( img ) {
+		var wrap = img.closest( '.moment__live-wrap' ) || img.parentNode;
+		var video = null;
+		var timer = null;
+		function play() {
+			clearTimeout( timer );
+			if ( video ) { return; }
+			video = document.createElement( 'video' );
+			video.src = img.getAttribute( 'data-video' );
+			video.className = 'moment__video';
+			video.muted = true;          // 自动播放策略要求 muted
+			video.loop = true;
+			video.playsInline = true;
+			video.setAttribute( 'webkit-playsinline', 'true' );
+			wrap.appendChild( video );
+			var p = video.play();
+			if ( p && p.catch ) { p.catch( function () {} ); }
+		}
+		function stop() {
+			timer = setTimeout( function () {
+				if ( video ) {
+					video.pause();
+					video.removeAttribute( 'src' );
+					video.load();
+					video.remove();
+					video = null;
+				}
+			}, 200 );
+		}
+		img.addEventListener( 'mouseenter', play );
+		img.addEventListener( 'mouseleave', stop );
+		img.addEventListener( 'touchstart', play, { passive: true } );
+		img.addEventListener( 'touchend', stop );
+		img.addEventListener( 'touchcancel', stop );
+	} );
+}() );

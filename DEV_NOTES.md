@@ -553,6 +553,22 @@
 - `onedong_get_icon` 所有图标 SVG 是 `fill:none stroke:currentColor`(Feather 描边风),默认**空心**;要"实心"必须 CSS 显式 `fill`(currentColor 或具体色)覆盖 svg 的 `fill="none"` presentation attribute。
 - TD 多轮反馈"有背景",主因是部署版本滞后(v2.5.8 commit 漏了 moments.css,v2.5.9 补);本版再显式 `transparent` 兜底。**部署后务必强刷(Ctrl+F5)清 CSS 缓存**,因 CSS 资源 URL 带版本号(bump 到 2.5.10 会自动破缓存)。
 
+## v2.5.11(2026-06-29)· 朋友圈实况图片(Live Photo)+ 首页点赞 hover 去背景兜底
+
+### 改动(`inc/moments.php` + `assets/js/moment-admin.js` + `assets/css/moments.css` + `assets/js/moments.js` + `assets/css/layout.css`)
+- **实况图片(Live Photo)**:每张图可选配一段视频(媒体库 type=video)。
+  - 后台 meta box:图片 li 加「实况」按钮(WP Media 选视频),存 `_onedong_moment_live`(img_id => video_id 配对),`#moment-live` hidden(JSON)。
+  - 前端 `onedong_render_moment`:配了视频的图包 `.moment__live-wrap`(relative)+ img 加 `data-video` + `.moment__live-badge`「实况」角标。
+  - moments.js:`.moment__img[data-video]` 悬停(桌面 mouseenter)/ 长按(移动 touchstart)→ 叠加 `<video muted loop>` 播放,离开移除。
+  - CSS:角标(左下半透明黑底白字)+ video absolute 覆盖 img。
+- **首页点赞 hover 去背景兜底**:`.post-card__like:hover` 显式 `background: transparent`(v2.5.10 已实心红,本版兜底防部署残留)。
+- 版本 2.5.10→2.5.11。
+
+### 坑 / 注意
+- 实况视频需 WP 媒体库允许视频上传(默认允许 mp4/mov 等);视频较大注意服务器 `upload_max_filesize`。
+- hover 播放依赖浏览器自动播放策略,**`muted` 必填**(否则被拦截不播)。
+- 实况图点击仍触发 lightbox 看大图(与 hover 播放不冲突:一个 hover 一个 click)。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

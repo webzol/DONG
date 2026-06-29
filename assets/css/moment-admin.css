@@ -43,3 +43,21 @@
 /* 拖拽排序 · v2.5.6 */
 .moment-img-item[draggable] { cursor: move; }
 .moment-img-item.is-dragging { opacity: 0.4; }
+
+/* 后台实况视频按钮 · v2.5.11 */
+.moment-img-live {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 2;
+  padding: 3px 5px;
+  border: 0;
+  border-radius: 8px;
+  background: #2271b1;
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.moment-img-live:hover { background: #135e96; }

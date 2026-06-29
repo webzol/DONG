@@ -1,10 +1,9 @@
 <?php
 /**
- * 朋友圈模块(onedong_moment)· v2.5.0
+ * 朋友圈模块(onedong_moment)· v2.5.11
  *
- * 自定义文章类型 + 后台发布(文字 + 多图最多9 + 定位)+ 前端微信朋友圈流展示。
- * 前端模板:archive-onedong_moment.php / single-onedong_moment.php(均调用 onedong_render_moment())。
- * 样式/脚本:assets/css/moments.css + assets/js/moments.js(lightbox + 操作气泡)+ 后台 moment-admin.*。
+ * CPT + 后台发布(文字 + 多图最多9 + 定位 + 实况视频)+ 前端微信朋友圈流。
+ * 实况(Live Photo):每张图可选配一个视频附件,前端 hover(桌面)/ 长按(移动)播放 + 角标。
  *
  * @package OneDong
  */
@@ -40,24 +39,21 @@ function onedong_register_moment_cpt() {
 			'menu_position' => 6,
 			'hierarchical'  => false,
 			'supports'      => array( 'title', 'editor', 'author', 'thumbnail' ),
-			'show_in_rest'  => false, // 经典 meta box 发布,不走块编辑器
+			'show_in_rest'  => false,
 			'rewrite'       => array( 'slug' => 'moments', 'with_front' => false ),
 		)
 	);
-	// 首次注册刷一次固定链接,确保 /moments/ 可访问(只跑一次)
 	if ( ! get_option( 'onedong_moment_flushed' ) ) {
 		flush_rewrite_rules();
 		update_option( 'onedong_moment_flushed', 1 );
 	}
 }
 add_action( 'init', 'onedong_register_moment_cpt' );
-
-// 切换/启用主题时刷固定链接,防止 CPT archive 404
 add_action( 'after_switch_theme', 'flush_rewrite_rules' );
 
 
 /* ============================================================
- * 2. 后台发布:meta box(图片 + 定位)
+ * 2. 后台发布:meta box(图片 + 实况 + 定位)
  * ============================================================ */
 function onedong_moment_add_meta_box() {
 	add_meta_box( 'onedong_moment_media', __( '图片与定位', 'onedong' ), 'onedong_moment_meta_box_cb', 'onedong_moment', 'normal', 'high' );
@@ -68,18 +64,24 @@ function onedong_moment_meta_box_cb( $post ) {
 	wp_nonce_field( 'onedong_moment_save', 'onedong_moment_nonce' );
 	$ids      = get_post_meta( $post->ID, '_onedong_moment_images', true );
 	$location = get_post_meta( $post->ID, '_onedong_moment_location', true );
+	$lives    = get_post_meta( $post->ID, '_onedong_moment_live', true );
 	if ( ! is_array( $ids ) ) {
 		$ids = array();
 	}
+	if ( ! is_array( $lives ) ) {
+		$lives = array();
+	}
 	?>
-	<p class="description"><?php esc_html_e( '文字写在上方「正文」框;图片最多 9 张(1 张大图 / 2–9 张九宫格);定位可选。', 'onedong' ); ?></p>
+	<p class="description"><?php esc_html_e( '文字写在上方「正文」框;图片最多 9 张(1 张大图 / 2–9 张九宫格);每张图可点「实况」配一段视频,前端悬停 / 长按播放;定位可选。', 'onedong' ); ?></p>
 
 	<h4 style="margin:1em 0 .4em;"><?php esc_html_e( '图片(最多 9 张)', 'onedong' ); ?></h4>
 	<ul class="moment-img-list" id="moment-img-list">
 	<?php foreach ( $ids as $id ) : ?>
 		<?php if ( wp_get_attachment_image( $id, 'thumbnail' ) ) : ?>
-			<li class="moment-img-item" data-id="<?php echo esc_attr( $id ); ?>">
+			<?php $has_live = isset( $lives[ $id ] ) ? absint( $lives[ $id ] ) : 0; ?>
+			<li class="moment-img-item" data-id="<?php echo esc_attr( $id ); ?>" data-video="<?php echo $has_live ? esc_attr( $has_live ) : ''; ?>">
 				<?php echo wp_get_attachment_image( $id, 'thumbnail' ); ?>
+				<button type="button" class="moment-img-live" data-video="<?php echo $has_live ? esc_attr( $has_live ) : ''; ?>" title="<?php esc_attr_e( '实况视频', 'onedong' ); ?>"><?php echo $has_live ? '✓实况' : '＋实况'; ?></button>
 				<button type="button" class="moment-img-remove" aria-label="<?php esc_attr_e( '移除', 'onedong' ); ?>">×</button>
 			</li>
 		<?php endif; ?>
@@ -90,6 +92,7 @@ function onedong_moment_meta_box_cb( $post ) {
 		<span class="description" id="moment-img-count"><?php echo esc_html( sprintf( __( '已选 %d/9', 'onedong' ), count( $ids ) ) ); ?></span>
 	</p>
 	<input type="hidden" id="moment-img-ids" name="onedong_moment_images" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+	<input type="hidden" id="moment-live" name="onedong_moment_live" value="<?php echo esc_attr( wp_json_encode( $lives ) ); ?>">
 
 	<h4 style="margin:1.2em 0 .4em;"><?php esc_html_e( '定位', 'onedong' ); ?></h4>
 	<input type="text" name="onedong_moment_location" value="<?php echo esc_attr( $location ); ?>" placeholder="<?php esc_attr_e( '如:杭州·西湖断桥', 'onedong' ); ?>" class="widefat">
@@ -117,6 +120,21 @@ function onedong_moment_save( $post_id ) {
 			}
 		}
 		update_post_meta( $post_id, '_onedong_moment_images', array_slice( array_unique( $out ), 0, 9 ) );
+	}
+	// 实况视频配对(img_id => video_id;video 必须 attachment)
+	if ( isset( $_POST['onedong_moment_live'] ) ) {
+		$raw  = json_decode( wp_unslash( $_POST['onedong_moment_live'] ), true );
+		$live = array();
+		if ( is_array( $raw ) ) {
+			foreach ( $raw as $img_id => $vid_id ) {
+				$img_id = absint( $img_id );
+				$vid_id = absint( $vid_id );
+				if ( $img_id && $vid_id && 'attachment' === get_post_type( $vid_id ) ) {
+					$live[ $img_id ] = $vid_id;
+				}
+			}
+		}
+		update_post_meta( $post_id, '_onedong_moment_live', $live );
 	}
 	if ( isset( $_POST['onedong_moment_location'] ) ) {
 		update_post_meta( $post_id, '_onedong_moment_location', sanitize_text_field( wp_unslash( $_POST['onedong_moment_location'] ) ) );
@@ -151,11 +169,6 @@ add_action( 'admin_enqueue_scripts', 'onedong_moment_admin_assets' );
 /* ============================================================
  * 4. 前端渲染辅助:相对时间 + 单条朋友圈 HTML
  * ============================================================ */
-
-/**
- * 微信朋友圈风格相对时间(刚刚 / X 分钟前 / X 小时前 / 昨天 / 日期)。
- * 需在循环内调用(依赖 get_the_time)。
- */
 function onedong_moment_time_format() {
 	$diff = (int) current_time( 'timestamp' ) - (int) get_the_time( 'U' );
 	if ( $diff < 60 ) {
@@ -171,15 +184,15 @@ function onedong_moment_time_format() {
 	}
 }
 
-/**
- * 渲染单条朋友圈(头像 + 昵称 + 文字 + 图片网格 + 定位 + 时间 + 操作按钮)。
- * 供 archive-onedong_moment.php / single-onedong_moment.php 复用。需在循环内。
- */
 function onedong_render_moment() {
 	$ids      = get_post_meta( get_the_ID(), '_onedong_moment_images', true );
 	$location = get_post_meta( get_the_ID(), '_onedong_moment_location', true );
+	$lives    = get_post_meta( get_the_ID(), '_onedong_moment_live', true );
 	if ( ! is_array( $ids ) ) {
 		$ids = array();
+	}
+	if ( ! is_array( $lives ) ) {
+		$lives = array();
 	}
 	$count = count( $ids );
 	?>
@@ -198,19 +211,21 @@ function onedong_render_moment() {
 				<div class="moment__imgs moment__imgs--<?php echo ( 1 === $count ) ? 'single' : 'grid'; ?>">
 					<?php
 					foreach ( $ids as $id ) :
-						$full = wp_get_attachment_image_url( $id, 'large' );
-						$size = ( 1 === $count ) ? 'large' : 'onedong-moment-thumb';
-						echo wp_get_attachment_image(
-							$id,
-							$size,
-							false,
-							array(
-								'class'     => 'moment__img',
-								'data-full' => esc_url( $full ),
-								'loading'   => 'lazy',
-								'decoding'  => 'async',
-							)
+						$full  = wp_get_attachment_image_url( $id, 'large' );
+						$size  = ( 1 === $count ) ? 'large' : 'onedong-moment-thumb';
+						$video = isset( $lives[ $id ] ) ? wp_get_attachment_url( $lives[ $id ] ) : '';
+						$attr  = array(
+							'class'     => 'moment__img',
+							'data-full' => esc_url( $full ),
+							'loading'   => 'lazy',
+							'decoding'  => 'async',
 						);
+						if ( $video ) {
+							$attr['data-video'] = esc_url( $video );
+							echo '<span class="moment__live-wrap">' . wp_get_attachment_image( $id, $size, false, $attr ) . '<span class="moment__live-badge">实况</span></span>';
+						} else {
+							echo wp_get_attachment_image( $id, $size, false, $attr );
+						}
 					endforeach;
 					?>
 				</div>
@@ -225,10 +240,7 @@ function onedong_render_moment() {
 					</span>
 				<?php endif; ?>
 
-				<?php
-				// 操作按钮「••」:点击展开赞 / 分享(纯图标,微信风深灰气泡)。v2.5.1
-				$like_url = esc_url_raw( rest_url( 'onedong/v1/like' ) );
-				?>
+				<?php $like_url = esc_url_raw( rest_url( 'onedong/v1/like' ) ); ?>
 				<div class="moment__actions" data-like-url="<?php echo esc_attr( $like_url ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>">
 					<button class="moment__toggle" type="button" aria-label="<?php esc_attr_e( '操作', 'onedong' ); ?>" aria-expanded="false">
 						<span class="moment__dot"></span><span class="moment__dot"></span>
