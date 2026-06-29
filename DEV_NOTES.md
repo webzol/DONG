@@ -689,6 +689,16 @@
 - 移动端(≤640px)左栏隐藏,`.post-card__body` padding-top 保持 0.9rem(不需对齐左栏)。
 - 这与 v2.5「去顶边距(贴顶)」相反;TD 改主意要头像对齐左栏,故加回 1.25rem。
 
+## v2.5.23(2026-06-29)· 中间栏头像微调上移对齐左栏
+
+### 改动(`assets/css/layout.css`)
+- `.post-card__body` padding-top `1.25rem → 1rem`,中间头像上移 ~4px 对齐左栏作者卡头像。
+- 根因:左栏作者卡是大头像(96px,`inline-block`+`line-height:0`)贴 widget 内容区顶;中间是小头像(40px)在 `.post-card__author`(`align-items:center`)里,旁边 `author-info`(昵称+日期两行≈40px)让小头像被 flex 居中挤下,实测低 5-10px。减小中间顶 padding 补偿。
+- 版本 2.5.22→2.5.23。
+
+### 坑 / 注意
+- 若仍偏差,可改 `.post-card__author { align-items: flex-start }`(头像顶对齐 author 顶,不居中),但会影响头像/昵称视觉关系;本期先用 padding 微调。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

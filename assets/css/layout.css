@@ -306,7 +306,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1.1rem 0.85rem;  /* 顶 padding 对齐左栏 .widget 头像(v2.5.22) */
+  padding: 1rem 1.1rem 0.85rem;  /* 顶 padding 对齐左栏头像(v2.5.23 微调) */
 }
 .post-card__title {
   margin: 0 0 0.5rem;
