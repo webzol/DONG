@@ -649,6 +649,20 @@
 - 中间栏(content-main)左边在 grid 中列,本身已与顶部导航 nav(同中列)左边对齐;此前朋友圈流 `margin:0 auto` 居中导致视觉偏右,左边缘没对齐 nav。改左对齐后即对齐。
 - 若想朋友圈流对齐到顶部导航 brand(最左列),需调整 grid(让朋友圈页去掉左栏或 content-main 跨列),本期未做。
 
+## v2.5.19(2026-06-29)· Logo 双风格(浅色 + 暗色模式浅色)+ 自动切换 / 反色
+
+### 改动(`functions.php` + `header.php` + `assets/css/layout.css`)
+- **暗色 Logo 上传**:新 customizer section「品牌 / Logo」+ 设置 `onedong_logo_dark`(WP_Customize_Image_Control)。浅色 Logo 仍用「站点身份」(custom_logo)。
+- **header.php**:`site-brand` 有暗色 Logo 时加 class `site-brand--has-dark`,输出 `<img class="site-logo--dark">`(暗色 Logo)。
+- **自动切换**(CSS):
+  - 无暗色 Logo:深色模式浅色 Logo `filter: invert(1)`(自动反色,适纯色 Logo)。
+  - 有暗色 Logo:深色模式隐藏浅色、显示暗色(精确双风格)。
+- 版本 2.5.18→2.5.19。
+
+### 坑 / 注意
+- `filter: invert(1)` 仅对纯黑 / 白 Logo 效果好;彩色 Logo 建议上传专门的暗色 Logo(浅色版)。
+- 浅色 Logo 用 WP「站点身份」(custom_logo);暗色 Logo 用「外观→自定义→品牌 / Logo」。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

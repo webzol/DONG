@@ -27,10 +27,16 @@
 
 <header id="masthead" class="site-header">
 	<div class="site-header__inner">
-		<div class="site-brand">
+		<?php $dark_logo = get_theme_mod( 'onedong_logo_dark', '' ); ?>
+		<div class="site-brand<?php echo $dark_logo ? ' site-brand--has-dark' : ''; ?>">
 			<?php
 			if ( has_custom_logo() ) {
 				the_custom_logo();
+				if ( $dark_logo ) {
+					?>
+					<img class="site-logo--dark" src="<?php echo esc_url( $dark_logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" loading="lazy">
+					<?php
+				}
 			} else {
 				?>
 				<h1 class="site-title">

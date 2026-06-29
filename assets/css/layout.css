@@ -65,6 +65,11 @@
   gap: 0.6rem;
   justify-self: start;
 }
+/* Logo 暗色模式切换 · v2.5.19 */
+.site-logo--dark { display: none; }
+[data-theme="dark"] .site-brand .custom-logo { filter: invert(1) brightness(1.1); }  /* 无暗色 logo:自动反色浅色 logo */
+[data-theme="dark"] .site-brand--has-dark .custom-logo { display: none; filter: none; }
+[data-theme="dark"] .site-brand--has-dark .site-logo--dark { display: inline-block; }
 .site-title {
   margin: 0;
   font-size: 1.2rem;

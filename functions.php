@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.18' );
+define( 'ONEDONG_VERSION', '2.5.19' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -787,6 +787,33 @@ function onedong_sanitize_order( $value ) {
  * @param WP_Customize_Manager $wp_customize Customizer 实例。
  */
 function onedong_customize_register( $wp_customize ) {
+	// 品牌 / Logo:暗色模式 Logo(浅色用「站点身份」)· v2.5.19
+	$wp_customize->add_section(
+		'onedong_branding',
+		array(
+			'title'    => __( '品牌 / Logo', 'onedong' ),
+			'priority' => 29,
+		)
+	);
+	$wp_customize->add_setting(
+		'onedong_logo_dark',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_logo_dark',
+			array(
+				'label'       => __( '暗色模式 Logo', 'onedong' ),
+				'description' => __( '深色背景下显示的浅色 Logo;留空则深色模式自动反色浅色 Logo。浅色 Logo 用「站点身份」上传。', 'onedong' ),
+				'section'     => 'onedong_branding',
+			)
+		)
+	);
 	// —— 文章卡设置 ——
 	$wp_customize->add_section(
 		'onedong_cards',
