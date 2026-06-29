@@ -854,6 +854,25 @@ function onedong_customize_register( $wp_customize ) {
 		)
 	);
 
+	// 左侧栏:图片点击跳转链接(留空则图片不可点击;v2.4.7)
+	$wp_customize->add_setting(
+		'onedong_left_image_link',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_left_image_link',
+		array(
+			'label'       => __( '图片点击跳转链接', 'onedong' ),
+			'description' => __( '留空则图片不可点击;填写后点击图片(及标题)在新标签打开该链接。', 'onedong' ),
+			'section'     => 'onedong_sidebar',
+			'type'        => 'url',
+		)
+	);
+
 	// —— 右侧栏模块(新 section;分类/标签默认开,其余默认关)——
 	$wp_customize->add_section(
 		'onedong_sidebar_right',
@@ -980,6 +999,25 @@ function onedong_customize_register( $wp_customize ) {
 			'description' => __( '支持基础 HTML。', 'onedong' ),
 			'section'     => 'onedong_sidebar_right',
 			'type'        => 'textarea',
+		)
+	);
+
+	// 右侧栏:图片点击跳转链接(留空则图片不可点击;v2.4.7)
+	$wp_customize->add_setting(
+		'onedong_right_image_link',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_right_image_link',
+		array(
+			'label'       => __( '图片点击跳转链接', 'onedong' ),
+			'description' => __( '留空则图片不可点击;填写后点击图片(及标题)在新标签打开该链接。', 'onedong' ),
+			'section'     => 'onedong_sidebar_right',
+			'type'        => 'url',
 		)
 	);
 
@@ -1395,14 +1433,21 @@ function onedong_widget_image( $side = 'left' ) {
 	$url   = get_theme_mod( "onedong_{$side}_image_url", '' );
 	$title = get_theme_mod( "onedong_{$side}_image_title", '' );
 	$desc  = get_theme_mod( "onedong_{$side}_image_desc", '' );
+	$link  = get_theme_mod( "onedong_{$side}_image_link", '' );
 	if ( ! $url ) {
 		return;
 	}
 	?>
 	<section class="widget widget-image">
+		<?php if ( $link ) : ?>
+			<a class="widget-image__link" href="<?php echo esc_url( $link ); ?>" target="_blank" rel="noopener noreferrer">
+		<?php endif; ?>
 		<img class="widget-image__img" src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( wp_strip_all_tags( $title ) ); ?>" loading="lazy" decoding="async">
 		<?php if ( $title ) : ?>
 			<h2 class="widget-image__title"><?php echo esc_html( $title ); ?></h2>
+		<?php endif; ?>
+		<?php if ( $link ) : ?>
+			</a>
 		<?php endif; ?>
 		<?php if ( trim( wp_strip_all_tags( $desc ) ) ) : ?>
 			<div class="widget-image__desc"><?php echo wp_kses_post( $desc ); ?></div>

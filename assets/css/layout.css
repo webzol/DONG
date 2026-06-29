@@ -262,6 +262,10 @@
   margin: 0;
   transition: transform 0.35s ease;
 }
+.post-card__img--default {
+  object-fit: contain;        /* 默认缩略图为品牌图(标识+标语+猫主体),contain 完整展示,避免 16:9 cover 裁掉上下文字/主体 */
+  background: #000;           /* 匹配默认图黑底,消除 contain 左右留白 */
+}
 .post-card:hover .post-card__img { transform: scale(1.05); }
 
 /* 分类贴片(suxing:贴封面图左上角;纯展示,pointer-events:none 让点击穿透到封面/整卡链接) */
@@ -294,7 +298,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1.1rem 0.85rem;        /* 顶 padding 对齐侧栏 .widget(头像上方间距) */
+  padding: 0.75rem 1.1rem 0.85rem;        /* 顶 padding:头像上方间距(原 1.25 对齐 widget,TD 嫌大缩至 0.75) */
 }
 .post-card__title {
   margin: 0 0 0.5rem;
@@ -416,7 +420,7 @@
   align-items: center;
   justify-content: space-between;     /* 阅读 / 字数 / 点赞 三项左中右均分 */
   gap: 0.4rem 1rem;
-  padding: 0.7rem 1.1rem 1.25rem;       /* 底 padding 对齐侧栏 .widget(点赞行到卡片底) */
+  padding: 0.7rem 1.1rem 0.75rem;       /* 底 padding:点赞行到卡片底(原 1.25 对齐 widget,缩至 0.75) */
   border-top: 1px solid var(--line);
   color: var(--text-faint);
   font-size: 0.82rem;
@@ -1239,6 +1243,12 @@ html.js [data-reveal].is-revealed {
   border-radius: var(--radius);
   display: block;
 }
+.widget-image__link {        /* 后台「图片点击跳转链接」设了才渲染;包裹图片+标题(v2.4.7) */
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.widget-image__link:hover .widget-image__img { opacity: 0.92; }
 .widget-image__title {
   margin: 0.6rem 0 0.3rem;
   font-size: 1.05rem;

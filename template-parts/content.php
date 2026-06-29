@@ -68,7 +68,7 @@ $cats       = get_the_category();
 				$default_thumb = get_theme_mod( 'onedong_default_thumb', '' );
 				$default_src   = $default_thumb ? $default_thumb : get_theme_file_uri( 'assets/img/default-thumb.png' );
 			?>
-				<img class="post-card__img"
+				<img class="post-card__img post-card__img--default"
 					src="<?php echo esc_url( $default_src ); ?>"
 					alt="<?php the_title_attribute(); ?>"
 					decoding="async"

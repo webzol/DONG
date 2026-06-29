@@ -400,3 +400,25 @@
 - **保留双线描边**:参考图头像「无明显描边」,但现状 card-bg 描边与黄V 徽章的 card-bg 垫底是配套的,去掉会让黄V 衔接突兀,故保留(仅等比加粗到 2px)。如想要参考图那种无描边内阴影风,可去 border/box-shadow 改 `box-shadow: inset 0 0 2px rgba(0,0,0,.1)`。
 - 头像放大后 `.post-card__meta` 行变高(~40px),标题相应下移;顶部 padding 沿用 v2.4.5 的 1.25rem,视觉协调。
 - ⚠️ 线上仍跑 Once-main;`onedong.zip` 仍为外部不明改动,未纳入本次提交。
+
+## v2.4.7(2026-06-29)· 文章卡间距收紧 + 默认图自适应 + 图片模块可点击
+
+### 背景
+- TD 反馈三处:① 中间栏头像上方 / 点赞栏下方间距偏大;② 无特色图默认缩略图(品牌图)被 16:9 cover 裁切,上下文字与猫主体丢失;③ 左右栏图片模块希望可点击跳转、链接后台可设。
+
+### 改动(`layout.css` + `content.php` + `functions.php`)
+- **文章卡间距收紧**(撤销 v2.4.5「对齐侧栏 widget」取向,TD 嫌大):
+  - `.post-card__body` padding-top `1.25rem → 0.75rem`(头像上方)。
+  - `.post-card__stats` padding-bottom `1.25rem → 0.75rem`(点赞栏下方)。
+- **默认缩略图自适应**(品牌图完整展示):
+  - 根因:`default-thumb.png` 为 4:3(600×450,黑底 + 上 OneDong 标识/标语 + 下黑猫),16:9 容器 `cover` 裁掉上下。
+  - `content.php` 默认图 `<img>` 加 `post-card__img--default`;CSS `object-fit:contain` + `background:#000`(匹配黑底消留白)。特色图仍 `cover`。
+- **图片模块可点击跳转**:
+  - 新增 `onedong_{left,right}_image_link` 设置(URL);后台「外观→自定义→左/右侧栏模块」填。
+  - `onedong_widget_image()`:link 非空时图片+标题包 `<a target="_blank" rel="noopener">`;`.widget-image__link{display:block}` + hover opacity 0.92。
+- 版本 2.4.6→2.4.7。
+
+### 坑 / 注意
+- 间距收紧后中间栏不再与侧栏 `.widget`(仍 1.25rem)顶/底对齐;如需同步,改 `.widget` padding。
+- 默认图 contain 左右留 ~12.5% 黑边,靠 `background:#000` 与图底同色消割裂;换非黑底默认图需同步改 background。
+- `onedong.zip` 沿用历史策略,不纳入提交(`git checkout` 恢复)。
