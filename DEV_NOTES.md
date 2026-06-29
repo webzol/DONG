@@ -569,6 +569,17 @@
 - hover 播放依赖浏览器自动播放策略,**`muted` 必填**(否则被拦截不播)。
 - 实况图点击仍触发 lightbox 看大图(与 hover 播放不冲突:一个 hover 一个 click)。
 
+## v2.5.12(2026-06-29)· 主题切换去电脑图标改二态 + 文章卡日期移到昵称下
+
+### 改动(`header.php` + `assets/js/theme-toggle.js` + `assets/css/layout.css` + `template-parts/content.php`)
+- **主题切换二态**:去掉 auto / monitor(电脑)图标,只留日(light)/ 月(dark);点击 light↔dark 切换,localStorage 记忆;无记忆时跟随系统。`theme-toggle.js` 重写为二态;`header.php` 去 monitor span;CSS 去 `[data-pref=auto]` 规则。
+- **文章卡日期下移**:作者列改为 头像 + `.post-card__author-info`(昵称 + 日期竖排),日期从 meta 右侧独立位置移到昵称下方。CSS `.post-card__author-info{flex-direction:column}`,日期小字 0.72rem。
+- 版本 2.5.11→2.5.12。
+
+### 坑 / 注意
+- ⚠️ **线上 dingxudong.com 跑的是 Once-main 主题(非 onedong)**(webReader 确认 stylesheet 是 `themes/Once-main/`),moments / 点赞动效 / 实况等 onedong 独有功能线上看不到;验收需把 onedong 部署启用(后台「外观→主题」切换,或 scp 覆盖后启用)。
+- 去掉 auto 后失去「跟随系统实时变化」(系统切换主题 onedong 不自动跟),但用户可手动点切。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

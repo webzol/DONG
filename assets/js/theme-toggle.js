@@ -1,10 +1,9 @@
 /**
- * OneDong · 暗色模式切换(三态)
+ * OneDong · 深浅色切换(二态:亮 / 暗)· v2.5.12
  * --------------------------------------------------------------
- * 三态:light(亮) → dark(暗) → auto(跟随系统) → light …
- * 首帧 data-theme 由 header.php 内联的 anti-flash 脚本在渲染前设置,避免闪白;
- * 本脚本负责:点击按钮在三态间循环、跟随系统实时变化。
- * v2.0:已移除主题色相滑块逻辑(主色固定 suxing blue)。
+ * 点击在 light ↔ dark 间切换;localStorage 记忆。
+ * 首帧 data-theme 由 header.php 内联 anti-flash 脚本设置(无记忆时跟随系统),避免闪白。
+ * (原三态含 auto/电脑图标,TD 要求只留日 / 月,已移除 auto。)
  */
 ( function () {
 	'use strict';
@@ -15,74 +14,39 @@
 		return !!( window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches );
 	}
 
-	// 偏好:light / dark / auto(默认 auto,即跟随系统)
+	// 偏好:light / dark;无记忆时跟随系统(返回具体态,不返回 auto)
 	function pref() {
 		try {
 			var s = localStorage.getItem( THEME_KEY );
-			if ( s === 'light' || s === 'dark' || s === 'auto' ) {
+			if ( s === 'light' || s === 'dark' ) {
 				return s;
 			}
 		} catch ( e ) {}
-		return 'auto';
-	}
-
-	function resolve( p ) {
-		if ( p === 'light' || p === 'dark' ) {
-			return p;
-		}
 		return systemDark() ? 'dark' : 'light';
 	}
 
 	function applyPref( p ) {
-		var el = document.documentElement;
-		el.setAttribute( 'data-theme', resolve( p ) );
-		el.setAttribute( 'data-theme-pref', p );
+		document.documentElement.setAttribute( 'data-theme', p );
 	}
 
 	function setButtonState( toggle, p ) {
 		toggle.setAttribute( 'data-pref', p );
-		toggle.setAttribute( 'aria-pressed', resolve( p ) === 'dark' ? 'true' : 'false' );
-		toggle.setAttribute(
-			'title',
-			{ light: '当前:亮色', dark: '当前:暗色', auto: '当前:跟随系统' }[ p ] || ''
-		);
-	}
-
-	function nextPref( p ) {
-		return p === 'light' ? 'dark' : ( p === 'dark' ? 'auto' : 'light' );
+		toggle.setAttribute( 'aria-pressed', p === 'dark' ? 'true' : 'false' );
+		toggle.setAttribute( 'title', p === 'dark' ? '当前:暗色(点击切到亮色)' : '当前:亮色(点击切到暗色)' );
 	}
 
 	function init() {
 		var toggle = document.querySelector( '.theme-toggle' );
-
 		var p = pref();
 		applyPref( p );
 		if ( toggle ) {
 			setButtonState( toggle, p );
-		}
-
-		if ( toggle ) {
 			toggle.addEventListener( 'click', function () {
-				p = nextPref( p );
+				p = ( p === 'light' ) ? 'dark' : 'light';
 				applyPref( p );
 				setButtonState( toggle, p );
 				try { localStorage.setItem( THEME_KEY, p ); } catch ( e ) {}
 			} );
-		}
-
-		// auto 偏好时,系统主题变化实时跟随
-		if ( window.matchMedia ) {
-			var mql = window.matchMedia( '(prefers-color-scheme: dark)' );
-			var onChange = function () {
-				if ( pref() === 'auto' ) {
-					document.documentElement.setAttribute( 'data-theme', systemDark() ? 'dark' : 'light' );
-				}
-			};
-			if ( mql.addEventListener ) {
-				mql.addEventListener( 'change', onChange );
-			} else if ( mql.addListener ) {
-				mql.addListener( onChange );
-			}
 		}
 	}
 

@@ -26,13 +26,14 @@ $cats       = get_the_category();
 							<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFB300"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 						</span>
 					</span>
-					<span class="post-card__author-name"><?php the_author(); ?><span class="online-dot" aria-label="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span></span>
+					<span class="post-card__author-info">
+						<span class="post-card__author-name"><?php the_author(); ?><span class="online-dot" aria-label="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span></span>
+						<time class="post-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
+							<?php onedong_icon( 'calendar' ); ?>
+							<?php echo esc_html( get_the_date() ); ?>
+						</time>
+					</span>
 				</span>
-
-				<time class="post-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
-					<?php onedong_icon( 'calendar' ); ?>
-					<?php echo esc_html( get_the_date() ); ?>
-				</time>
 			</div>
 		<?php endif; ?>
 

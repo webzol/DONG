@@ -149,8 +149,7 @@
 .theme-toggle__icon { display: none; font-style: normal; }
 .theme-toggle__icon .icon { width: 1.1rem; height: 1.1rem; }
 .theme-toggle[data-pref="light"] .theme-toggle__sun,
-.theme-toggle[data-pref="dark"] .theme-toggle__moon,
-.theme-toggle[data-pref="auto"] .theme-toggle__auto { display: inline-flex; align-items: center; justify-content: center; }
+.theme-toggle[data-pref="dark"] .theme-toggle__moon { display: inline-flex; align-items: center; justify-content: center; }
 
 /* ============================================================
    主区域容器
@@ -344,6 +343,13 @@
   gap: 0.5rem;
   min-width: 0;
 }
+.post-card__author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.post-card__author-info .post-card__date { font-size: 0.72rem; color: var(--text-faint); }
 .post-card__avatar-wrap {
   position: relative;
   display: inline-block;
