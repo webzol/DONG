@@ -621,6 +621,18 @@
 - GIF 转 WebP 只取首帧(不动画);动态 GIF 建议保留原 GIF(本方案仍转,如需排除 GIF 改白名单)。
 - 与缓存插件(WP Super Cache 等)兼容;picture 由 `wp_get_attachment_image` filter 动态生成,缓存的是带 picture 的 HTML。
 
+## v2.5.16(2026-06-29)· WebP 转换优先 Imagick(GD 回退)
+
+### 改动(`functions.php`)
+- `onedong_webp_convert` 改为**优先 Imagick**(`new Imagick` + `setImageFormat('webp')` + 质量 82),**GD `imagewebp` 回退**。Imagick 质量更好且 WebP delegate 通常自带。
+- `onedong_make_webp` 入口检查:`imagewebp` 或 `Imagick` 任一可用即转(不再只看 GD)。
+- 先确认 Imagick 支持 WEBP(`queryFormats` 含 WEBP)才用,否则落 GD。
+- 版本 2.5.15→2.5.16。
+
+### 坑 / 注意
+- TD 服务器已装 Imagick → WebP 转换走 Imagick(无需 GD WebP 编译)。
+- Imagick 写 webp 失败(异常)自动落 GD;两者都无则跳过(降级 JPG,无副作用)。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

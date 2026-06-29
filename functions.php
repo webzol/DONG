@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.15' );
+define( 'ONEDONG_VERSION', '2.5.16' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -104,7 +104,7 @@ remove_action( 'wp_head', 'wp_shortlink_wp_head' );
  */
 add_filter( 'wp_generate_attachment_metadata', 'onedong_make_webp', 10, 2 );
 function onedong_make_webp( $metadata, $attachment_id ) {
-	if ( ! function_exists( 'imagewebp' ) ) {
+	if ( ! function_exists( 'imagewebp' ) && ! class_exists( 'Imagick' ) ) {
 		return $metadata;
 	}
 	$file = get_attached_file( $attachment_id );
@@ -136,7 +136,7 @@ function onedong_make_webp( $metadata, $attachment_id ) {
 }
 
 function onedong_webp_convert( $src ) {
-	if ( ! function_exists( 'imagewebp' ) || ! file_exists( $src ) ) {
+	if ( ! file_exists( $src ) ) {
 		return false;
 	}
 	$webp = $src . '.webp';
@@ -145,6 +145,30 @@ function onedong_webp_convert( $src ) {
 	}
 	$info = @getimagesize( $src );
 	if ( ! $info ) {
+		return false;
+	}
+	// 优先 Imagick(质量更好;WebP delegate 通常自带)
+	if ( class_exists( 'Imagick' ) ) {
+		try {
+			$im = new Imagick( $src );
+			$formats = method_exists( $im, 'queryFormats' ) ? $im->queryFormats() : array();
+			if ( is_array( $formats ) && in_array( 'WEBP', $formats, true ) ) {
+				$im->setImageFormat( 'webp' );
+				$im->setImageCompressionQuality( 82 );
+				$written = $im->writeImage( $webp );
+				$im->clear();
+				if ( $written && file_exists( $webp ) ) {
+					return true;
+				}
+			} else {
+				$im->clear();
+			}
+		} catch ( Exception $e ) {
+			// 落到 GD 回退
+		}
+	}
+	// 回退 GD
+	if ( ! function_exists( 'imagewebp' ) ) {
 		return false;
 	}
 	switch ( $info[2] ) {
