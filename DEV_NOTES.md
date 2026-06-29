@@ -466,3 +466,14 @@
 - 点赞数不在气泡里显示(微信气泡是纯赞按钮,赞过的人列表在动态下方,本期未做点赞列表);如需显示「❤ N」可读 `_onedong_likes`。
 - 分享在桌面浏览器无 `navigator.share`,走「复制链接」(无提示);如需 toast 反馈后续加。
 - `onedong.zip` 沿用历史策略,不纳入提交。
+
+## v2.5.2(2026-06-29)· 朋友圈三栏布局(左作者卡 + 中流 + 右侧栏)
+
+### 改动(`archive-onedong_moment.php` + `single-onedong_moment.php`)
+- 朋友圈归档页 / 单条页改为三栏(与首页一致):`site-content--three-col` + `get_sidebar('left')`(左作者卡)+ `.content-main`(朋友圈流)+ `get_sidebar()`(右侧栏)。
+- `moments-feed`(max-width 600px)在 content-main 居中,与首页文章流对齐。
+- 版本 2.5.1→2.5.2。
+
+### 坑 / 注意
+- 左/右侧栏模块沿用首页同一套(后台「外观→自定义→左/右侧栏模块」开关控制)。
+- `onedong.zip` 沿用历史策略,不纳入提交。
