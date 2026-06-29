@@ -450,8 +450,8 @@
   cursor: pointer;
   transition: color 0.15s ease, transform 0.15s ease;
 }
-.post-card__like .icon { width: 1rem; height: 1rem; fill: currentColor; transition: fill 0.15s ease, transform 0.2s ease; }
-.post-card__like:hover .icon { transform: scale(1.2); }
+.post-card__like .icon { width: 1rem; height: 1rem; fill: currentColor; transition: fill 0.15s ease; }
+.post-card__like:hover .icon { fill: #ff3b5c; }
 .post-card__like:hover { color: #ff3b5c; }
 .post-card__like:active { transform: scale(0.9); }
 .post-card__like.is-liked { color: #ff3b5c; }

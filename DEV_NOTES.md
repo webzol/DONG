@@ -541,6 +541,18 @@
   - `.moment__pop-btn:hover` 去掉背景 `#444`,改为图标 hover `scale(1.18)` 动效;赞按钮 hover 图标预览红 `#ff3b5c`。
 - 版本 2.5.8→2.5.9。
 
+## v2.5.10(2026-06-29)· 点赞/分享 hover 去背景;爱心 hover 变实心红(参考阅读 stat 简洁变色)
+
+### 改动(`assets/css/layout.css` + `assets/css/moments.css`)
+- **统一去 hover 背景**(TD 反复要求):`.moment__toggle:hover` / `.moment__pop-btn:hover` 显式 `background:transparent`(本就 none,防御性 + 消除旧部署残留)。
+- **首页爱心 hover 变实心红**(参考文章阅读 stat 的简洁变色,去掉之前的 scale 放大):`.post-card__like:hover .icon { fill:#ff3b5c }`。
+- **朋友圈气泡**:分享按钮 hover 保留 `scale(1.18)` 动效;爱心 hover 改实心红(path fill+stroke #ff3b5c,无 scale)。均无背景。
+- 版本 2.5.9→2.5.10。
+
+### 坑 / 注意(关键)
+- `onedong_get_icon` 所有图标 SVG 是 `fill:none stroke:currentColor`(Feather 描边风),默认**空心**;要"实心"必须 CSS 显式 `fill`(currentColor 或具体色)覆盖 svg 的 `fill="none"` presentation attribute。
+- TD 多轮反馈"有背景",主因是部署版本滞后(v2.5.8 commit 漏了 moments.css,v2.5.9 补);本版再显式 `transparent` 兜底。**部署后务必强刷(Ctrl+F5)清 CSS 缓存**,因 CSS 资源 URL 带版本号(bump 到 2.5.10 会自动破缓存)。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
