@@ -580,6 +580,12 @@
 - ⚠️ **线上 dingxudong.com 跑的是 Once-main 主题(非 onedong)**(webReader 确认 stylesheet 是 `themes/Once-main/`),moments / 点赞动效 / 实况等 onedong 独有功能线上看不到;验收需把 onedong 部署启用(后台「外观→主题」切换,或 scp 覆盖后启用)。
 - 去掉 auto 后失去「跟随系统实时变化」(系统切换主题 onedong 不自动跟),但用户可手动点切。
 
+## v2.5.13(2026-06-29)· 文章卡日期去图标 + 年-月-日格式
+
+### 改动(`template-parts/content.php`)
+- 日期去掉前置 calendar 图标,改 `Y-m-d`(年-月-日,如 `2026-06-29`)纯文本展示。
+- 版本 2.5.12→2.5.13。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

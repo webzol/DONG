@@ -28,10 +28,7 @@ $cats       = get_the_category();
 					</span>
 					<span class="post-card__author-info">
 						<span class="post-card__author-name"><?php the_author(); ?><span class="online-dot" aria-label="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span></span>
-						<time class="post-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
-							<?php onedong_icon( 'calendar' ); ?>
-							<?php echo esc_html( get_the_date() ); ?>
-						</time>
+						<time class="post-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date( 'Y-m-d' ) ); ?></time>
 					</span>
 				</span>
 			</div>
