@@ -254,7 +254,7 @@
   position: relative;
   z-index: 2;
   display: block;
-  margin: 0 1.1rem;                     /* 左右缩进,与正文/底部 padding 左边对齐成一线 */
+  margin: 0 1.1rem;                     /* 左右缩进,与正文/底部 padding 左边对齐成一线(恢复原版) */
   padding-top: 56.25%;                  /* 16:9(基于缩进后宽度) */
   background: url('../img/lazy-placeholder.png') center/cover no-repeat, var(--btn-bg);
   border-radius: var(--radius-medium);  /* 缩进脱离卡片边,自成圆角 */
@@ -306,10 +306,10 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 1rem 1.1rem 0.85rem;  /* 顶 padding 对齐左栏头像(v2.5.23 微调) */
+  padding: 0.5rem 1.1rem 0.4rem;   /* 进一步收紧:外0.5 / 内0.4(v2.5.24) */
 }
 .post-card__title {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
   font-size: clamp(1.1rem, 1.4vw, 1.35rem);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -335,7 +335,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.3rem 0.9rem;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
   color: var(--text-faint);
   font-size: 0.8rem;
 }
@@ -416,7 +416,7 @@
 .post-card__summary {
   position: relative;
   z-index: 2;
-  margin: 0.35rem 0 0;
+  margin: 0.22rem 0 0;
   color: var(--text-muted);
   font-size: 0.92rem;
   line-height: 1.65;
@@ -435,7 +435,7 @@
   align-items: center;
   justify-content: space-between;     /* 阅读 / 字数 / 点赞 三项左中右均分 */
   gap: 0.4rem 1rem;
-  padding: 0.7rem 1.1rem 0;       /* 底 padding 去除(TD 要求点赞行贴卡片底) */
+  padding: 0.4rem 1.1rem 0.5rem;   /* 进一步收紧:内0.4 / 外0.5(v2.5.24) */
   border-top: 1px solid var(--line);
   color: var(--text-faint);
   font-size: 0.82rem;
@@ -986,7 +986,7 @@ select:focus {
 @media (max-width: 640px) {
   .post-nav { grid-template-columns: 1fr; }
   .post-nav .nav-next { text-align: left; }
-  .post-card__body { padding: 0.9rem 1rem 1rem; }
+  .post-card__body { padding: 0.55rem 1.1rem 0.45rem; }
   .widget { padding: 1rem 1.1rem; }
 }
 

@@ -716,3 +716,22 @@
 
 ### 坑 / 注意(关键)
 - SVG `fill` 作为 `<path>` 的 **presentation attribute**,优先级**低于** author CSS,但**高于**从父级 `<svg>` 继承的 CSS 值。故「点赞实心红」必须**直接选 path 元素**设 fill,不能靠 svg 继承(否则 path 自带 `fill="none"` 胜出,心填不红)。
+
+## v2.5.24(2026-06-29)· 文章卡「紧凑 + 呼吸」间距重设计
+
+### 背景
+- TD 此前手改 `.post-card__body` / `.post-card__stats` padding 为 `0`(内容贴边)后发现:封面图 `.post-card__thumb` 仍 `margin:0 1.1rem` 缩进 → **文字/数据行贴边 vs 封面缩进,三者左边不对齐**,且贴边无呼吸。
+- 取向:**紧凑 + 呼吸感** = 介于「贴边(0)」与「旧版(1.25rem 太松)」之间的甜点区;左右统一 `1.1rem` 与封面缩进对齐成一线。
+
+### 改动(`assets/css/layout.css`)
+- **外内边距对称(两轮收紧)**:`.post-card__body` `padding:0.5rem 1.1rem 0.4rem` + `.post-card__stats` `padding:0.4rem 1.1rem 0.5rem`(外 0.5 / 内 0.4 / 左右 1.1 对齐封面缩进)。TD 初版要「呼吸」(0.8/0.65),后反馈上下边距仍偏大,再压到 0.5/0.4。垂直节奏:卡顶 0.5 → 作者/标题/摘要 → 0.4 → 封面 → 0.4 → 数据行 → 0.5 → 卡底。
+- **内部元素收紧**:`.post-card__meta` margin-bottom `0.5→0.35rem`、`.post-card__title` `0.5→0.35rem`、`.post-card__summary` `0.35→0.22rem`。
+- **移动端**(`≤640px`):`.post-card__body` `0.9rem 1rem 1rem → 0.55rem 1.1rem 0.45rem`。
+- **封面保持缩进对齐**:TD 一度要全宽贴边(`margin:0`)后改回原版 `margin:0 1.1rem`(缩进 + 自成圆角,与文字/数据行 1.1 对齐)。
+- 版本 2.5.23→2.5.24(`style.css` + `ONEDONG_VERSION`,刷 CSS URL 缓存)。
+
+### 坑 / 注意
+- 「呼吸感」靠**非零外边距**(0.8rem 卡顶/卡底)保证,「紧凑」靠**内部元素间距 + 封面两侧 0.65rem**;调甜点区改这四个值即可(外 / 内 / 左右)。
+- 左右 `1.1rem` 与 `.post-card__thumb{margin:0 1.1rem}` 必须一致,否则作者/标题/摘要/封面/数据行左边错位(v2.4.2 立的「缩进对齐」原则)。
+- 字体大小未动(头像 2.5rem / 标题 clamp / 摘要 0.92rem 沿用);「紧凑」只动间距,不动字号。
+- ⚠️ 线上仍跑 Once-main;部署启用 OneDong + 刷腾讯云 CDN 后生效。`onedong.zip` 沿用历史策略,不纳入提交。
