@@ -504,6 +504,19 @@
 - 卡片海报**白底固定色**(不随站点暗色模式),因 html2canvas 对 CSS 变量支持差,固定色保证导出正常。
 - 版本 2.5.4→2.5.5。
 
+## v2.5.6(2026-06-29)· 朋友圈后台图片拖拽排序
+
+### 改动(`assets/js/moment-admin.js` + `assets/css/moment-admin.css`)
+- 后台发布 / 编辑朋友圈时,多图可**拖拽调整顺序**(原只能按选择顺序)。
+- **HTML5 Drag & Drop**(零额外依赖):`.moment-img-item` 设 `draggable`,事件委托在 `.moment-img-list` 上处理 `dragstart/dragover/dragend`;按鼠标在目标项的上/下半决定插前 / 插后;`dragend` 重新 sync hidden input(逗号 ID = 展示顺序)。
+- 初始已有图片(PHP 渲染的 li)由 `makeDraggable()` 统一设 draggable;新添加的 li 自带 `draggable="true"`。
+- CSS:`.moment-img-item[draggable]{cursor:move}` + `.is-dragging{opacity:.4}`(拖动中半透明)。
+- 前端展示顺序即后台排列顺序(`_onedong_moment_images` 数组顺序),九宫格按序渲染。
+- 版本 2.5.5→2.5.6。
+
+### 坑 / 注意
+- HTML5 DnD 在**触屏**(手机/平板)不工作;后台是 PC 操作,够用。日后若要前端触屏排序,需换 SortableJS 之类带触屏支持的库。
+
 ### 坑 / 注意
 - **html2canvas 跨域**:头像若来自 gravatar(跨域),需 `crossorigin="anonymous"` + `useCORS:true`;gravatar 有 CORS 头一般 OK;若自定义头像源无 CORS,保存的图头像可能空白(浮层展示不受影响)。
 - **二维码库**:qrcodejs 走 jsdelivr CDN,国内通常可访问;失败回退 qrserver.com(可能慢)。

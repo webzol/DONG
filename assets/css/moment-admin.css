@@ -39,3 +39,7 @@
 .moment-img-remove:hover { background: #b32d2e; }
 #moment-img-add:disabled { opacity: .5; cursor: not-allowed; }
 #moment-img-count { margin-left: .5em; }
+
+/* 拖拽排序 · v2.5.6 */
+.moment-img-item[draggable] { cursor: move; }
+.moment-img-item.is-dragging { opacity: 0.4; }
