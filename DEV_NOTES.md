@@ -633,6 +633,12 @@
 - TD 服务器已装 Imagick → WebP 转换走 Imagick(无需 GD WebP 编译)。
 - Imagick 写 webp 失败(异常)自动落 GD;两者都无则跳过(降级 JPG,无副作用)。
 
+## v2.5.17(2026-06-29)· 文章卡字数图标更换(type T → 文字行)
+
+### 改动(`functions.php`)
+- 字数图标(`onedong_get_icon('type')`)从 feather "type"(T 字)换为**文字行**(align-left 风格:三横线,表示文字/字数,更直观)。
+- 版本 2.5.16→2.5.17。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
