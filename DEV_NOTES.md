@@ -606,6 +606,21 @@
 - **CDN**:Cloudflare 等缓存静态资源 + 图片。
 - 跑一次 Regenerate Thumbnails 回填 `onedong-card` / `onedong-moment-thumb` 新尺寸缩略图(老图才有正方形 / 4:3 缩略图)。
 
+## v2.5.15(2026-06-29)· WebP 自动转换 + 前端 picture 优先
+
+### 改动(`functions.php`)
+- **上传时自动转 WebP**:hook `wp_generate_attachment_metadata`,为原图 + 各尺寸(含 onedong-card / onedong-moment-thumb)生成 `.webp` 副本(GD `imagewebp`,质量 82);转成功记 `_onedong_has_webp` meta。PNG 保透明(imagealphablending + imagesavealpha)。
+- **前端 picture 优先**:filter `wp_get_attachment_image`,有 webp 的图包装成 `<picture><source type=image/webp srcset=…webp><img …></picture>`,浏览器支持 WebP 用 webp(更小),否则 fallback 原图。
+- 仅 image/jpeg|png|gif;依赖 PHP GD 的 `imagewebp`(不支持自动跳过,无副作用)。
+- 版本 2.5.14→2.5.15。
+
+### 坑 / 注意
+- **需 PHP GD WebP 支持**(`imagewebp`,PHP 编译 --with-webp);多数主机有;无则不转换、不 picture,降级原 JPG。
+- **老图**:需重新生成缩略图才转 WebP(后台跑 Regenerate Thumbnails,或重新上传;hook 在 `wp_generate_attachment_metadata` 触发)。
+- WebP 副本文件名 = 原名 + `.webp`(如 `img-300x200.jpg.webp`),与原图同目录;前端 url 同样 `+ '.webp'`。
+- GIF 转 WebP 只取首帧(不动画);动态 GIF 建议保留原 GIF(本方案仍转,如需排除 GIF 改白名单)。
+- 与缓存插件(WP Super Cache 等)兼容;picture 由 `wp_get_attachment_image` filter 动态生成,缓存的是带 picture 的 HTML。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
