@@ -735,3 +735,21 @@
 - 左右 `1.1rem` 与 `.post-card__thumb{margin:0 1.1rem}` 必须一致,否则作者/标题/摘要/封面/数据行左边错位(v2.4.2 立的「缩进对齐」原则)。
 - 字体大小未动(头像 2.5rem / 标题 clamp / 摘要 0.92rem 沿用);「紧凑」只动间距,不动字号。
 - ⚠️ 线上仍跑 Once-main;部署启用 OneDong + 刷腾讯云 CDN 后生效。`onedong.zip` 沿用历史策略,不纳入提交。
+
+## v2.5.25(2026-06-29)· 文章卡上下边距参考朋友圈(放松)
+
+### 背景
+- **线上 dingxudong.com 已部署 onedong v2.5.24**(webReader 确认 stylesheet=`themes/onedong/...?ver=2.5.24`)—— DEV_NOTES 此前「线上跑 Once-main」记录已过期,现 OneDong 已启用并生效。
+- TD 部署后对比:首页文章卡(v2.5.24 收紧到外 0.5rem)与朋友圈卡(`.moment` 上下 0.95rem)呼吸不一致,要求**文章卡上下边距参考朋友圈调整**。
+- 取舍:朋友圈 `.moment` 上下 padding = `0.95rem`(TD 未抱怨,作基准)→ 文章卡外边距放松回 `0.9rem`(≈朋友圈),内边距(图片↔文字/数据)`0.55rem`。
+
+### 改动(`assets/css/layout.css`)
+- `.post-card__body` `0.5rem 1.1rem 0.4rem → 0.9rem 1.1rem 0.55rem`(外 0.9≈朋友圈 / 内 0.55)。
+- `.post-card__stats` `0.4rem 1.1rem 0.5rem → 0.55rem 1.1rem 0.9rem`(内 0.55 / 外 0.9≈朋友圈)。
+- 移动端 `.post-card__body` `0.55rem 1.1rem 0.45rem → 0.85rem 1.1rem 0.55rem`。
+- 版本 2.5.24→2.5.25(`style.css` + `ONEDONG_VERSION`,刷 CSS URL 缓存)。
+
+### 坑 / 注意
+- **方向与 v2.5.24 相反**:v2.5.24 TD 要求「缩减不要空白」收到 0.5rem;部署后实测偏紧,改参考朋友圈(0.95rem)放松到 0.9rem。**甜点值随实测反复**,后续若再调改这四个值(外/内/左右)。
+- 朋友圈 `.moment` 未动(TD:「朋友圈的不用改」),作基准保留 `0.95rem`。
+- `onedong.zip` 沿用历史策略,不纳入提交。
