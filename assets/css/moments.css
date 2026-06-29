@@ -205,6 +205,6 @@
 }
 .moment__pop-btn:hover { background: #444; }
 .moment__pop-btn.is-liked { color: #ff3b5c; }
-.moment__pop-btn.is-liked .moment__pop-icon { fill: #ff3b5c; stroke: #ff3b5c; }
+.moment__pop-btn.is-liked .moment__pop-icon path { fill: #ff3b5c; stroke: #ff3b5c; }
 .moment__pop-icon { width: 18px; height: 18px; display: block; }
 .moment__pop-sep { width: 1px; height: 18px; background: rgba(255, 255, 255, 0.25); margin: 0 2px; }

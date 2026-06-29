@@ -483,3 +483,14 @@
 ### 改动(`assets/css/moments.css`)
 - `.moments-page` padding-top `1.5rem → 0`:原顶 padding 致朋友圈流顶部比左右栏低 1.5rem(首页 `.content-main` 无 padding,三栏 grid `align-items:start` 顶部对齐;朋友圈加 `.moments-page` 后顶 padding 破坏对齐)。底部 padding 3rem 保留。
 - 版本 2.5.2→2.5.3。
+
+## v2.5.4(2026-06-29)· 朋友圈点赞心形修复(空心描边 → 点赞实心红)
+
+### 改动(`inc/moments.php` + `assets/css/moments.css`)
+- **心形 path 换标准 Material 心形**(原 path 形状变形):`M12 21.35l-1.45-1.32C5.4 15.36…`。
+- **默认空心描边**:path `fill="none" stroke="currentColor"`(白色描边空心心,深灰气泡上清晰)。
+- **点赞后实心红**:CSS 选择器从 `.moment__pop-icon`(svg,靠继承)改为 `.moment__pop-icon path`(直接选 path),`fill:#ff3b5c; stroke:#ff3b5c`。
+- 版本 2.5.3→2.5.4。
+
+### 坑 / 注意(关键)
+- SVG `fill` 作为 `<path>` 的 **presentation attribute**,优先级**低于** author CSS,但**高于**从父级 `<svg>` 继承的 CSS 值。故「点赞实心红」必须**直接选 path 元素**设 fill,不能靠 svg 继承(否则 path 自带 `fill="none"` 胜出,心填不红)。
