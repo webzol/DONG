@@ -451,3 +451,18 @@
 - **无本地 PHP**:函数/模板语法已人工核对;本机无 php -l,建议本地 WP 启用后用 Theme Check 复查。
 - 定位为纯文本地点名;未来若要地图选点需接高德/百度地图 API(本期未加经纬度字段)。
 - `onedong.zip` 沿用历史策略,不纳入提交。
+
+## v2.5.1(2026-06-29)· 朋友圈点赞 + 分享(「••」折叠,纯图标气泡)
+
+### 改动(`inc/moments.php` + `assets/css/moments.css` + `assets/js/moments.js` + `functions.php`)
+- **操作按钮**:朋友圈每条动态右下角加「••」(两个小圆点),点击展开微信风深灰气泡(`#333` 圆角 8px + 顶部小三角指向按钮)。
+- **纯图标**:气泡内横向两个图标按钮——赞(心形)+ 分享(纸飞机),竖线分隔(参考微信朋友圈)。TD 明确要「点赞跟分享用图标展示」,无文字。
+- **点赞**:复用文章卡点赞机制(REST `/onedong/v1/like` + `_onedong_likes` meta);**放宽 REST `validate_callback`**:`post_type === 'post'` → 允许 `post` 与 `onedong_moment`。localStorage 防重复,已赞心形变红 `#ff3b5c`。
+- **分享**:`navigator.share`(移动端原生分享面板)→ 降级复制链接到剪贴板(桌面)。
+- 设置来源:`window.onedongLike`(likes.js 全站 localize);回退读 `.moment__actions` 容器 `data-like-url`/`data-nonce`(防 likes.js 未加载)。
+- 版本 2.5.0→2.5.1。
+
+### 坑 / 注意
+- 点赞数不在气泡里显示(微信气泡是纯赞按钮,赞过的人列表在动态下方,本期未做点赞列表);如需显示「❤ N」可读 `_onedong_likes`。
+- 分享在桌面浏览器无 `navigator.share`,走「复制链接」(无提示);如需 toast 反馈后续加。
+- `onedong.zip` 沿用历史策略,不纳入提交。

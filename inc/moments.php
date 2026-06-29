@@ -4,7 +4,7 @@
  *
  * 自定义文章类型 + 后台发布(文字 + 多图最多9 + 定位)+ 前端微信朋友圈流展示。
  * 前端模板:archive-onedong_moment.php / single-onedong_moment.php(均调用 onedong_render_moment())。
- * 样式/脚本:assets/css/moments.css + assets/js/moments.js(lightbox)+ 后台 moment-admin.*。
+ * 样式/脚本:assets/css/moments.css + assets/js/moments.js(lightbox + 操作气泡)+ 后台 moment-admin.*。
  *
  * @package OneDong
  */
@@ -172,7 +172,7 @@ function onedong_moment_time_format() {
 }
 
 /**
- * 渲染单条朋友圈(头像 + 昵称 + 文字 + 图片网格 + 定位 + 时间)。
+ * 渲染单条朋友圈(头像 + 昵称 + 文字 + 图片网格 + 定位 + 时间 + 操作按钮)。
  * 供 archive-onedong_moment.php / single-onedong_moment.php 复用。需在循环内。
  */
 function onedong_render_moment() {
@@ -205,10 +205,10 @@ function onedong_render_moment() {
 							$size,
 							false,
 							array(
-								'class'      => 'moment__img',
-								'data-full'  => esc_url( $full ),
-								'loading'    => 'lazy',
-								'decoding'   => 'async',
+								'class'     => 'moment__img',
+								'data-full' => esc_url( $full ),
+								'loading'   => 'lazy',
+								'decoding'  => 'async',
 							)
 						);
 					endforeach;
@@ -224,6 +224,25 @@ function onedong_render_moment() {
 						<?php echo esc_html( $location ); ?>
 					</span>
 				<?php endif; ?>
+
+				<?php
+				// 操作按钮「••」:点击展开赞 / 分享(纯图标,微信风深灰气泡)。v2.5.1
+				$like_url = esc_url_raw( rest_url( 'onedong/v1/like' ) );
+				?>
+				<div class="moment__actions" data-like-url="<?php echo esc_attr( $like_url ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>">
+					<button class="moment__toggle" type="button" aria-label="<?php esc_attr_e( '操作', 'onedong' ); ?>" aria-expanded="false">
+						<span class="moment__dot"></span><span class="moment__dot"></span>
+					</button>
+					<div class="moment__pop">
+						<button class="moment__pop-btn moment__pop-btn--like" type="button" data-id="<?php the_ID(); ?>" aria-label="<?php esc_attr_e( '赞', 'onedong' ); ?>">
+							<svg class="moment__pop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 1.9 5 5.2 5c2 0 3.3 1.1 4 2.3C9.9 6.1 11.2 5 13.2 5c3.3 0 4.8 3.4 3.2 6.7C19 16.4 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+						</button>
+						<span class="moment__pop-sep"></span>
+						<button class="moment__pop-btn moment__pop-btn--share" type="button" data-url="<?php the_permalink(); ?>" data-title="<?php the_title_attribute(); ?>" aria-label="<?php esc_attr_e( '分享', 'onedong' ); ?>">
+							<svg class="moment__pop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-7-5 16-3-7-8-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</article>

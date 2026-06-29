@@ -140,3 +140,71 @@
 .moment-lightbox__nav { top: 50%; transform: translateY(-50%); }
 .moment-lightbox__prev { left: 1rem; }
 .moment-lightbox__next { right: 1rem; }
+
+/* —— 操作按钮「••」+ 展开气泡(赞 / 分享,纯图标,微信风)— v2.5.1 —— */
+.moment__actions {
+  position: relative;
+  margin-left: auto;
+}
+.moment__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 6px 2px;
+  border-radius: 4px;
+}
+.moment__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  display: inline-block;
+}
+.moment__toggle:hover .moment__dot { background: var(--text-faint); }
+
+.moment__pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: none;
+  align-items: center;
+  background: #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  padding: 2px;
+  z-index: 30;
+}
+.moment__pop.is-open { display: flex; }
+.moment__pop::after {            /* 指向按钮的小三角 */
+  content: '';
+  position: absolute;
+  right: 9px;
+  bottom: -5px;
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  border-top-color: #333;
+  border-bottom: 0;
+  border-right: 0;
+}
+.moment__pop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+}
+.moment__pop-btn:hover { background: #444; }
+.moment__pop-btn.is-liked { color: #ff3b5c; }
+.moment__pop-btn.is-liked .moment__pop-icon { fill: #ff3b5c; stroke: #ff3b5c; }
+.moment__pop-icon { width: 18px; height: 18px; display: block; }
+.moment__pop-sep { width: 1px; height: 18px; background: rgba(255, 255, 255, 0.25); margin: 0 2px; }

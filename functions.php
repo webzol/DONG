@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.0' );
+define( 'ONEDONG_VERSION', '2.5.1' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -326,7 +326,7 @@ function onedong_register_likes_route() {
 					'required'          => true,
 					'sanitize_callback' => 'absint',
 					'validate_callback' => function ( $v ) {
-						return get_post_type( (int) $v ) === 'post';
+						return in_array( get_post_type( (int) $v ), array( 'post', 'onedong_moment' ), true );
 					},
 				),
 			),
