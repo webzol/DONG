@@ -1,0 +1,142 @@
+/* ============================================================
+ * 朋友圈(onedong_moment)· v2.5.0 · 微信朋友圈风格
+ * 窄列流(头像+昵称+文字+图片网格+定位+时间)+ 图片 lightbox
+ * ============================================================ */
+
+.moments-page { padding: 1.5rem 0 3rem; }
+
+.moments-feed {
+	max-width: 600px;
+	margin: 0 auto;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-large);
+	padding: 0.2rem 1.1rem;
+}
+
+/* —— 单条:左头像 + 右内容 —— */
+.moment {
+	display: flex;
+	gap: 0.7rem;
+	padding: 0.95rem 0;
+	border-bottom: 1px solid var(--line);
+}
+.moment:last-child { border-bottom: 0; }
+
+.moment__avatar { flex: 0 0 auto; }
+.moment__avatar img,
+.moment__avatar .avatar {
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;            /* 微信圆形头像 */
+	object-fit: cover;
+	display: block;
+}
+
+.moment__main { flex: 1; min-width: 0; }
+
+.moment__author {
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--primary);          /* 微信昵称主色 */
+	margin-bottom: 0.25rem;
+}
+
+.moment__content {
+	font-size: 0.95rem;
+	line-height: 1.6;
+	color: var(--text);
+	word-break: break-word;
+}
+.moment__content p { margin: 0 0 0.4rem; }
+.moment__content p:last-child { margin-bottom: 0; }
+
+/* —— 图片:1 张大图 / 2–9 张九宫格 —— */
+.moment__imgs { margin: 0.45rem 0 0.35rem; }
+
+.moment__imgs--single { display: block; max-width: 68%; }
+.moment__imgs--single .moment__img {
+	width: 100%;
+	max-height: 360px;
+	height: auto;
+	object-fit: cover;
+	border-radius: 4px;
+	display: block;
+	cursor: zoom-in;
+}
+
+.moment__imgs--grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 4px;
+	max-width: 320px;              /* 微信九宫格不铺满 */
+}
+.moment__imgs--grid .moment__img {
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+	display: block;
+	border-radius: 2px;
+	cursor: zoom-in;
+}
+
+/* —— 底部:时间 + 定位 —— */
+.moment__foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem 0.9rem;
+	margin-top: 0.4rem;
+	font-size: 0.78rem;
+	color: var(--text-muted);
+}
+.moment__time { white-space: nowrap; }
+.moment__location {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.2rem;
+	color: var(--primary);          /* 微信定位主色 */
+}
+.moment__loc-icon { width: 0.85rem; height: 0.85rem; flex: 0 0 auto; }
+
+.moments-empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
+
+/* —— Lightbox(全屏看大图 + 左右切换)—— */
+.moment-lightbox {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.92);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.moment-lightbox.is-open { display: flex; }
+.moment-lightbox__img {
+	max-width: 92vw;
+	max-height: 90vh;
+	object-fit: contain;
+	display: block;
+}
+.moment-lightbox__close,
+.moment-lightbox__nav {
+	position: absolute;
+	background: rgba(255, 255, 255, 0.14);
+	color: #fff;
+	border: 0;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	font-size: 1.5rem;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.moment-lightbox__close:hover,
+.moment-lightbox__nav:hover { background: rgba(255, 255, 255, 0.26); }
+.moment-lightbox__close { top: 1.2rem; right: 1.2rem; }
+.moment-lightbox__nav { top: 50%; transform: translateY(-50%); }
+.moment-lightbox__prev { left: 1rem; }
+.moment-lightbox__next { right: 1rem; }

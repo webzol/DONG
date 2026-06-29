@@ -298,7 +298,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0.75rem 1.1rem 0.85rem;        /* 顶 padding:头像上方间距(原 1.25 对齐 widget,TD 嫌大缩至 0.75) */
+  padding: 0 1.1rem 0.85rem;        /* 顶 padding 去除(TD 要求头像贴卡片顶) */
 }
 .post-card__title {
   margin: 0 0 0.5rem;
@@ -420,7 +420,7 @@
   align-items: center;
   justify-content: space-between;     /* 阅读 / 字数 / 点赞 三项左中右均分 */
   gap: 0.4rem 1rem;
-  padding: 0.7rem 1.1rem 0.75rem;       /* 底 padding:点赞行到卡片底(原 1.25 对齐 widget,缩至 0.75) */
+  padding: 0.7rem 1.1rem 0;       /* 底 padding 去除(TD 要求点赞行贴卡片底) */
   border-top: 1px solid var(--line);
   color: var(--text-faint);
   font-size: 0.82rem;

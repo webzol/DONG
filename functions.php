@@ -10,9 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.4.6' );
+define( 'ONEDONG_VERSION', '2.5.0' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
+
+// 功能模块(按需拆分,保持 functions.php 精简)
+require_once ONEDONG_DIR . '/inc/moments.php'; // 朋友圈(onedong_moment)— v2.5.0
 
 /**
  * 主题初始化:注册主题支持与菜单位置
@@ -57,6 +60,8 @@ function onedong_setup() {
 
 	// 文章卡封面图专用尺寸(4:3 裁剪);老文章需 Regenerate Thumbnails 回填
 	add_image_size( 'onedong-card', 600, 450, true );
+	// 朋友圈九宫格缩略图(1:1 正方形;老图需 Regenerate Thumbnails 回填)— v2.5.0
+	add_image_size( 'onedong-moment-thumb', 300, 300, true );
 
 	// 菜单位置
 	register_nav_menus(
@@ -130,6 +135,12 @@ function onedong_scripts() {
 	// 文章详情页脚本(阅读进度条 / 代码块复制 / TOC 当前段高亮)
 	if ( is_singular( 'post' ) ) {
 		wp_enqueue_script( 'onedong-single', ONEDONG_URI . '/assets/js/single.js', array(), $ver, true );
+	}
+
+	// 朋友圈(列表 / 详情):九宫格样式 + 图片 lightbox — v2.5.0
+	if ( is_post_type_archive( 'onedong_moment' ) || is_singular( 'onedong_moment' ) ) {
+		wp_enqueue_style( 'onedong-moments', ONEDONG_URI . '/assets/css/moments.css', array( 'onedong-layout' ), $ver );
+		wp_enqueue_script( 'onedong-moments', ONEDONG_URI . '/assets/js/moments.js', array(), $ver, true );
 	}
 
 	// 线程评论(若日后开启评论)
@@ -578,7 +589,7 @@ function onedong_sanitize_checkbox( $value ) {
  * @return string
  */
 function onedong_sanitize_avatar_source( $value ) {
-	$allowed = array( 'logo', 'gravatar', 'none' );
+	$allowed = array( 'logo', 'gravatar', 'custom', 'none' );
 	return in_array( $value, $allowed, true ) ? $value : 'logo';
 }
 
@@ -732,8 +743,30 @@ function onedong_customize_register( $wp_customize ) {
 			'choices' => array(
 				'logo'     => __( '站点 Logo', 'onedong' ),
 				'gravatar' => __( 'Gravatar(管理员邮箱)', 'onedong' ),
+				'custom'   => __( '自定义上传', 'onedong' ),
 				'none'     => __( '不显示', 'onedong' ),
 			),
+		)
+	);
+
+	// 自定义头像上传(头像来源选「自定义上传」时使用)— v2.5.0
+	$wp_customize->add_setting(
+		'onedong_avatar_custom',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_avatar_custom',
+			array(
+				'label'       => __( '自定义头像', 'onedong' ),
+				'description' => __( '头像来源选「自定义上传」后,在此上传或粘贴图片地址。', 'onedong' ),
+				'section'     => 'onedong_sidebar',
+			)
 		)
 	);
 

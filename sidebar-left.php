@@ -50,6 +50,13 @@ if ( ! $any_left ) {
 						esc_attr( get_bloginfo( 'name' ) ),
 						array( 'class' => 'widget-profile__avatar' )
 					);
+				elseif ( 'custom' === $avatar_source ) :
+					$custom_avatar = get_theme_mod( 'onedong_avatar_custom', '' );
+					if ( $custom_avatar ) :
+						?>
+						<img class="widget-profile__avatar" src="<?php echo esc_url( $custom_avatar ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+						<?php
+					endif;
 				endif;
 				?>
 				<span class="widget-profile__verified" aria-label="<?php esc_attr_e( '认证作者', 'onedong' ); ?>">

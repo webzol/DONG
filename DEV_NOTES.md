@@ -422,3 +422,32 @@
 - 间距收紧后中间栏不再与侧栏 `.widget`(仍 1.25rem)顶/底对齐;如需同步,改 `.widget` padding。
 - 默认图 contain 左右留 ~12.5% 黑边,靠 `background:#000` 与图底同色消割裂;换非黑底默认图需同步改 background。
 - `onedong.zip` 沿用历史策略,不纳入提交(`git checkout` 恢复)。
+
+## v2.5.0(2026-06-29)· 朋友圈模块(onedong_moment)+ 作者头像自定义上传 + 文章卡去边距
+
+### 新增:朋友圈(独立模块 `inc/moments.php`)
+- **CPT** `onedong_moment`(slug `moments`,访问 `/moments/`),`dashicons-format-status`,菜单位 6;`show_in_rest=false`(经典 meta box 发布)。首次注册 + 切换主题各 flush 一次固定链接(防 404)。
+- **后台发布**(wp-admin → 朋友圈 → 发布):正文框写文字;meta box「图片与定位」= 多图上传(WP Media Frame 多选,最多 9,缩略图预览 + × 移除)+ 定位文本。nonce 安全保存;图片仅存 attachment ID、去重、限 9。
+- **前端**:`archive-onedong_moment.php` / `single-onedong_moment.php` 调 `onedong_render_moment()`,微信朋友圈流(圆形头像 + 昵称主色 + 文字 + 图片 + 定位 + 相对时间)。
+- **图片展示**:1 张=大图(`max-width:68%`),2–9 张=九宫格(3 列 `aspect-ratio:1/1`,`onedong-moment-thumb` 300×300 正方形尺寸)。点击图片 lightbox 全屏 + 左右切换 + ESC。
+- **资源**:`assets/css/moments.css` + `assets/js/moments.js`(lightbox,零依赖);后台 `assets/js/moment-admin.js` + `assets/css/moment-admin.css`(仅 CPT 编辑页加载)。条件 enqueue(archive/singular)。
+- 入口:后台左侧菜单「朋友圈」发布;访问 `/moments/` 查看。导航菜单需在「外观→菜单」手动加 `/moments/` 链接。
+
+### 新增:作者头像自定义上传
+- `onedong_avatar_source` choices 加 `custom`(自定义上传),sanitize 白名单同步;新增 `onedong_avatar_custom`(WP_Customize_Image_Control)。
+- `sidebar-left.php` 作者卡加 `custom` 分支:`<img class=widget-profile__avatar src=上传图>`(复用现有头像样式)。
+
+### 改动:文章卡去边距(TD 在 v2.4.7 基础上再要求贴边)
+- `.post-card__body` padding-top `0.75rem → 0`(头像贴卡片顶)。
+- `.post-card__stats` padding-bottom `0.75rem → 0`(点赞行贴卡片底)。
+- ⚠️ 中间栏内容比侧栏 widget 更贴边(侧栏仍 1.25rem);如要统一再调 `.widget`。
+
+### 版本
+- ONEDONG_VERSION + style.css `2.4.7 → 2.5.0`(刷资产缓存)。
+
+### 坑 / 注意
+- **九宫格需回填缩略图**:`onedong-moment-thumb`(300×300)是新尺寸;已上传的图需跑 Regenerate Thumbnails 才有正方形缩略图,否则 WP 用原图(九宫格仍正常,流量略大)。
+- **CPT 固定链接 404**:首次访问 `/moments/` 若 404,后台「设置→固定链接」重保存一次(`onedong_moment_flushed` 已自动 flush,通常无需)。
+- **无本地 PHP**:函数/模板语法已人工核对;本机无 php -l,建议本地 WP 启用后用 Theme Check 复查。
+- 定位为纯文本地点名;未来若要地图选点需接高德/百度地图 API(本期未加经纬度字段)。
+- `onedong.zip` 沿用历史策略,不纳入提交。
