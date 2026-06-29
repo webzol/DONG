@@ -525,6 +525,17 @@
 - `.moment__pop-btn--like` 改 width auto + padding(容纳心 + 数字)+ position relative(飘心定位)。
 - 版本 2.5.6→2.5.7。
 
+## v2.5.8(2026-06-29)· hover 改图标变色(去背景)+ 图标缩放动效
+
+### 改动(`assets/css/layout.css` + `assets/css/moments.css`)
+- **首页文章卡点赞爱心**(`.post-card__like`):`.icon` 加 `fill: currentColor`(原 fill 默认黑不跟随 color,hover 爱心其实没变红);hover 爱心变红(`color:#ff3b5c`)+ 图标 `scale(1.2)` 动效。无背景变色。
+- **朋友圈「••」圆点**(`.moment__toggle`):hover 圆点变主色 `var(--primary)`(原 text-faint 偏弱)。无背景。
+- **朋友圈气泡赞 / 分享按钮**(`.moment__pop-btn`):去掉 hover 背景 `#444`,改为图标 hover `scale(1.18)` 动效;赞按钮 hover 图标预览红 `#ff3b5c`。
+- 版本 2.5.7→2.5.8。
+
+### 坑 / 注意
+- SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
+
 ### 坑 / 注意
 - 赞数来自 `_onedong_likes` meta(与文章卡点赞同一字段、同一 REST);朋友圈与文章赞数各自独立(不同 post_id)。
 - 飘心是 REST 成功后触发;若网络慢,用户点击后略迟才有动效(可改乐观更新,本期未做)。
