@@ -663,6 +663,12 @@
 - `filter: invert(1)` 仅对纯黑 / 白 Logo 效果好;彩色 Logo 建议上传专门的暗色 Logo(浅色版)。
 - 浅色 Logo 用 WP「站点身份」(custom_logo);暗色 Logo 用「外观→自定义→品牌 / Logo」。
 
+## v2.5.20(2026-06-29)· 主题介绍文案更新
+
+### 改动(`style.css`)
+- Description 改为 TD 指定:「OneDong 主题,删繁去冗,以极简线条、留白美学重构视觉秩序,克制设计、聚焦内容,用最少元素,呈现最高级的表达。」
+- 版本 2.5.19→2.5.20。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
