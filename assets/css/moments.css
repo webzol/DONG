@@ -3,7 +3,7 @@
  * 窄列流(头像+昵称+文字+图片网格+定位+时间)+ 图片 lightbox
  * ============================================================ */
 
-.moments-page { padding: 1.5rem 0 3rem; }
+.moments-page { padding: 0 0 3rem; }   /* 去顶 padding,朋友圈流顶部与左右栏对齐(v2.5.3) */
 
 .moments-feed {
 	max-width: 600px;

@@ -477,3 +477,9 @@
 ### 坑 / 注意
 - 左/右侧栏模块沿用首页同一套(后台「外观→自定义→左/右侧栏模块」开关控制)。
 - `onedong.zip` 沿用历史策略,不纳入提交。
+
+## v2.5.3(2026-06-29)· 朋友圈中间栏顶部对齐左右栏
+
+### 改动(`assets/css/moments.css`)
+- `.moments-page` padding-top `1.5rem → 0`:原顶 padding 致朋友圈流顶部比左右栏低 1.5rem(首页 `.content-main` 无 padding,三栏 grid `align-items:start` 顶部对齐;朋友圈加 `.moments-page` 后顶 padding 破坏对齐)。底部 padding 3rem 保留。
+- 版本 2.5.2→2.5.3。
