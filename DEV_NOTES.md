@@ -669,6 +669,15 @@
 - Description 改为 TD 指定:「OneDong 主题,删繁去冗,以极简线条、留白美学重构视觉秩序,克制设计、聚焦内容,用最少元素,呈现最高级的表达。」
 - 版本 2.5.19→2.5.20。
 
+## v2.5.21(2026-06-29)· Logo 适量缩小展示
+
+### 改动(`assets/css/layout.css`)
+- `.site-brand img` 限制 `max-height: 38px` + `max-width: 180px`(width/height auto 保持比例),避免上传的 logo 过大撑破顶栏;移动端 `max-height: 32px` / `max-width: 150px`。
+- 版本 2.5.20→2.5.21。
+
+### 坑 / 注意
+- 高度优先(横版 logo 按高度缩,竖版按高度缩);`max-width` 防超宽横 logo 溢出。如需更大 / 更小改这两个值即可。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

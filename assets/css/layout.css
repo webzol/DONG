@@ -70,6 +70,10 @@
 [data-theme="dark"] .site-brand .custom-logo { filter: invert(1) brightness(1.1); }  /* 无暗色 logo:自动反色浅色 logo */
 [data-theme="dark"] .site-brand--has-dark .custom-logo { display: none; filter: none; }
 [data-theme="dark"] .site-brand--has-dark .site-logo--dark { display: inline-block; }
+.site-brand img { max-height: 38px; max-width: 180px; width: auto; height: auto; }   /* logo 适量缩小 · v2.5.21 */
+@media (max-width: 768px) {
+  .site-brand img { max-height: 32px; max-width: 150px; }
+}
 .site-title {
   margin: 0;
   font-size: 1.2rem;
