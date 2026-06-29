@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.13' );
+define( 'ONEDONG_VERSION', '2.5.14' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -74,6 +74,31 @@ function onedong_setup() {
 add_action( 'after_setup_theme', 'onedong_setup' );
 
 /**
+ * 性能优化:资源预连接(gravatar + jsdelivr CDN)· v2.5.14
+ */
+function onedong_resource_hints( $urls, $relation_type ) {
+	if ( 'preconnect' === $relation_type ) {
+		$urls[] = array( 'href' => 'https://secure.gravatar.com' );
+		$urls[] = array( 'href' => 'https://cdn.jsdelivr.net' );
+	}
+	return $urls;
+}
+add_filter( 'wp_resource_hints', 'onedong_resource_hints', 10, 2 );
+
+/**
+ * 性能:禁用 WP emoji(主题图标已全用内联 SVG)+ 清理 head 多余标签 · v2.5.14
+ */
+remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
+remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+remove_action( 'admin_print_styles', 'print_emoji_styles' );
+add_filter( 'emoji_svg_url', '__return_false' );
+remove_action( 'wp_head', 'rsd_link' );
+remove_action( 'wp_head', 'wlwmanifest_link' );
+remove_action( 'wp_head', 'wp_generator' );
+remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+
+/**
  * 内容宽度
  */
 function onedong_content_width() {
@@ -111,9 +136,12 @@ function onedong_scripts() {
 
 	// 代码高亮 Prism.js —— 默认 CDN;若需离线/自托管,
 	// 把 prism-core / autoloader 换成本地 assets/js/vendor/ 路径即可。
-	wp_enqueue_style( 'onedong-prism', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css', array(), '1.29.0' );
-	wp_enqueue_script( 'onedong-prism', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js', array(), '1.29.0', true );
-	wp_enqueue_script( 'onedong-prism-autoloader', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js', array( 'onedong-prism' ), '1.29.0', true );
+	// 代码高亮 Prism.js —— 仅文章详情页加载(列表 / 首页无代码块,省 3 个 CDN 请求)· v2.5.14
+	if ( is_singular( 'post' ) ) {
+		wp_enqueue_style( 'onedong-prism', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css', array(), '1.29.0' );
+		wp_enqueue_script( 'onedong-prism', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js', array(), '1.29.0', true );
+		wp_enqueue_script( 'onedong-prism-autoloader', 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js', array( 'onedong-prism' ), '1.29.0', true );
+	}
 
 	// 暗色切换
 	wp_enqueue_script( 'onedong-toggle', ONEDONG_URI . '/assets/js/theme-toggle.js', array(), $ver, true );

@@ -586,6 +586,26 @@
 - 日期去掉前置 calendar 图标,改 `Y-m-d`(年-月-日,如 `2026-06-29`)纯文本展示。
 - 版本 2.5.12→2.5.13。
 
+## v2.5.14(2026-06-29)· 性能优化(禁用 emoji + 清理 head + Prism 条件加载 + preconnect)
+
+### 改动(`functions.php`)
+- **禁用 WP emoji**:移除 emoji 检测脚本 + 样式(省 1 个 JS 请求;主题图标已全用内联 SVG)。
+- **清理 head**:移除 RSD / WLW / generator / shortlink 多余 meta。
+- **Prism 代码高亮条件加载**:仅文章详情页(`is_singular('post')`)加载,列表 / 首页省 3 个 CDN 请求(CSS + core + autoloader)。
+- **资源预连接(preconnect)**:gravatar(头像)+ jsdelivr(Prism),提前建立连接。
+- 版本 2.5.13→2.5.14。
+
+### 图片加载现状(此前已优化,本版未改)
+- 文章卡封面:`wp_get_attachment_image` + srcset/sizes + 首屏 `eager`+`fetchpriority=high`(LCP)+ 非首屏 `loading=lazy`。
+- 朋友圈图片:`loading=lazy` + `decoding=async`;九宫格用 `onedong-moment-thumb`(300×300)正方形小图,单图用 large。
+- 默认缩略图 default-thumb.png(4:3)。
+
+### 后续建议(需服务器 / 插件,主题层无法做)
+- **WebP/AVIF**:装 WebP Express / Imagify 等插件自动转下一代格式(更小);或上传时直接传 WebP(WP 5.8+ 支持)。
+- **对象缓存**:Redis / Memcached(动态查询加速)+ 页面缓存(WP Super Cache / W3 Total Cache)。
+- **CDN**:Cloudflare 等缓存静态资源 + 图片。
+- 跑一次 Regenerate Thumbnails 回填 `onedong-card` / `onedong-moment-thumb` 新尺寸缩略图(老图才有正方形 / 4:3 缩略图)。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
