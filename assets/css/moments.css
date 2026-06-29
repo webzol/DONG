@@ -163,7 +163,7 @@
   background: var(--text-muted);
   display: inline-block;
 }
-.moment__toggle:hover .moment__dot { background: var(--text-faint); }
+.moment__toggle:hover .moment__dot { background: var(--primary); }
 
 .moment__pop {
   position: absolute;
@@ -203,7 +203,9 @@
   color: #fff;
   cursor: pointer;
 }
-.moment__pop-btn:hover { background: #444; }
+.moment__pop-btn .moment__pop-icon { transition: transform 0.2s ease, color 0.15s ease; }
+.moment__pop-btn:hover .moment__pop-icon { transform: scale(1.18); }
+.moment__pop-btn--like:hover .moment__pop-icon { color: #ff3b5c; }
 .moment__pop-btn.is-liked { color: #ff3b5c; }
 .moment__pop-btn.is-liked .moment__pop-icon path { fill: #ff3b5c; stroke: #ff3b5c; }
 .moment__pop-icon { width: 18px; height: 18px; display: block; }

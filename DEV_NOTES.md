@@ -533,6 +533,14 @@
 - **朋友圈气泡赞 / 分享按钮**(`.moment__pop-btn`):去掉 hover 背景 `#444`,改为图标 hover `scale(1.18)` 动效;赞按钮 hover 图标预览红 `#ff3b5c`。
 - 版本 2.5.7→2.5.8。
 
+## v2.5.9(2026-06-29)· 补全朋友圈 hover 图标变色(v2.5.8 漏改 moments.css)
+
+### 改动(`assets/css/moments.css`)
+- v2.5.8 提交时 moments.css 因 linter 改动未一并进入该 commit,本版补上:
+  - `.moment__toggle:hover .moment__dot` 圆点 hover 变主色 `var(--primary)`(原 text-faint 偏弱)。
+  - `.moment__pop-btn:hover` 去掉背景 `#444`,改为图标 hover `scale(1.18)` 动效;赞按钮 hover 图标预览红 `#ff3b5c`。
+- 版本 2.5.8→2.5.9。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
