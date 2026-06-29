@@ -639,6 +639,16 @@
 - 字数图标(`onedong_get_icon('type')`)从 feather "type"(T 字)换为**文字行**(align-left 风格:三横线,表示文字/字数,更直观)。
 - 版本 2.5.16→2.5.17。
 
+## v2.5.18(2026-06-29)· 朋友圈流左对齐中间栏(对齐顶部导航)
+
+### 改动(`assets/css/moments.css`)
+- `.moments-feed` `margin: 0 auto`(居中)→ `margin: 0`(左对齐 content-main)。朋友圈流左边缘对齐中间栏左边 = 顶部导航 nav 左边(同列对齐)。
+- 版本 2.5.17→2.5.18。
+
+### 说明
+- 中间栏(content-main)左边在 grid 中列,本身已与顶部导航 nav(同中列)左边对齐;此前朋友圈流 `margin:0 auto` 居中导致视觉偏右,左边缘没对齐 nav。改左对齐后即对齐。
+- 若想朋友圈流对齐到顶部导航 brand(最左列),需调整 grid(让朋友圈页去掉左栏或 content-main 跨列),本期未做。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 

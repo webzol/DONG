@@ -7,7 +7,7 @@
 
 .moments-feed {
 	max-width: 600px;
-	margin: 0 auto;
+	margin: 0;
 	background: var(--card-bg);
 	border: 1px solid var(--line);
 	border-radius: var(--radius-large);
