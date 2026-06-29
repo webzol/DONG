@@ -306,7 +306,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 1.1rem 0.85rem;        /* 顶 padding 去除(TD 要求头像贴卡片顶) */
+  padding: 1.25rem 1.1rem 0.85rem;  /* 顶 padding 对齐左栏 .widget 头像(v2.5.22) */
 }
 .post-card__title {
   margin: 0 0 0.5rem;

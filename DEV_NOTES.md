@@ -678,6 +678,17 @@
 ### 坑 / 注意
 - 高度优先(横版 logo 按高度缩,竖版按高度缩);`max-width` 防超宽横 logo 溢出。如需更大 / 更小改这两个值即可。
 
+## v2.5.22(2026-06-29)· 中间栏头像顶部对齐左栏头像
+
+### 改动(`assets/css/layout.css`)
+- `.post-card__body` padding-top `0 → 1.25rem`,中间文章卡头像顶部对齐左栏作者卡头像顶部(左栏 `.widget` padding-top 1.25rem)。
+- 三栏 grid `align-items:start` 各栏顶部对齐;此前中间 body padding-top 0 致中间头像比左栏头像高 1.25rem。
+- 版本 2.5.21→2.5.22。
+
+### 坑 / 注意
+- 移动端(≤640px)左栏隐藏,`.post-card__body` padding-top 保持 0.9rem(不需对齐左栏)。
+- 这与 v2.5「去顶边距(贴顶)」相反;TD 改主意要头像对齐左栏,故加回 1.25rem。
+
 ### 坑 / 注意
 - SVG `.icon` 的 `fill` 默认不跟随父级 `color`;要图标随 hover 变色必须显式 `fill: currentColor`(本次 `.post-card__like .icon` 的关键修复,否则 hover 只变文字色、爱心图标本身不变红)。
 
