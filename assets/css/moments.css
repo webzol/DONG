@@ -208,3 +208,76 @@
 .moment__pop-btn.is-liked .moment__pop-icon path { fill: #ff3b5c; stroke: #ff3b5c; }
 .moment__pop-icon { width: 18px; height: 18px; display: block; }
 .moment__pop-sep { width: 1px; height: 18px; background: rgba(255, 255, 255, 0.25); margin: 0 2px; }
+
+/* —— 分享卡片海报(点分享弹出;白底固定色,保证 html2canvas 导出正常)· v2.5.5 —— */
+.moment-share { position: fixed; inset: 0; z-index: 9998; display: none; }
+.moment-share.is-open { display: block; }
+.moment-share__mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); }
+.moment-share__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.moment-share__card {
+  width: 300px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+.moment-share__img-wrap { width: 100%; aspect-ratio: 1 / 1; background: #f0f0f0; }
+.moment-share__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.moment-share__body { padding: 0.9rem 1rem; }
+.moment-share__author { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.moment-share__avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; }
+.moment-share__name { font-weight: 600; font-size: 0.9rem; color: #576b95; }
+.moment-share__text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #333;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.moment-share__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+.moment-share__qr { flex: 0 0 auto; width: 80px; height: 80px; }
+.moment-share__qr img,
+.moment-share__qr canvas { width: 80px !important; height: 80px !important; display: block; }
+.moment-share__brand { display: flex; flex-direction: column; gap: 2px; }
+.moment-share__brand strong { font-size: 1rem; color: #333; }
+.moment-share__brand span { font-size: 0.72rem; color: #999; }
+.moment-share__bar { display: flex; gap: 0.6rem; }
+.moment-share__save {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: #fff;
+  cursor: pointer;
+  background: var(--primary);
+}
+.moment-share__save:disabled { opacity: 0.6; cursor: default; }
+.moment-share__close {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.28);
+}

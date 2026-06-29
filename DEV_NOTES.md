@@ -492,5 +492,22 @@
 - **点赞后实心红**:CSS 选择器从 `.moment__pop-icon`(svg,靠继承)改为 `.moment__pop-icon path`(直接选 path),`fill:#ff3b5c; stroke:#ff3b5c`。
 - 版本 2.5.3→2.5.4。
 
+## v2.5.5(2026-06-29)· 朋友圈分享改为卡片海报(图+头像+文字+二维码,可保存图片)
+
+### 改动(`functions.php` + `assets/js/moments.js` + `assets/css/moments.css`)
+- **分享卡片**:点分享按钮 → 弹海报浮层(替代原 navigator.share / 复制链接):
+  - 图片:取该条第一张(`.moment__img` 的 data-full/src);**无图回退默认缩略图** `default-thumb.png`(经 `onedongMomentShare.defaultThumb` 传入)。
+  - 作者头像(`.moment__avatar img`)+ 昵称 + 文字(`.moment__content` textContent,4 行省略)。
+  - **二维码**:`qrcodejs`(jsdelivr CDN)生成该条 permalink 的码;库加载失败回退在线 API(qrserver.com)。
+  - 「保存图片」:`html2canvas`(CDN,useCORS + scale 2)把 `.moment-share__card` 转 PNG 下载。
+- **库(仅朋友圈页条件加载)**:`qrcodejs` + `html2canvas`,均 CDN;`wp_localize_script` 注入 `onedongMomentShare`(defaultThumb + siteName)。
+- 卡片海报**白底固定色**(不随站点暗色模式),因 html2canvas 对 CSS 变量支持差,固定色保证导出正常。
+- 版本 2.5.4→2.5.5。
+
+### 坑 / 注意
+- **html2canvas 跨域**:头像若来自 gravatar(跨域),需 `crossorigin="anonymous"` + `useCORS:true`;gravatar 有 CORS 头一般 OK;若自定义头像源无 CORS,保存的图头像可能空白(浮层展示不受影响)。
+- **二维码库**:qrcodejs 走 jsdelivr CDN,国内通常可访问;失败回退 qrserver.com(可能慢)。
+- 「保存图片」依赖 html2canvas 成功渲染;若浏览器拦截跨域图片,可改用截屏。
+
 ### 坑 / 注意(关键)
 - SVG `fill` 作为 `<path>` 的 **presentation attribute**,优先级**低于** author CSS,但**高于**从父级 `<svg>` 继承的 CSS 值。故「点赞实心红」必须**直接选 path 元素**设 fill,不能靠 svg 继承(否则 path 自带 `fill="none"` 胜出,心填不红)。

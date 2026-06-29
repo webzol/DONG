@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.4' );
+define( 'ONEDONG_VERSION', '2.5.5' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -141,6 +141,17 @@ function onedong_scripts() {
 	if ( is_post_type_archive( 'onedong_moment' ) || is_singular( 'onedong_moment' ) ) {
 		wp_enqueue_style( 'onedong-moments', ONEDONG_URI . '/assets/css/moments.css', array( 'onedong-layout' ), $ver );
 		wp_enqueue_script( 'onedong-moments', ONEDONG_URI . '/assets/js/moments.js', array(), $ver, true );
+		// 分享卡片:二维码(qrcodejs)+ 转图片(html2canvas),CDN;v2.5.5
+		wp_enqueue_script( 'onedong-qrcode', 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', array(), '1.0.0', true );
+		wp_enqueue_script( 'onedong-html2canvas', 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', array(), '1.4.1', true );
+		wp_localize_script(
+			'onedong-moments',
+			'onedongMomentShare',
+			array(
+				'defaultThumb' => get_theme_file_uri( 'assets/img/default-thumb.png' ),
+				'siteName'     => get_bloginfo( 'name' ),
+			)
+		);
 	}
 
 	// 线程评论(若日后开启评论)
