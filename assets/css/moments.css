@@ -281,3 +281,30 @@
   cursor: pointer;
   background: rgba(255, 255, 255, 0.28);
 }
+
+/* —— 点赞数 + 点击动效 · v2.5.7 —— */
+.moment__pop-btn--like { width: auto; padding: 0 10px; position: relative; }
+.moment__pop-num { font-size: .8rem; color: #fff; }
+.moment__pop-btn--like.is-liked .moment__pop-num { color: #ff3b5c; }
+@keyframes moment-heart-pop {
+	0% { transform: scale(1); }
+	35% { transform: scale(1.45); }
+	60% { transform: scale(0.9); }
+	100% { transform: scale(1); }
+}
+.moment__pop-btn--like.is-liked .moment__pop-icon { animation: moment-heart-pop .4s ease; }
+.moment__fly-heart {
+	position: absolute;
+	left: 50%; top: 50%;
+	transform: translate(-50%, -50%);
+	color: #ff3b5c;
+	font-size: 1rem;
+	pointer-events: none;
+	z-index: 2;
+	animation: moment-fly .75s ease-out forwards;
+}
+@keyframes moment-fly {
+	0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+	25% { opacity: 1; }
+	100% { transform: translate(-50%, -200%) scale(1.3); opacity: 0; }
+}

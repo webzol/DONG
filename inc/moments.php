@@ -236,6 +236,7 @@ function onedong_render_moment() {
 					<div class="moment__pop">
 						<button class="moment__pop-btn moment__pop-btn--like" type="button" data-id="<?php the_ID(); ?>" aria-label="<?php esc_attr_e( '赞', 'onedong' ); ?>">
 							<svg class="moment__pop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+							<span class="moment__pop-num"><?php echo esc_html( (int) onedong_get_likes() ); ?></span>
 						</button>
 						<span class="moment__pop-sep"></span>
 						<button class="moment__pop-btn moment__pop-btn--share" type="button" data-url="<?php the_permalink(); ?>" data-title="<?php the_title_attribute(); ?>" aria-label="<?php esc_attr_e( '分享', 'onedong' ); ?>">

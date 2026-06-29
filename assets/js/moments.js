@@ -153,6 +153,14 @@
 			.finally( function () { btn.disabled = false; btn.textContent = '保存图片'; } );
 	}
 
+	function flyHeart( btn ) {
+		var h = document.createElement( 'span' );
+		h.className = 'moment__fly-heart';
+		h.textContent = '❤';
+		btn.appendChild( h );
+		setTimeout( function () { if ( h.parentNode ) { h.parentNode.removeChild( h ); } }, 800 );
+	}
+
 	function closeAllPops() {
 		Array.prototype.forEach.call( document.querySelectorAll( '.moment__pop.is-open' ), function ( p ) {
 			p.classList.remove( 'is-open' );
@@ -201,6 +209,9 @@
 				} ).then( function ( r ) { return r.json(); } ).then( function ( data ) {
 					if ( data && data.success ) {
 						likeBtn.classList.add( 'is-liked' );
+						var num = likeBtn.querySelector( '.moment__pop-num' );
+						if ( num ) { num.textContent = ( parseInt( num.textContent, 10 ) || 0 ) + 1; }
+						flyHeart( likeBtn );
 						try { localStorage.setItem( key, '1' ); } catch ( err ) {}
 					}
 				} ).catch( function () {} ).finally( function () {

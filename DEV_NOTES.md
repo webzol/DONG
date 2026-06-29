@@ -514,6 +514,21 @@
 - 前端展示顺序即后台排列顺序(`_onedong_moment_images` 数组顺序),九宫格按序渲染。
 - 版本 2.5.5→2.5.6。
 
+## v2.5.7(2026-06-29)· 朋友圈点赞数显示 + 点击动效
+
+### 改动(`inc/moments.php` + `assets/js/moments.js` + `assets/css/moments.css`)
+- **点赞数显示**:赞按钮(气泡内)心形旁加 `<span class="moment__pop-num">N</span>`,读 `onedong_get_likes()`(朋友圈 CPT 复用 `_onedong_likes`)。
+- **点击成功动效**:
+  - 心形 `moment-heart-pop` 动画(scale 1→1.45→0.9→1,回弹 0.4s)。
+  - 飘心:按钮位置生成 `<span class="moment__fly-heart">❤</span>`,`moment-fly` 向上飘 200% + 渐隐(0.75s),结束移除。
+- JS:REST 成功后数字 +1(`moment__pop-num` textContent)+ 触发 `flyHeart()` + is-liked(变红)。
+- `.moment__pop-btn--like` 改 width auto + padding(容纳心 + 数字)+ position relative(飘心定位)。
+- 版本 2.5.6→2.5.7。
+
+### 坑 / 注意
+- 赞数来自 `_onedong_likes` meta(与文章卡点赞同一字段、同一 REST);朋友圈与文章赞数各自独立(不同 post_id)。
+- 飘心是 REST 成功后触发;若网络慢,用户点击后略迟才有动效(可改乐观更新,本期未做)。
+
 ### 坑 / 注意
 - HTML5 DnD 在**触屏**(手机/平板)不工作;后台是 PC 操作,够用。日后若要前端触屏排序,需换 SortableJS 之类带触屏支持的库。
 
