@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '2.5.25' );
+define( 'ONEDONG_VERSION', '6.0.10-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -57,6 +57,15 @@ function onedong_setup() {
 	add_theme_support( 'align-wide' );
 	// 块编辑器样式对齐(让后台编辑器预览贴合)
 	add_editor_style( 'assets/css/base.css' );
+
+	// 开启文章格式支持:图库 / 视频 / 引用 / 音频 / 状态 / 链接
+	add_theme_support( 'post-formats', array( 'gallery', 'video', 'quote', 'audio', 'status', 'link' ) );
+
+	// 注册菜单
+	register_nav_menus( array(
+		'primary' => esc_html__( '主菜单', 'onedong' ),
+		'footer'  => esc_html__( '页脚菜单', 'onedong' ),
+	) );
 
 	// 文章卡封面图专用尺寸(4:3 裁剪);老文章需 Regenerate Thumbnails 回填
 	add_image_size( 'onedong-card', 600, 450, true );
@@ -293,6 +302,21 @@ function onedong_scripts() {
 		wp_enqueue_script( 'onedong-single', ONEDONG_URI . '/assets/js/single.js', array(), $ver, true );
 	}
 
+	// 分享卡片(qrcodejs + html2canvas,仅文章详情页)· v6.0.5
+	if ( is_singular( 'post' ) ) {
+		wp_enqueue_script( 'onedong-qrcode', 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js', array(), '1.0.0', true );
+		wp_enqueue_script( 'onedong-html2canvas', 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', array(), '1.4.1', true );
+		wp_enqueue_script( 'onedong-share', ONEDONG_URI . '/assets/js/share.js', array( 'onedong-qrcode', 'onedong-html2canvas' ), $ver, true );
+		wp_localize_script(
+			'onedong-share',
+			'onedongPostShare',
+			array(
+				'saveText' => __( '保存为图片', 'onedong' ),
+				'busyText' => __( '生成中…', 'onedong' ),
+			)
+		);
+	}
+
 	// 朋友圈(列表 / 详情):九宫格样式 + 图片 lightbox — v2.5.0
 	if ( is_post_type_archive( 'onedong_moment' ) || is_singular( 'onedong_moment' ) ) {
 		wp_enqueue_style( 'onedong-moments', ONEDONG_URI . '/assets/css/moments.css', array( 'onedong-layout' ), $ver );
@@ -358,7 +382,7 @@ add_filter( 'excerpt_length', 'onedong_excerpt_length' );
 /**
  * 内联 SVG 图标(零依赖;符合「禁用 emoji 当图标」规范)。
  *
- * @param string $name 图标名:calendar / eye / chat / clock / hash / user / sun / moon / monitor / document / heart / type。
+ * @param string $name 图标名:calendar / eye / chat / clock / hash / user / sun / moon / monitor / document / heart / type / image / play / quote / music / link / status。
  * @return string SVG 标记(未知名返回空串)。
  */
 function onedong_get_icon( $name ) {
@@ -375,6 +399,15 @@ function onedong_get_icon( $name ) {
 		'document' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
 		'heart'    => '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
 		'type'     => '<line x1="21" y1="6" x2="3" y2="6"/><line x1="15" y1="12" x2="3" y2="12"/><line x1="17" y1="18" x2="3" y2="18"/>',
+		'image'    => '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+		'play'     => '<polygon points="5 3 19 12 5 21 5 3"/>',
+		'quote'    => '<path d="M3 21c3 0 7-1 7-8V5H3v8h4c0 5-4 6-4 6zm11 0c3 0 7-1 7-8V5h-7v8h4c0 5-4 6-4 6z"/>',
+		'music'    => '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+		'link'     => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+		'status'   => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.5 8.5 0 0 1 4.6 1.3L21 4.5V11.5z"/>',
+		'map-pin'  => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+		'menu'     => '<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
+		'share'    => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';
@@ -1844,6 +1877,69 @@ function onedong_toc() {
 			<?php endforeach; ?>
 		</ol>
 	</nav>
+	<?php
+}
+
+/**
+ * 文章分享卡片浮层(点底部「分享」按钮弹出;由 share.js 接管显隐 / 二维码 / 存图)。
+ * 卡片内容:作者头像 + 昵称 + 文章标题 + 简介 + 二维码(二维码容器的 data-url 供 qrcodejs 生成)。
+ * 头像加 crossorigin="anonymous",便于 html2canvas 存图不污染 canvas。
+ */
+function onedong_share_card() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+	$post_id   = get_the_ID();
+	$author_id = (int) get_post_field( 'post_author', $post_id );
+	$url       = get_permalink( $post_id );
+
+	$excerpt = wp_strip_all_tags( get_the_excerpt( $post_id ) );
+	if ( function_exists( 'mb_substr' ) ) {
+		$excerpt = mb_substr( $excerpt, 0, 80, 'UTF-8' );
+	} else {
+		$excerpt = substr( $excerpt, 0, 80 );
+	}
+	?>
+	<div class="post-share" id="postShare" aria-hidden="true">
+		<div class="post-share__mask" data-share-close></div>
+		<div class="post-share__inner">
+			<div class="post-share__card" id="postShareCard">
+				<div class="post-share__head">
+					<?php
+					echo get_avatar(
+						$author_id,
+						56,
+						'',
+						'',
+						array(
+							'class'      => 'post-share__avatar',
+							'extra_attr' => 'crossorigin="anonymous"',
+						)
+					);
+					?>
+					<div class="post-share__author">
+						<span class="post-share__name"><?php echo esc_html( get_the_author_meta( 'display_name', $author_id ) ); ?></span>
+						<span class="post-share__site"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+					</div>
+				</div>
+				<h3 class="post-share__title"><?php echo esc_html( get_the_title( $post_id ) ); ?></h3>
+				<?php if ( $excerpt ) : ?>
+					<p class="post-share__desc"><?php echo esc_html( $excerpt ); ?></p>
+				<?php endif; ?>
+				<div class="post-share__foot">
+					<div class="post-share__qr" data-url="<?php echo esc_attr( $url ); ?>"></div>
+					<div class="post-share__brand">
+						<strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong>
+						<span><?php esc_html_e( '扫码阅读全文', 'onedong' ); ?></span>
+					</div>
+				</div>
+			</div>
+			<div class="post-share__bar">
+				<button type="button" class="post-share__save" data-share-save><?php esc_html_e( '保存为图片', 'onedong' ); ?></button>
+				<button type="button" class="post-share__close" data-share-close><?php esc_html_e( '关闭', 'onedong' ); ?></button>
+			</div>
+		</div>
+	</div>
 	<?php
 }
 

@@ -50,7 +50,7 @@
 						btn.classList.add( 'is-liked' );
 						btn.setAttribute( 'aria-pressed', 'true' );
 						try { localStorage.setItem( key, '1' ); } catch ( err ) {}
-						var count = btn.querySelector( '.post-card__like-count' );
+						var count = btn.querySelector( '.count' );
 						if ( count && 'number' === typeof data.likes ) {
 							count.textContent = data.likes;
 						}

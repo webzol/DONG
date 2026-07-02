@@ -52,8 +52,6 @@
   min-height: var(--topbar-height);
   margin: 0 auto;
   padding: 0 clamp(1rem, 4vw, 2rem);
-  /* 三栏列对齐:与 .site-content--three-col 同列宽(16rem / 中 / 16rem)+ 同列距(1.5rem),
-     brand 落左栏、nav 落中间栏左对齐(左缘 = 文章流左缘)、控件落右栏右对齐 → 顶栏与正文协调。 */
   display: grid;
   grid-template-columns: 16rem minmax(0, 1fr) 16rem;
   align-items: center;
@@ -124,13 +122,33 @@
   color: var(--primary);
 }
 
-/* —— 顶栏控件区(仅留主题切换;v2.0 已移除色相滑块)—— */
+/* 导航控制 */
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex: 0 0 auto;
-  justify-self: end;
+  gap: 0.5rem;
+}
+
+.nav-overlay { display: none; } /* 仅移动端显示(见 768px query)*/
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: var(--radius-small);
+  transition: background-color 0.2s;
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--btn-bg);
+}
+
+.mobile-menu-toggle .icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* —— 主题切换按钮(三态:亮 / 暗 / 跟随系统)—— */
@@ -166,7 +184,7 @@
 .site-main {
   max-width: var(--site-width);
   margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2rem);
+  padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 /* ============================================================
@@ -177,7 +195,20 @@
   grid-template-columns: 16rem minmax(0, 1fr) 16rem;
   gap: 1.5rem;
   align-items: start;
+  margin: 2rem auto 0;
+  max-width: var(--site-width);
+  padding: 0 clamp(1rem, 4vw, 2rem); /* 与 site-header__inner 对齐 */
 }
+
+/* 确保侧边栏和主内容顶部对齐 */
+.sidebar-left,
+.content-main,
+.sidebar-right {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+
 .content-main { min-width: 0; }
 
 /* 平板:左作者卡隐藏,降为主+右双栏 */
@@ -220,45 +251,149 @@
   font-size: 0.92rem;
 }
 
-/* —— 文章列表(单列,纵向 list-item 卡)—— */
+/* ============================================================
+   OneDong · 现代化动态卡片 (v5.0 Modern Feed Style)
+   大圆角 / 柔和阴影 / 呼吸感间距 / 极简边框
+   ============================================================ */
+
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem; /* 增加卡片间的间距，提升整体呼吸感 */
 }
 
-/* ============================================================
-   文章卡片(suxing list-item:上图下文 · 16:9 封面在顶)
-   ============================================================ */
+/* —— 动态卡片(v6.0 深度定制布局) —— */
 .post-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
   background: var(--card-bg);
   border: 1px solid var(--line);
-  border-radius: var(--radius-large);   /* 12px */
-  box-shadow: var(--shadow);             /* 0 6px 16px rgb(27 26 49/1%) */
-  overflow: hidden;                      /* 让封面圆角裁剪跟随卡片 */
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border-radius: var(--radius-large);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .post-card:hover {
   transform: translateY(-2px);
-  border-color: var(--line-strong);
-  box-shadow: 0 8px 24px rgb(27 26 49 / 6%);
+  box-shadow: var(--shadow-hover);
 }
-:root[data-theme="dark"] .post-card { box-shadow: none; }
-:root[data-theme="dark"] .post-card:hover { box-shadow: none; }
 
-/* —— 封面列(suxing:16:9 撑比例 + 绝对定位 img object-fit:cover)—— */
-.post-card__thumb {
+/* 1. 头部:头像 + (昵称/日期) */
+.post-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.15rem;
+}
+.post-card__avatar-wrap {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+.post-card__avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+/* 黄V认证 */
+.post-card__verified {
+  position: absolute;
+  right: -0.28rem;
+  bottom: -0.28rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  background: var(--card-bg);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 0 1px var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.post-card__verified svg { width: 100%; height: 100%; display: block; }
+.post-card__author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.post-card__author-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+.post-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+/* 2. 标题 */
+.post-card__title {
+  margin: 0 0 0.35rem;
+  padding-left: 3.6rem;
+  font-size: clamp(1.1rem, 1.4vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+.post-card__title a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.post-card__title a:hover { color: var(--primary); text-decoration: none; }
+/* stretched link:整张卡片可点击(::after z-index:1,低于封面/统计栏) */
+.post-card__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* 3. 摘要 */
+.post-card__summary {
   position: relative;
   z-index: 2;
-  display: block;
-  margin: 0 1.1rem;                     /* 左右缩进,与正文/底部 padding 左边对齐成一线(恢复原版) */
-  padding-top: 56.25%;                  /* 16:9(基于缩进后宽度) */
-  background: url('../img/lazy-placeholder.png') center/cover no-repeat, var(--btn-bg);
-  border-radius: var(--radius-medium);  /* 缩进脱离卡片边,自成圆角 */
+  margin: 0.22rem 0 0;
+  padding-left: 3.6rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--excerpt-lines, 2);
+  line-clamp: var(--excerpt-lines, 2);
+  -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.post-card__summary p { margin: 0; display: inline; }
+
+/* 4. 封面 */
+.post-card__media {
+  position: relative;
+  margin: 0.75rem 0 0.15rem 3.6rem;
+  max-width: calc(100% - 3.6rem);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  background: var(--btn-bg);
+}
+.post-card__thumb-link {
+  display: block;
+  aspect-ratio: 21 / 9;
 }
 .post-card__img {
   position: absolute;
@@ -271,12 +406,11 @@
   transition: transform 0.35s ease;
 }
 .post-card__img--default {
-  object-fit: contain;        /* 默认缩略图为品牌图(标识+标语+猫主体),contain 完整展示,避免 16:9 cover 裁掉上下文字/主体 */
-  background: #000;           /* 匹配默认图黑底,消除 contain 左右留白 */
+  object-fit: contain;
+  background: #000;
 }
 .post-card:hover .post-card__img { transform: scale(1.05); }
-
-/* 分类贴片(suxing:贴封面图左上角;纯展示,pointer-events:none 让点击穿透到封面/整卡链接) */
+/* 分类贴片(封面左上角;纯展示,pointer-events:none 点击穿透) */
 .post-card__cat-badge {
   position: absolute;
   top: 0.55rem;
@@ -299,161 +433,31 @@
   background: color-mix(in oklch, var(--primary) 78%, black 22%);
 }
 
-/* 无特色图:不渲染 .post-card__thumb,卡片直接从标题开始(竖向卡自然降级) */
-
-/* —— 内容区(suxing:padding 1rem,flex 列方向让 stats 贴底)—— */
-.post-card__body {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 0.9rem 1.1rem 0.55rem;  /* 参考朋友圈 .moment(0.95rem)呼吸:外0.9 / 内0.55(v2.5.25) */
-}
-.post-card__title {
-  margin: 0 0 0.35rem;
-  font-size: clamp(1.1rem, 1.4vw, 1.35rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-}
-.post-card__title a {
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 600;
-}
-.post-card__title a:hover { color: var(--primary); text-decoration: none; }
-/* stretched link:整张卡片可点击(::after z-index:1,低于封面与内联链接) */
-.post-card__title a::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.post-card__meta {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem 0.9rem;
-  margin: 0 0 0.35rem;
-  color: var(--text-faint);
-  font-size: 0.8rem;
-}
-.post-card__date {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-variant-numeric: tabular-nums;
-}
-/* 文章卡作者 byline(头像带黄V + 昵称带在线绿点) */
-.post-card__author {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-.post-card__author-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-.post-card__author-info .post-card__date { font-size: 0.72rem; color: var(--text-faint); }
-.post-card__avatar-wrap {
-  position: relative;
-  display: inline-block;
-  flex: 0 0 auto;
-  line-height: 0;
-}
-.post-card__avatar {
-  width: 2.5rem;       /* 参考图 ~40px 圆形头像(原 1.5rem/24px 偏小) */
-  height: 2.5rem;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  border: 2px solid var(--card-bg);
-  box-shadow: 0 0 0 1px var(--line-strong);
-}
-.post-card__verified {
-  position: absolute;
-  right: -0.28rem;
-  bottom: -0.28rem;
-  width: 1.3rem;
-  height: 1.3rem;
-  background: var(--card-bg);
-  border-radius: 50%;
-  padding: 1px;
-  box-shadow: 0 0 0 1px var(--line-strong);
+/* 5. 统计栏(浏览/字数/评论 + 点赞) */
+.post-card__footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  line-height: 0;
-}
-.post-card__verified svg { width: 100%; height: 100%; display: block; }
-.post-card__author-name {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.875rem;   /* 配大头像,14px(原 0.8rem) */
-  font-weight: 500;
-  color: var(--text-muted);
-}
-.post-card__cats {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem;
-}
-.post-card__cats a {
-  position: relative;
-  z-index: 2;
-  color: var(--primary);
-  font-weight: 500;
-  font-size: 0.8rem;
-  text-decoration: none;
-}
-.post-card__cats a:hover { text-decoration: underline; }
-.post-card__cats .sep { margin: 0 0.35rem; color: var(--text-faint); }
-.post-card__summary {
-  position: relative;
-  z-index: 2;
-  margin: 0.22rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.92rem;
-  line-height: 1.65;
-  display: -webkit-box;
-  -webkit-line-clamp: var(--excerpt-lines, 2);
-  line-clamp: var(--excerpt-lines, 2);
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.post-card__summary p { margin: 0; display: inline; }
-.post-card__stats {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;     /* 阅读 / 字数 / 点赞 三项左中右均分 */
-  gap: 0.4rem 1rem;
-  padding: 0.55rem 1.1rem 0.9rem;  /* 参考朋友圈 .moment(0.95rem)呼吸:内0.55 / 外0.9(v2.5.25) */
-  border-top: 1px solid var(--line);
-  color: var(--text-faint);
-  font-size: 0.82rem;
-  font-variant-numeric: tabular-nums;
+  justify-content: space-between;
+  margin: 1rem 0 0 3.6rem;
 }
 .post-card__stat {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  padding: 0.4rem 0;
   transition: color 0.15s ease;
 }
-.post-card__stat .icon { width: 1rem; height: 1rem; }
+.post-card__stat:last-of-type { justify-content: center; }
+.post-card__stat .icon { width: 1rem; height: 1rem; opacity: 0.6; transition: opacity 0.15s ease; }
 .post-card__stat:hover { color: var(--primary); }
-
-/* 点赞按钮(可点击 +1;REST _onedong_likes;浮于 stretched-link ::at 之上) */
+.post-card__stat:hover .icon { opacity: 1; }
 .post-card__like {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.35rem;
   margin: 0;
   padding: 0;
@@ -465,24 +469,209 @@
   cursor: pointer;
   transition: color 0.15s ease, transform 0.15s ease;
 }
-.post-card__like .icon { width: 1rem; height: 1rem; fill: currentColor; transition: fill 0.15s ease; }
-.post-card__like:hover .icon { fill: #ff3b5c; }
+.post-card__like .icon { width: 1rem; height: 1rem; fill: none; stroke: currentColor; transition: fill 0.15s ease, stroke 0.15s ease; }
 .post-card__like:hover { color: #ff3b5c; background: transparent; }
+.post-card__like:hover .icon { stroke: #ff3b5c; fill: none; }
 .post-card__like:active { transform: scale(0.9); }
 .post-card__like.is-liked { color: #ff3b5c; }
-.post-card__like.is-liked .icon { fill: #ff3b5c; }
-.post-card__tag {
-  position: relative;
-  z-index: 2;
-  padding: 0.12rem 0.6rem;
-  border-radius: var(--radius-max);
-  background: var(--btn-bg);
-  color: var(--text-muted);
-  font-size: 0.74rem;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
+.post-card__like.is-liked .icon { fill: #ff3b5c; stroke: #ff3b5c; }
+
+/* 移动端适配:封面/标题/摘要/统计栏统一贴左对齐 */
+@media (max-width: 768px) {
+  .post-card {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+  .post-card__title,
+  .post-card__summary {
+    padding-left: 0;
+  }
+  .post-card__media {
+    margin-left: 0;
+    max-width: 100%;
+  }
+  .post-card__footer {
+    margin-left: 0;
+  }
 }
-.post-card__tag:hover { background: var(--primary); color: #fff; text-decoration: none; }
+
+@media (max-width: 480px) {
+  .post-card {
+    padding: 1rem;
+  }
+}
+
+/* 绿色呼吸灯 */
+.online-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.online-dot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.4;
+  animation: dot-pulse 2s infinite;
+}
+
+@keyframes dot-pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 0.4; }
+}
+
+/* 九宫格智能布局 (Wechat Style) */
+.post-card__grid {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  width: fit-content;
+}
+
+/* 1张图: 大图展示 */
+.post-card__grid--1 {
+  grid-template-columns: 1fr;
+  max-width: 80%;
+}
+.post-card__grid--1 .post-card__grid-item {
+  aspect-ratio: auto;
+  max-height: 400px;
+}
+
+/* 2-4张图: 2列布局 */
+.post-card__grid--2,
+.post-card__grid--4 {
+  grid-template-columns: repeat(2, 120px);
+}
+
+/* 3, 5-9张图: 3列布局 */
+.post-card__grid--3,
+.post-card__grid--5,
+.post-card__grid--6,
+.post-card__grid--7,
+.post-card__grid--8,
+.post-card__grid--9 {
+  grid-template-columns: repeat(3, 100px);
+}
+
+.post-card__grid-item {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--btn-bg);
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.post-card__grid-item:hover {
+  transform: scale(0.98);
+}
+
+/* 多图第 3 张叠加的 +N(点击跳文章查看更多) */
+.post-card__grid-more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.post-card__grid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* —— 增强动态卡片组件 —— */
+
+/* 位置信息 */
+.post-card__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  background: var(--btn-bg);
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+  width: fit-content;
+}
+.post-card__location .icon { width: 0.9rem; height: 0.9rem; }
+
+/* 话题标签 */
+.post-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.post-card__tag {
+  font-size: 0.85rem;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.post-card__tag:hover {
+  background: rgba(var(--primary-rgb), 0.1);
+  text-decoration: none;
+}
+
+/* 交互区预览 */
+.post-card__interactions {
+  margin-top: 1rem;
+  background: rgba(var(--primary-rgb), 0.02);
+  border: 1px solid rgba(var(--primary-rgb), 0.05);
+  border-radius: 1rem;
+  padding: 1rem;
+  position: relative;
+}
+
+.post-card__likes-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #576b95;
+  border-bottom: 1px solid rgba(var(--primary-rgb), 0.05);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.post-card__likes-preview .icon { width: 0.9rem; height: 0.9rem; flex-shrink: 0; }
+
+.post-card__comments-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.post-card__comment-item {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.post-card__comment-author {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* —— 文章卡(post-card)全部样式已合并到上方主块;此处旧的 suxing / 老废弃定义已清除 —— */
 
 /* 内联 SVG 图标(元数据通用) */
 .icon {
@@ -496,10 +685,13 @@
    单篇文章(正文 · suking h2 色条 + 红色 inset 下划线链接)
    ============================================================ */
 .post-single,
-.single-post article.post,
 .page article.page {
   max-width: var(--content-width);
   margin: 0 auto;
+}
+/* single 三栏:文章卡填满中间栏(content-main),不再限 content-width */
+.content-main > article.post {
+  max-width: none;
 }
 article.post,
 article.page {
@@ -509,6 +701,20 @@ article.page {
   box-shadow: var(--shadow);
   padding: clamp(1.5rem, 4vw, 3rem);
 }
+/* 分类面包屑(single 文章卡顶部:首页 / 分类 / 标题) */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.15s ease; }
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb__sep { color: var(--text-faint); user-select: none; }
+.breadcrumb__current { color: var(--text); font-weight: 500; }
 :root[data-theme="dark"] article.post,
 :root[data-theme="dark"] article.page { box-shadow: none; }
 
@@ -548,6 +754,143 @@ article.page {
 }
 .entry-tags { margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
 .entry-tags a { color: var(--primary); }
+
+/* 文章详情页底部互动栏:分享 / 阅读 / 评论 / 点赞 —— 四项单行均布
+   四项为 .entry-actions 的直接子节点,统一等宽居中;点赞沿用 .post-card__like(likes.js 直绑),
+   分享为 .entry-share 按钮(触发 .post-share 卡片);nowrap 锁死单行。 */
+.entry-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin: 2rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+.entry-actions > * {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  padding: 0.35rem 0;
+  color: var(--text-faint);
+  transition: color 0.15s ease;
+}
+.entry-actions .icon { width: 1rem; height: 1rem; opacity: 0.6; transition: opacity 0.15s ease; }
+.entry-actions .entry-share {
+  margin: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.entry-actions .entry-share:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+/* 仅鼠标设备才有 hover 高亮(避免触屏点按后 :hover 粘住,误显「默认选中」)*/
+@media (hover: hover) {
+  .entry-actions .entry-share:hover,
+  .entry-actions .post-card__stat:hover { color: var(--primary); }
+  .entry-actions .entry-share:hover .icon,
+  .entry-actions .post-card__stat:hover .icon { opacity: 1; }
+}
+@media (max-width: 480px) {
+  .entry-actions { gap: 0.25rem; }
+  .entry-actions > * { font-size: 0.82rem; }
+}
+
+/* —— 文章分享卡片浮层(点底部「分享」弹出;白底固定色,保证 html2canvas 导出正常)· v6.0.5 —— */
+.post-share { position: fixed; inset: 0; z-index: 9998; display: none; }
+.post-share.is-open { display: block; }
+.post-share__mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); }
+.post-share__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.post-share__card {
+  width: 320px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  padding: 1.4rem 1.4rem 1.2rem;
+}
+.post-share__head { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1rem; }
+.post-share__avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; }
+.post-share__author { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.post-share__name { font-weight: 600; font-size: 0.95rem; color: #1d2129; }
+.post-share__site { font-size: 0.75rem; color: #86909c; }
+.post-share__title {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1d2129;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.post-share__desc {
+  margin: 0 0 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #4e5969;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.post-share__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f2f3f5;
+}
+.post-share__qr { flex: 0 0 auto; width: 88px; height: 88px; }
+.post-share__qr img,
+.post-share__qr canvas { width: 88px !important; height: 88px !important; display: block; }
+.post-share__brand { display: flex; flex-direction: column; gap: 2px; }
+.post-share__brand strong { font-size: 1rem; color: #1d2129; }
+.post-share__brand span { font-size: 0.74rem; color: #86909c; }
+.post-share__bar { display: flex; gap: 0.6rem; }
+.post-share__save {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: #fff;
+  cursor: pointer;
+  background: var(--primary);
+}
+.post-share__save:disabled { opacity: 0.6; cursor: default; }
+.post-share__close {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.28);
+}
 
 /* —— 正文链接:suxing 红色 inset 下划线(危险色 #ff3e3e)—— */
 .entry-content a {
@@ -977,16 +1320,10 @@ select:focus {
   .site-header__inner { display: flex; gap: 1.25rem; }
   .header-controls { margin-left: auto; }
 }
-/* —— 响应式:移动端 —— */
-@media (max-width: 768px) {
-  .site-header__inner { flex-wrap: wrap; gap: 0.75rem; }
-  .primary-nav { order: 3; width: 100%; }
-  .primary-nav ul { justify-content: flex-start; }
-}
+/* 移动端导航统一用汉堡菜单(展开规则见下方 768px query) */
 @media (max-width: 640px) {
   .post-nav { grid-template-columns: 1fr; }
   .post-nav .nav-next { text-align: left; }
-  .post-card__body { padding: 0.85rem 1.1rem 0.55rem; }
   .widget { padding: 1rem 1.1rem; }
 }
 
@@ -1432,6 +1769,140 @@ html.js [data-reveal].is-revealed {
 }
 .related-posts__date { font-size: 0.75rem; color: var(--text-muted); }
 .related-posts__link:hover .related-posts__name { color: var(--primary); }
-@media (max-width: 640px) {
-  .related-posts__list { grid-template-columns: 1fr; }
+/* ============================================================
+   响应式与移动端优化 (Mobile Optimization)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* 顶栏适配 */
+  .site-header__inner {
+    grid-template-columns: 1fr auto;
+    column-gap: 1rem;
+    padding: 0 1rem;
+  }
+  /* 汉堡菜单:移动端显示按钮,nav 为左侧滑出抽屉,点开 .is-open 滑入 */
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+  .primary-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(80vw, 18rem);
+    height: 100vh;
+    height: 100dvh;
+    display: block;
+    flex-direction: column;
+    background: var(--card-bg);   /* 修正:令牌为 --card-bg(原误写 --card 未定义→透明穿透) */
+    box-shadow: 2px 0 18px rgba(0, 0, 0, 0.14);
+    padding: 1.25rem 0;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    z-index: 1001;
+  }
+  .primary-nav.is-open {
+    transform: translateX(0);
+  }
+  .primary-nav ul {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+  }
+  .primary-nav li { width: 100%; }
+  .primary-nav a {
+    display: block;
+    padding: 0.7rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+  }
+  /* 遮罩:参考 PC 端顶栏导航背景(--titlebar-bg + 同款 backdrop-filter 毛玻璃);
+     放 body 级(</header> 后)避开顶栏 backdrop-filter 的 containing block,才能真正全屏;
+     z-index 40 盖主内容(0)、低于顶栏/抽屉(50),点击关闭 */
+  .nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--titlebar-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+    z-index: 40;
+  }
+  .nav-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .site-title { font-size: 1.1rem; }
+
+  /* 主区域间距 */
+  .site-main {
+    padding: 0 0.75rem 1.5rem;
+  }
+  .site-content--three-col {
+    margin-top: 1rem;
+    gap: 1rem;
+  }
+
+  /* 动态卡片适配 */
+  .post-card {
+    padding: 1rem;
+    border-radius: 1rem;
+    gap: 0.75rem;
+  }
+  .post-card__avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+  }
+  .post-card__author-name {
+    font-size: 0.95rem;
+  }
+  .post-card__summary {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* 九宫格移动端适配 */
+  .post-card__grid--2,
+  .post-card__grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-width: 240px;
+  }
+  .post-card__grid--3,
+  .post-card__grid--5,
+  .post-card__grid--6,
+  .post-card__grid--7,
+  .post-card__grid--8,
+  .post-card__grid--9 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  /* 统计栏 */
+  .post-card__footer {
+    margin-top: 0.75rem;
+  }
+
+  /* 侧边栏底部适配 */
+  .sidebar-right {
+    margin-top: 1.5rem;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+  .post-card {
+    padding: 0.85rem;
+  }
+  .post-card__avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .post-card__grid--2, .post-card__grid--4 { max-width: 200px; }
+  .post-card__grid--3, .post-card__grid--9 { max-width: 240px; }
 }

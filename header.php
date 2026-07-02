@@ -76,12 +76,42 @@
 		</nav>
 
 		<div class="header-controls">
+			<button class="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e( '菜单', 'onedong' ); ?>" aria-controls="primary-menu" aria-expanded="false">
+				<?php onedong_icon( 'menu' ); ?>
+			</button>
 			<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" data-pref="auto" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
 				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true"><?php onedong_icon( 'sun' ); ?></span>
 				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true"><?php onedong_icon( 'moon' ); ?></span>
 			</button>
 		</div>
 	</div>
+	<script>
+	// 汉堡菜单:移动端点击 → 左侧抽屉滑出 + 遮罩;点遮罩 / ESC / 菜单链接关闭,锁定背景滚动
+	(function(){
+		var btn = document.querySelector('.mobile-menu-toggle');
+		var nav = document.querySelector('.primary-nav');
+		var overlay = document.querySelector('.nav-overlay');
+		if ( ! btn || ! nav ) { return; }
+		function set( open ) {
+			nav.classList.toggle( 'is-open', open );
+			if ( overlay ) { overlay.classList.toggle( 'is-open', open ); }
+			btn.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+			document.body.style.overflow = open ? 'hidden' : '';
+		}
+		btn.addEventListener( 'click', function(){
+			set( ! nav.classList.contains( 'is-open' ) );
+		} );
+		if ( overlay ) { overlay.addEventListener( 'click', function(){ set( false ); } ); }
+		document.addEventListener( 'keydown', function( e ){
+			if ( e.key === 'Escape' && nav.classList.contains( 'is-open' ) ) { set( false ); }
+		} );
+		nav.addEventListener( 'click', function( e ){
+			if ( e.target.closest( 'a' ) ) { set( false ); }
+		} );
+	})();
+	</script>
 </header>
+
+<div class="nav-overlay" aria-hidden="true"></div>
 
 <main id="main" class="site-main">

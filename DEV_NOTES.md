@@ -753,3 +753,136 @@
 - **方向与 v2.5.24 相反**:v2.5.24 TD 要求「缩减不要空白」收到 0.5rem;部署后实测偏紧,改参考朋友圈(0.95rem)放松到 0.9rem。**甜点值随实测反复**,后续若再调改这四个值(外/内/左右)。
 - 朋友圈 `.moment` 未动(TD:「朋友圈的不用改」),作基准保留 `0.95rem`。
 - `onedong.zip` 沿用历史策略,不纳入提交。
+
+## 文章详情页底部互动栏(浏览/字数/评论/点赞)· 2026-07-02
+
+### 背景
+- TD 要求把文章列表卡底部的「浏览 / 字数 / 评论 / 点赞」4 项统计,也放到**文章详情页(`single.php`)底部**(TD 原话「商品详情页」,实指文章单篇页——本主题无商品 CPT,唯一详情页即 single.php)。
+
+### 改动
+- `single.php`:标签块之后、`</article>` 之前新增 `.entry-actions` 互动栏。
+  - **4 项平级**(无内层包裹):阅读 `onedong_get_views()`(eye)/ 字数 `onedong_word_count()`(type)/ 评论 `get_comments_number()`(chat)/ 点赞 `onedong_get_likes()`(heart)。
+  - 点赞按钮**沿用 `.post-card__like` 类**(`data-id` + 内部 `.count`)→ `likes.js` 已全站加载且写死绑定该选择器,**详情页点赞直接可用,无需改 JS**。
+- `assets/css/layout.css`:新增 `.entry-actions` —— **四项单行均布**:`flex:1 1 0` + `justify-content:center` 让 4 项等宽居中排成一行,`flex-wrap:nowrap` + `white-space:nowrap` 锁死单行(永不换行),顶部分隔线;`≤480px` 缩字号。复用 `.post-card__stat` / `.post-card__like` 样式。
+  - 初版是「左 3 统计 + 右点赞」两组(`.entry-actions__stats` 包裹),TD 反馈要「一行展示」→ 改为 4 项平级均布(去掉包裹层)。
+
+### 坑 / 注意(关键)
+- **点赞按钮必须用 `.post-card__like` 类**(不要新建类):`likes.js` 写死 `querySelectorAll('.post-card__like')`,且靠内部 `.count` 节点回填点赞数。换别的类名 → 详情页点赞点不动。
+- `.post-card__footer` **不能直接套用**:它带卡片专属 `margin-left:3.6rem`(给头像让位),详情页用会错位。故只复用 `__stat` / `__like`,外层另起 `.entry-actions`。
+- 统计项与列表卡 `content.php` 同数据源、同显示规则(均**不挂** Customizer 开关,无条件显示)。
+- ⚠️ **CSS 改了但版本号未 bump**(当前 `6.0.4-ProMax`):线上 CDN / 浏览器会吃旧 CSS 缓存,部署前需 bump `style.css` + `ONEDONG_VERSION` 刷 URL(沿用既定策略)。
+
+## v6.0.5(2026-07-02)· 详情页底部改版(分享/阅读/评论/点赞)+ 分享卡片
+
+### 背景
+- TD 实测定稿:底部由「阅读 / 字数 / 评论 / 点赞」改为 **「分享 / 阅读 / 评论 / 点赞」** —— 去字数,首位换「分享」(触发分享卡片)。「阅读」= 阅读量(浏览数 eye),非阅读时长。
+- 分享卡片要求:作者头像 + 昵称 + 文章标题 + 文章介绍 + 二维码。复用朋友圈同款 qrcodejs(生码)+ html2canvas(存图)。
+
+### 改动
+- `functions.php`:
+  - `onedong_get_icon` 新增 `share` 图标(三节点连线,Feather share)。
+  - 新增 `onedong_share_card()`:服务端渲染隐藏浮层 `.post-share`(头像[加 crossorigin] + 昵称 + 站点 + 标题 + 简介[mb_substr 截 80 字] + 二维码容器[data-url=permalink] + 保存/关闭按钮)。
+  - `is_singular('post')` 下 enqueue `onedong-qrcode` / `onedong-html2canvas`(CDN,与朋友圈同 handle)+ 新 `share.js`(依赖前两者),localize `onedongPostShare{saveText,busyText}`。
+- `single.php`:`.entry-actions` 四项改为 **分享(`<button class="entry-share" data-share-trigger>`)/ 阅读(`post-card__stat` eye)/ 评论(`post-card__stat` chat)/ 点赞(`post-card__like`)**;`</article>` 后调用 `onedong_share_card()`。
+- `assets/js/share.js`(新增):点 `[data-share-trigger]` → 开 `.post-share` → qrcodejs 据容器 `data-url` 生码(失败回退 qrserver API,只生一次)→ `[data-share-close]` / Esc 关 → `[data-share-save]` 用 html2canvas 截 `#postShareCard` 存 png(文件名取标题)。
+- `assets/css/layout.css`:`.entry-actions` 改用 `> *` 让四项等宽居中;新增 `.entry-share` 按钮(reset + hover 转 primary);新增 `.post-share` 浮层 + 卡片全套样式(对齐朋友圈分享卡,**固定 hex 色**保 html2canvas 导出)。
+
+### 坑 / 注意(关键)
+- **分享按钮独立类 `.entry-share`**(非 `.post-card__like`):点赞才用 `.post-card__like`(likes.js 绑定 + 红 hover);分享要蓝 hover,故另起类。两者都是 `.entry-actions` 直接子节点,靠 `> *` 统一布局。
+- **头像必须 `crossorigin="anonymous"`**:否则 html2canvas 截 gravatar 会污染 canvas → `toDataURL` 抛错,存图失败。已在 `get_avatar` 的 `extra_attr` 加。
+- **卡片色用固定 hex**(#1d2129 / #4e5969 / #86909c / #f2f3f5),不用 CSS 变量 —— 对齐朋友圈分享卡策略,保 html2canvas 导出稳定。
+- 二维码走 qrcodejs 本地生 canvas(同源,html2canvas 安全);库未加载时回退 qrserver 远程图(可能 CORS,但 save 有 `.catch` 兜底,不致命)。
+- ⚠️ **线上 dingxudong.com 实测仍跑 Once-main 不是 OneDong**(webReader 抓取确认 stylesheets 全是 `/themes/Once-main/`)。本改动在 OneDong,部署 OneDong 替换 Once-main 后才生效。旧条「已部署 onedong v2.5.24」与现状不符。
+- 版本 6.0.4→6.0.5-ProMax(`style.css` + `ONEDONG_VERSION`,刷 CSS/JS URL 缓存)。
+
+## v6.0.6(2026-07-02)· 修分享按钮「默认选中」+ 下方布局乱
+
+### 背景
+- TD 反馈:详情页底部「分享」**默认就是选中态(蓝底)**,且**分享下方布局乱**。
+- 抓线上确认:首页 HTML 仍引用 `layout.css?ver=6.0.4-ProMax`(不是 6.0.5),而 `style.css` 头已是 6.0.5 —— 即 **`functions.php` 的 `ONEDONG_VERSION` 没跟着部署**,`?ver=` 没变 → 浏览器/CDN 仍吃**旧 6.0.4 CSS**(里面没有 `.entry-share` / `.post-share` 规则)。
+  - 旧 CSS 下 `.entry-share` 按钮只命中全局 `button { background:主色; color:#fff }` → **蓝药丸 = 「默认选中」**;
+  - 旧 CSS 下 `.post-share` 没有 `display:none` → **卡片默认展开撑乱下方**。
+
+### 改动(`assets/css/layout.css` + 版本 bump)
+- `.entry-share` **显式压过全局 button**:补 `padding / border-radius:0 / box-shadow:none / color:text-faint / font-size`,确保即便旧缓存命中全局 button 也不变蓝(双保险)。
+- hover 高亮**包进 `@media (hover: hover)`**:避免触屏点按后 `:hover` 粘住误显「选中」;加 `:focus-visible` 键盘焦点环。
+- 版本 6.0.5→6.0.6-ProMax(`style.css` + `ONEDONG_VERSION`)—— **关键:必须部署 `functions.php`**,否则 `?ver=` 不变,缓存照旧。
+
+### 坑 / 注意(关键)
+- ⚠️ **版本号在 `functions.php` 的 `ONEDONG_VERSION`,不在 `style.css`**。WP 后台显示的主题版本读 `style.css` 头,但 enqueue 的 `?ver=` 读 `ONEDONG_VERSION`。两者不同步 → 后台显示 6.0.5、线上仍 `?ver=6.0.4` → 浏览器吃旧 CSS。**改完 CSS 必须一起部署 `functions.php`**。
+- 部署后还需**刷腾讯云 CDN + 浏览器硬刷新**,否则边缘节点仍回旧 HTML/CSS。
+
+## v6.0.7(2026-07-02)· 详情页分享按钮去文字(仅留图标)
+
+### 背景
+- TD 要求详情页底部「分享」按钮**保留 share 图标、去掉「分享」二字文字**(纯图标更简洁)。线上参照 https://dingxudong.com/169.html。
+
+### 改动(`single.php` + 版本 bump)
+- `.entry-share` 按钮删除 `<span>分享</span>` 文字节点,**保留** `onedong_icon('share')` 图标 + `aria-label="分享"`(无障碍:屏幕阅读器仍读「分享」)。
+- 版本 6.0.6→6.0.7-ProMax(`style.css` + `ONEDONG_VERSION`,刷 CSS/JS URL 缓存)。
+
+### 坑 / 注意
+- **CSS 无需改**:`.entry-actions > *` 是 `flex:1 1 0` + `justify-content:center`,四项等宽居中;分享项去文字后只剩图标,图标在等宽格内自动居中,布局不错位。
+- **`aria-label` 必须保留**:纯图标按钮若无文字/aria-label,屏幕阅读器读不出用途。
+- ⚠️ 本次改的是 PHP(HTML 结构),bump `ONEDONG_VERSION` 只刷 CSS/JS 的 `?ver=`;**页面 HTML 改动需刷腾讯云 CDN**(TD 负责)+ 浏览器硬刷新才在线上生效。
+
+## v6.0.8(2026-07-02)· 移动端菜单改左侧滑出抽屉
+
+### 背景
+- TD 要求移动端点击汉堡菜单后,菜单从**左侧滑出**(原为顶栏下方下拉展开 `grid-column:1/-1`)。
+
+### 改动(`header.php` + `assets/css/layout.css` + 版本 bump)
+- **`header.php`**:`</nav>` 后新增 `<div class="nav-overlay" aria-hidden="true">` 遮罩层;内联 JS 重写为 `set(open)` —— 同步 toggle `.is-open`(nav + overlay)+ `aria-expanded` + `body.overflow`(锁背景滚动);**点遮罩 / ESC / 点菜单链接** 三种关闭方式(点链接先关闭再正常跳转)。
+- **`layout.css`**:
+  - 桌面端加 `.nav-overlay { display:none }`(仅移动端显示)。
+  - ≤768px:`.primary-nav` 由 `display:none` 下拉改为 **fixed 左侧抽屉**(`width:min(80vw,18rem)` + `height:100dvh`(前置 `100vh` 兜底)+ `transform:translateX(-100%)` + `transition:transform .28s`),`.is-open` → `translateX(0)` 滑入;菜单项选择器由 `.primary-nav.is-open ul/li/a` 改为 `.primary-nav ul/li/a`(抽屉常驻,去掉 is-open 前缀),竖排 + 左 padding `1.25rem`。新增 `.nav-overlay` fixed 全屏遮罩(`rgba(0,0,0,.45)` + opacity/visibility 过渡),`.is-open` 显隐。
+- 版本 6.0.7→6.0.8-ProMax(`style.css` + `ONEDONG_VERSION`,刷 CSS/JS URL 缓存)。
+
+### 坑 / 注意
+- **抽屉常驻 DOM**:`.primary-nav` 移动端始终 `display:block`,靠 `translateX(-100%)` 移出视口而非 `display:none`——否则 transform 过渡动画无效(这是从「下拉 display 切换」改为「平移」的关键)。
+- **层级**:抽屉 z-index `1001`、遮罩 `1000`,均高于顶栏 sticky(`50`);抽屉会盖住顶栏(标准 off-canvas 行为),靠**遮罩点击**关闭,不依赖顶栏汉堡按钮。
+- **桌面端零影响**:所有改动在 `≤768px` 媒体查询内 + `.nav-overlay` 桌面默认 `display:none`;桌面导航保持顶栏 inline flex。
+- **body 滚动锁**:`document.body.style.overflow='hidden'`;iOS Safari 偶有不完全生效,博客场景可接受(后续可改 position:fixed 方案)。
+- ⚠️ 本次改 PHP + CSS,部署务必把 `header.php` + `layout.css` + `functions.php`(刷 `?ver=6.0.8`)一起传;上线后刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.9(2026-07-02)· 修移动端遮罩透明穿透 + 背景参考 PC 端顶栏
+
+### 背景
+- v6.0.8 后 TD 反馈:移动端菜单展开时**背景透明、点击穿透**,要求**参考 PC 端导航背景**(`--titlebar-bg` 毛玻璃)。
+
+### 根因(关键坑)
+- `.site-header` 用 `backdrop-filter: blur(20px)`(PC 端毛玻璃顶栏,layout.css:46)。**`backdrop-filter` 会成为 `position:fixed` 后代的 containing block**。
+- v6.0.8 把 `.nav-overlay` 放在 `.site-header__inner` 内 → 它的 `fixed;inset:0` 被限制在**顶栏盒子**(高 ~60px)里,**没覆盖主内容区** → 主区域无遮罩 → 背景透明 + 点击穿透到下层链接。
+
+### 改动(`header.php` + `assets/css/layout.css` + 版本 bump)
+- **`header.php`**:`.nav-overlay` 从 `.site-header__inner` 内**移到 `</header>` 之后**(body 直接子级)→ 不再是顶栏后代,`fixed` 相对视口真正全屏。(JS 不变,仍 `querySelector('.nav-overlay')`。)
+- **`layout.css`** ≤768px `.nav-overlay`:
+  - 背景 `rgba(0,0,0,.45)` 半透明黑 → **`var(--titlebar-bg)` + 同款 `backdrop-filter: saturate(180%) blur(20px)`**(参考 PC 端顶栏导航;毛玻璃模糊底层 = 视觉不透明 + 不穿透)。
+  - `z-index` `1000` → **`40`**(盖主内容 `0`、低于顶栏/抽屉 `50`)。
+- 版本 6.0.8→6.0.9-ProMax(`style.css` + `ONEDONG_VERSION`)。
+
+### 坑 / 注意(关键)
+- **`backdrop-filter` / `filter` / `transform` 祖先会困住后代的 `fixed`**:fixed 弹层(遮罩 / 抽屉 / 模态)**必须放在该祖先之外**(body 级),否则定位与尺寸被限制在该祖先盒子里。本主题顶栏有 backdrop-filter,故遮罩移到 `</header>` 后。
+- **抽屉 `.primary-nav` 仍留 header 内**:在顶栏 containing block 内,但因顶栏 `top:0`+左对齐=视口原点、尺寸用视口单位(`100dvh` / `min(80vw,18rem)`),视觉上正常全屏滑出,无需移出(且桌面端导航布局依赖它在顶栏 grid 中列)。仍用实色 `var(--card)` 保菜单文字清晰。
+- **z-index 跨 stacking context 比较**:遮罩(body 级,根 z-index 40)与抽屉(顶栏 stacking context 内,顶栏根 z-index 50)比的是**根层级** → 抽屉随顶栏(50)> 遮罩(40)> 主内容(0),顺序正确,遮罩不会盖住抽屉。
+- ⚠️ 部署:`header.php` + `layout.css` + `functions.php`(刷 `?ver=6.0.9`)一起传;刷腾讯云 CDN + 手机端硬刷新验证。
+
+## v6.0.10(2026-07-02)· 修移动端**抽屉本身**透明穿透(令牌笔误)
+
+### 背景
+- v6.0.9 后 TD 仍反馈移动端菜单**透明穿透**:菜单展开时背后页面内容**清晰透出**、菜单项文字背后不是实色。v6.0.9 只修了**遮罩 `.nav-overlay`**,没修**抽屉 `.primary-nav` 本体**。
+
+### 根因(关键坑)
+- `tokens.css` 定义的卡片底色令牌是 **`--card-bg`**(浅 `#fff` / 暗 `#202022`),**全仓只有这一处**;`--card` 令牌**从未定义**(`grep '--card\s*:'` 无任何命中)。
+- `layout.css:1796` ≤768px 抽屉 `.primary-nav` 写的是 `background: var(--card)` → 引用未定义变量 → 该声明**失效被忽略** → `background` 回退到默认 `transparent` → 抽屉透明、页面内容穿透。
+- 全仓其余 ~20 处卡片背景**全部**正确用 `var(--card-bg)`,只有移动端抽屉这一行笔误。
+- ⚠️ v6.0.9 的 DEV_NOTES 笔记(line 866)原话「仍用实色 `var(--card)` 保菜单文字清晰」是**基于错误假设**——以为 `--card` 是有效实色令牌,实则未定义,所以抽屉一直是透明的。遮罩修了、抽屉没修,导致 TD 仍看到穿透。
+
+### 改动(`assets/css/layout.css` + 版本 bump)
+- `layout.css:1796` `var(--card)` → **`var(--card-bg)`**(移动端抽屉 `.primary-nav` 实色背景,菜单文字清晰、不再透出底层)。
+- 版本 6.0.9→6.0.10-ProMax(`style.css` + `ONEDONG_VERSION`)。
+
+### 坑 / 注意
+- **抽屉 vs 遮罩是两个层**:v6.0.9 修了遮罩(body 级 `--titlebar-bg` 毛玻璃),但抽屉本体(`.primary-nav`,header 内、z-index 1001)这行的笔误一直没碰 → 透明残留。两个修独立。
+- **未定义 CSS 变量静默失效**:`var(--undef)` 让整条声明作废(不会报错),`background` 退回初始值 `transparent`。排查「莫名透明」优先查变量名拼写 / 是否真定义。
+- ⚠️ 部署:只需 `layout.css` + `functions.php`(刷 `?ver=6.0.10`)一起传(`header.php` 无改);上线后刷腾讯云 CDN + 手机端硬刷新验证(重点看菜单面板是否实色、背后内容不再透出)。
