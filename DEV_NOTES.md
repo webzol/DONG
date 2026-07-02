@@ -886,3 +886,23 @@
 - **抽屉 vs 遮罩是两个层**:v6.0.9 修了遮罩(body 级 `--titlebar-bg` 毛玻璃),但抽屉本体(`.primary-nav`,header 内、z-index 1001)这行的笔误一直没碰 → 透明残留。两个修独立。
 - **未定义 CSS 变量静默失效**:`var(--undef)` 让整条声明作废(不会报错),`background` 退回初始值 `transparent`。排查「莫名透明」优先查变量名拼写 / 是否真定义。
 - ⚠️ 部署:只需 `layout.css` + `functions.php`(刷 `?ver=6.0.10`)一起传(`header.php` 无改);上线后刷腾讯云 CDN + 手机端硬刷新验证(重点看菜单面板是否实色、背后内容不再透出)。
+
+## v6.0.11(2026-07-02)· 朋友圈顶部封面(微信风:封面 + 右下角头像/昵称)
+
+### 背景
+- TD 要求 `/moments` 朋友圈页面**顶部参考微信朋友圈**:做一个**封面背景图**,头像 + 昵称放在封面**右下角**(头像下沿悬挂出封面、昵称在头像左侧)。此前页面无封面,`.moments-feed` 直接从第一条动态开始。
+
+### 改动
+- **`functions.php`**:新增 Customizer 板块「朋友圈」(`onedong_moments` section)+ 图片上传控件 `onedong_moments_cover`(`WP_Customize_Image_Control`,`esc_url_raw`,`refresh`)。后台「外观 → 自定义 → 朋友圈 → 朋友圈封面图」上传。
+- **`archive-onedong_moment.php`**:`.moments-feed` 前新增 `.moments-cover`(banner + `.moments-cover__id` 头像/昵称)。
+  - **头像/昵称复用左栏作者卡同一身份**(`onedong_avatar_source` theme mod:logo/gravatar/custom + `admin_email` 的 `display_name`),保证封面与侧栏 profile 一致,不另起数据源。
+  - 无封面图且无头像时不渲染整个 `.moments-cover`(干净回退)。
+- **`assets/css/moments.css`**:`.moments-cover__banner`(`aspect-ratio:16/7` 宽幅 banner,无图时 `--primary→--primary-strong` 渐变兜底,浅/暗随 token);`.moments-cover__id` `position:absolute; right; bottom:-2.25rem` 头像悬挂出 banner 下沿;`.moments-cover__avatar` 圆角方头(`border-radius:14px`,微信风)+ `--card-bg` 描边与 banner/feed 分离;`.moments-cover__name` 白字 + `text-shadow` 压照片保清晰。`≤768/480` 响应式缩头像/banner/位移。
+- 版本 6.0.10→6.0.11-ProMax(`style.css` + `ONEDONG_VERSION`)。
+
+### 坑 / 注意
+- **头像用圆角方(非圆形)**:全站其余头像是圆(`.widget-profile__avatar` / `.moment__avatar` 均 50%),但**微信朋友圈封面头像是圆角方**——TD 明确要「参考微信朋友圈样式」,故封面单独用 `border-radius:14px`,属不同语境不冲突。若 TD 要圆改这一处即可。
+- **inline `background-image` 覆盖 CSS 渐变**:banner 的 `background-image` 默认是 CSS 渐变(无图兜底);设了封面图时模板输出 inline `style="background-image:url(...)"`,inline 优先级高 → 覆盖渐变显示照片;`background-size/position` 留在 CSS 不被覆盖。两全。
+- **悬挂头像的留白**:`.moments-cover__id` `bottom:-2.25rem` 让头像伸出 banner 下沿,`.moments-cover { margin-bottom:3rem }` 给悬挂部分腾位(移动端 2.5/2.25rem),不压到下方 feed。
+- **封面图 TD 自行上传**(Customizer);未上传时显主题色渐变,不报错。昵称随左栏同源,无需另配。
+- ⚠️ 部署:改了 PHP(模板 + Customizer + 版本)+ CSS,需把 `functions.php` + `archive-onedong_moment.php` + `moments.css` + `style.css` 一起 scp;刷腾讯云 CDN + 浏览器硬刷新;后台传封面图后 `refresh` 生效。

@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.10-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.11-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -847,6 +847,35 @@ function onedong_customize_register( $wp_customize ) {
 			)
 		)
 	);
+
+	// —— 朋友圈设置 —— v6.0.11
+	$wp_customize->add_section(
+		'onedong_moments',
+		array(
+			'title'    => __( '朋友圈', 'onedong' ),
+			'priority' => 32,
+		)
+	);
+	$wp_customize->add_setting(
+		'onedong_moments_cover',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'onedong_moments_cover',
+			array(
+				'label'       => __( '朋友圈封面图', 'onedong' ),
+				'description' => __( '朋友圈页面(/moments)顶部封面背景图,右下角展示头像与昵称(微信朋友圈风)。建议宽幅图片,约 1200×500。留空则显示主题色渐变。', 'onedong' ),
+				'section'     => 'onedong_moments',
+			)
+		)
+	);
+
 	// —— 文章卡设置 ——
 	$wp_customize->add_section(
 		'onedong_cards',

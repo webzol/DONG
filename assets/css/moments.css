@@ -5,6 +5,59 @@
 
 .moments-page { padding: 0 0 3rem; }   /* 去顶 padding,朋友圈流顶部与左右栏对齐(v2.5.3) */
 
+/* —— 朋友圈封面(微信朋友圈风:顶部封面背景 + 右下角头像/昵称)· v6.0.11 —— */
+.moments-cover {
+	position: relative;
+	max-width: 600px;            /* 与 .moments-feed 同宽对齐 */
+	margin: 0 0 3rem;            /* 底部留白:给悬挂出 banner 的头像腾位 */
+}
+.moments-cover__banner {
+	width: 100%;
+	aspect-ratio: 16 / 7;        /* 宽幅 banner,≈ 微信朋友圈封面比例 */
+	background-size: cover;
+	background-position: center;
+	border-radius: var(--radius-large);
+	/* 未设封面图时的主题色渐变兜底(随 --primary 浅/暗自动切换) */
+	background-color: var(--primary);
+	background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+}
+.moments-cover__id {
+	position: absolute;
+	right: 1.25rem;
+	bottom: -2.25rem;            /* 头像下沿伸出 banner(微信经典右下角悬挂) */
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+.moments-cover__name {
+	color: #fff;
+	font-weight: 600;
+	font-size: 1.05rem;
+	letter-spacing: -0.01em;
+	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);   /* 压在照片上保清晰 */
+}
+.moments-cover__avatar {
+	width: 4.5rem;               /* ≈72px,微信封面头像尺寸 */
+	height: 4.5rem;
+	border-radius: 14px;         /* 微信圆角方头像 */
+	object-fit: cover;
+	display: block;
+	border: 3px solid var(--card-bg);   /* 卡色描边:与 banner / feed 分离 */
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+@media (max-width: 768px) {
+	.moments-cover { margin-bottom: 2.5rem; }
+	.moments-cover__banner { aspect-ratio: 16 / 8; }   /* 窄屏略高,保视觉重量 */
+	.moments-cover__id { right: 1rem; bottom: -1.75rem; gap: 0.5rem; }
+	.moments-cover__avatar { width: 3.75rem; height: 3.75rem; border-width: 2px; }
+	.moments-cover__name { font-size: 0.95rem; }
+}
+@media (max-width: 480px) {
+	.moments-cover { margin-bottom: 2.25rem; }
+	.moments-cover__id { bottom: -1.5rem; }
+	.moments-cover__avatar { width: 3.25rem; height: 3.25rem; }
+}
+
 .moments-feed {
 	max-width: 600px;
 	margin: 0;
