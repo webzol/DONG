@@ -1039,3 +1039,22 @@
 - **头像昵称只在封面**:左栏不再有头像 / 昵称;封面 banner 左下角承载头像 + 昵称 + 签名,banner 背景在其身后(纯色渐变或上传图)。
 - `.author-info__head / __avatar / __name / __region / __chip` CSS 残留未删(PHP 已不用),无害。
 - ⚠️ 部署:`author.php` + `assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.18(2026-07-03)· 地区单独一栏 + 自定义字段(QQ / 微信 / 爱好 等)
+
+### 背景
+- TD:① 左侧地区「单独一栏」(独立成块,不混在列表);② 站点 / 加入于 等要能自定义扩展,自己加 QQ、微信、爱好 等。
+
+### 改动
+- **自定义字段(后台文本域)**:`functions.php` meta 键加 `onedong_extras`;后台「用户 → 个人资料」加「自定义字段」textarea(每行「标签: 值」,支持中文冒号「：」);保存逐行 `sanitize_text_field`。
+- **`author.php`**:解析 extras(正则 `^([^:：]+)[：:](.*)$` 拆 标签 / 值);渲染为 dl 末尾的 `.author-info__row--custom` 行(加入于之后)。
+- **地区单独一栏**:地区从 dl 行抽出,置顶为 `.author-info__region` 块(`<p>` + map-pin,主色加粗 + 下分隔线),独立于下方资料列表。
+- **`author.css`**:删 v6.0.17 后残留的 head / avatar / name / chip 规则,改写 `.author-info__region`(置顶块);加 `.author-info__row--custom dt { padding-left:1.35rem }`(无图标行标签左留位,与带图标行对齐)。
+- 版本 6.0.17→6.0.18。
+
+### 坑 / 注意
+- **自定义字段用文本域而非 repeater**:每行「标签: 值」最简、零 JS;支持中文冒号。值按纯文本 `esc_html` 输出(不做链接 / 富文本);要链接的话后续可加 URL 识别。
+- **冒号解析**:正则用第一个冒号(半角 / 全角)分割;标签 / 值前后 trim;空行跳过。
+- **自定义行无图标**:QQ / 微信 / 爱好 等无对应 icon,dt 只放标签;用 padding-left 与带图标行左对齐。
+- ⚠️ 部署:`functions.php` + `author.php` + `assets/css/author.css` + `style.css`;后台「用户 → 个人资料」填「自定义字段」后生效;刷腾讯云 CDN + 浏览器硬刷新。

@@ -40,6 +40,25 @@ $posts_count   = (int) count_user_posts( $author_id, 'post', true );
 $moments_count = (int) count_user_posts( $author_id, 'onedong_moment', true );
 $registered    = $author->user_registered ? date_i18n( __( 'Y 年 n 月', 'onedong' ), strtotime( $author->user_registered ) ) : '';
 
+// 自定义字段(后台文本域,每行「标签: 值」,支持中 / 英文冒号)
+$extras_raw = get_user_meta( $author_id, $keys['extras'], true );
+$extras     = array();
+if ( $extras_raw ) {
+	foreach ( preg_split( '/\r\n|\r|\n/', $extras_raw ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line ) {
+			continue;
+		}
+		if ( preg_match( '/^([^:：]+)[：:](.*)$/', $line, $m ) ) {
+			$el = trim( $m[1] );
+			$ev = trim( $m[2] );
+			if ( '' !== $el && '' !== $ev ) {
+				$extras[] = array( $el, $ev );
+			}
+		}
+	}
+}
+
 // 朋友圈预览(最新 6 条);无则不显示朋友圈区块
 $moments_preview = new WP_Query(
 	array(
@@ -79,14 +98,11 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 	<div class="author-body">
 
 		<aside class="author-info" aria-label="<?php esc_attr_e( '作者资料', 'onedong' ); ?>">
-			<dl class="author-info__list">
-				<?php if ( $region ) : ?>
-					<div class="author-info__row">
-						<dt><?php onedong_icon( 'map-pin' ); ?><span><?php esc_html_e( '地区', 'onedong' ); ?></span></dt>
-						<dd><?php echo esc_html( $region ); ?></dd>
-					</div>
-				<?php endif; ?>
+			<?php if ( $region ) : ?>
+				<p class="author-info__region"><?php onedong_icon( 'map-pin' ); ?><span><?php echo esc_html( $region ); ?></span></p>
+			<?php endif; ?>
 
+			<dl class="author-info__list">
 				<?php if ( $gender_label ) : ?>
 					<div class="author-info__row">
 						<dt><?php onedong_icon( 'gender' ); ?><span><?php esc_html_e( '性别', 'onedong' ); ?></span></dt>
@@ -121,6 +137,13 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 						<dd><?php echo esc_html( $registered ); ?></dd>
 					</div>
 				<?php endif; ?>
+
+				<?php foreach ( $extras as $extra ) : ?>
+					<div class="author-info__row author-info__row--custom">
+						<dt><span><?php echo esc_html( $extra[0] ); ?></span></dt>
+						<dd><?php echo esc_html( $extra[1] ); ?></dd>
+					</div>
+				<?php endforeach; ?>
 			</dl>
 
 			<div class="author-info__stats">

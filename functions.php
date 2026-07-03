@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.17-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.18-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -2101,6 +2101,7 @@ function onedong_author_meta_keys() {
 		'region'    => 'onedong_region',
 		'gender'    => 'onedong_gender',
 		'cover'     => 'onedong_cover',
+		'extras'    => 'onedong_extras',
 	);
 }
 
@@ -2115,6 +2116,7 @@ function onedong_author_profile_fields( $user ) {
 	$reg  = get_user_meta( $user->ID, $keys['region'], true );
 	$sex  = get_user_meta( $user->ID, $keys['gender'], true );
 	$cov  = get_user_meta( $user->ID, $keys['cover'], true );
+	$ext  = get_user_meta( $user->ID, $keys['extras'], true );
 	?>
 	<h2><?php esc_html_e( 'OneDong 作者页', 'onedong' ); ?></h2>
 	<table class="form-table" role="presentation">
@@ -2153,6 +2155,13 @@ function onedong_author_profile_fields( $user ) {
 				<p class="description"><?php esc_html_e( '作者页顶部封面背景图;留空显示主题色。建议宽幅图片(约 1200×500)。', 'onedong' ); ?></p>
 			</td>
 		</tr>
+		<tr>
+			<th><label for="onedong_extras"><?php esc_html_e( '自定义字段', 'onedong' ); ?></label></th>
+			<td>
+				<textarea name="onedong_extras" id="onedong_extras" rows="5" class="large-text code" placeholder="<?php echo esc_attr( "每行一个,格式「标签: 值」\nQQ: 12345678\n微信: wxid_xxx\n爱好: 摄影、写代码" ); ?>"><?php echo esc_textarea( $ext ); ?></textarea>
+				<p class="description"><?php esc_html_e( '显示在作者页左栏资料(加入于之后)。每行一个,格式「标签: 值」;支持中文冒号「：」。留空不显示。', 'onedong' ); ?></p>
+			</td>
+		</tr>
 	</table>
 	<?php
 	wp_nonce_field( 'onedong_author_profile', 'onedong_author_nonce' );
@@ -2189,6 +2198,19 @@ function onedong_author_save_profile_fields( $user_id ) {
 
 	if ( isset( $_POST['onedong_cover'] ) ) {
 		update_user_meta( $user_id, $keys['cover'], esc_url_raw( wp_unslash( $_POST['onedong_cover'] ) ) );
+	}
+
+	// 自定义字段:逐行 sanitize_text_field,保留换行
+	if ( isset( $_POST['onedong_extras'] ) ) {
+		$raw_lines = explode( "\n", wp_unslash( $_POST['onedong_extras'] ) );
+		$clean     = array();
+		foreach ( $raw_lines as $ln ) {
+			$ln = sanitize_text_field( $ln );
+			if ( '' !== $ln ) {
+				$clean[] = $ln;
+			}
+		}
+		update_user_meta( $user_id, $keys['extras'], implode( "\n", $clean ) );
 	}
 }
 add_action( 'personal_options_update', 'onedong_author_save_profile_fields' );
