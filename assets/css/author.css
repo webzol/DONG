@@ -1,0 +1,305 @@
+/* ============================================================
+ * 作者详情页(author.php)· v6.0.12 · 微信朋友圈风
+ * 顶部封面(背景图 / 纯色 + 左下头像 + 昵称 + 签名)
+ * 下方两栏:左 sticky 信息卡 + 右(文章列表 / 朋友圈预览)
+ * 全部用主题令牌(--card-bg / --text / --primary …),浅暗双模式自适应
+ * ============================================================ */
+
+.author-page {
+	max-width: 1000px;
+	margin: 2rem auto 0;
+	padding: 0 clamp(1rem, 4vw, 2rem) 4rem;
+}
+
+/* —— 1) 封面 banner + 左下头像 / 昵称 / 签名 —— */
+.author-cover {
+	position: relative;
+	margin-bottom: 3.5rem;            /* 给悬挂出 banner 的头像腾位 */
+}
+.author-cover__banner {
+	width: 100%;
+	height: clamp(200px, 26vw, 300px); /* 宽幅 hero,响应式 */
+	border-radius: var(--radius-large);
+	background-size: cover;
+	background-position: center;
+	/* 无封面图时的主题色兜底(随 --primary 浅 / 暗自动切换) */
+	background-color: var(--primary);
+	background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+}
+.author-cover__id {
+	position: absolute;
+	left: 1.5rem;
+	bottom: -2.75rem;                 /* 头像下沿伸出 banner(左下角悬挂) */
+	display: flex;
+	align-items: flex-end;
+	gap: 1rem;
+}
+.author-cover__avatar-wrap { flex: 0 0 auto; line-height: 0; }
+.author-cover__avatar {
+	width: 5.5rem;                    /* ≈88px */
+	height: 5.5rem;
+	border-radius: 16px;              /* 微信圆角方头像(与朋友圈封面一致) */
+	object-fit: cover;
+	display: block;
+	border: 4px solid var(--card-bg); /* 卡色描边:与 banner / 页面分离 */
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+.author-cover__meta { padding-bottom: 0.35rem; }
+.author-cover__name {
+	margin: 0;
+	color: #fff;
+	font-size: 1.6rem;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);   /* 压在照片 / 渐变上保清晰 */
+}
+.author-cover__signature {
+	margin: 0.2rem 0 0;
+	color: #fff;
+	font-size: 0.95rem;
+	opacity: 0.92;
+	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* —— 2) 主体两栏 —— */
+.author-body {
+	display: grid;
+	grid-template-columns: 19rem minmax(0, 1fr);
+	gap: 2rem;
+	align-items: start;
+}
+
+/* —— 左:信息卡(sticky)—— */
+.author-info {
+	position: sticky;
+	top: calc(var(--topbar-height) + 1rem);  /* 避开 sticky 顶栏 */
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-large);
+	padding: 1.5rem 1.4rem;
+	box-shadow: var(--shadow);
+}
+.author-info__head {
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+}
+.author-info__avatar {
+	width: 3.5rem;
+	height: 3.5rem;
+	border-radius: 50%;
+	object-fit: cover;
+	flex: 0 0 auto;
+	display: block;
+}
+.author-info__head-text { min-width: 0; }
+.author-info__name {
+	margin: 0;
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: var(--text);
+}
+.author-info__region { margin: 0.3rem 0 0; }
+.author-info__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.78rem;
+	color: var(--primary);
+	background: var(--btn-bg);
+	border-radius: var(--radius-max);
+	padding: 0.2rem 0.6rem;
+}
+.author-info__chip .icon { width: 0.85rem; height: 0.85rem; }
+
+/* 统计 */
+.author-info__stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.5rem;
+	margin: 1.3rem 0 0.2rem;
+	padding: 1rem 0;
+	border-top: 1px solid var(--line);
+	border-bottom: 1px solid var(--line);
+}
+.author-info__stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.15rem;
+}
+.author-info__stat strong {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--text);
+	line-height: 1;
+}
+.author-info__stat small {
+	font-size: 0.75rem;
+	color: var(--text-faint);
+}
+
+/* 资料行 */
+.author-info__list { margin: 1rem 0 0; }
+.author-info__row {
+	display: grid;
+	grid-template-columns: 5.5rem 1fr;
+	gap: 0.5rem;
+	align-items: start;
+	padding: 0.7rem 0;
+	border-bottom: 1px solid var(--line);
+}
+.author-info__row:last-child { border-bottom: 0; }
+.author-info__row dt {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.8rem;
+	color: var(--text-faint);
+}
+.author-info__row dt .icon { width: 0.95rem; height: 0.95rem; flex: 0 0 auto; }
+.author-info__row dd {
+	margin: 0;
+	font-size: 0.9rem;
+	color: var(--text);
+	line-height: 1.55;
+	word-break: break-word;
+}
+.author-info__row dd p { margin: 0 0 0.3rem; }
+.author-info__row dd p:last-child { margin-bottom: 0; }
+.author-info__row dd a {
+	color: var(--primary);
+	text-decoration: none;
+}
+.author-info__row dd a:hover { text-decoration: underline; }
+
+/* —— 右:内容流 —— */
+.author-feed { min-width: 0; }
+.author-section { margin-bottom: 2.5rem; }
+.author-section:last-child { margin-bottom: 0; }
+.author-section__title {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0 0 1rem;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--text);
+}
+.author-section__title .icon { width: 1.1rem; height: 1.1rem; color: var(--primary); }
+.author-section__more {
+	margin-left: auto;
+	font-size: 0.82rem;
+	font-weight: 500;
+	color: var(--primary);
+	text-decoration: none;
+}
+.author-section__more:hover { text-decoration: underline; }
+
+/* 紧凑文章列表(不重复作者头像,适合资料页) */
+.author-posts {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-large);
+	overflow: hidden;
+}
+.author-posts__item { border-bottom: 1px solid var(--line); }
+.author-posts__item:last-child { border-bottom: 0; }
+.author-posts__link {
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+	padding: 0.85rem 1.1rem;
+	color: inherit;
+	text-decoration: none;
+	transition: background 0.15s ease;
+}
+.author-posts__link:hover { background: var(--btn-bg); }
+.author-posts__thumb {
+	flex: 0 0 auto;
+	width: 5rem;
+	height: 3.75rem;
+	border-radius: var(--radius-medium);
+	overflow: hidden;
+	background: var(--btn-bg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.author-posts__thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+.author-posts__thumb--ph .icon { width: 1.4rem; height: 1.4rem; color: var(--text-faint); }
+.author-posts__body {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+.author-posts__name {
+	font-size: 0.98rem;
+	font-weight: 600;
+	color: var(--text);
+	line-height: 1.45;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.author-posts__item:hover .author-posts__name { color: var(--primary); }
+.author-posts__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.3rem 0.85rem;
+	font-size: 0.76rem;
+	color: var(--text-faint);
+}
+.author-posts__meta-item { display: inline-flex; align-items: center; gap: 0.2rem; }
+.author-posts__meta .icon { width: 0.85rem; height: 0.85rem; }
+
+.author-empty {
+	text-align: center;
+	color: var(--text-faint);
+	padding: 3rem 0;
+}
+
+/* 作者页内的朋友圈流复用 moments.css(.moments-feed / .moment …) */
+.author-feed .moments-feed { max-width: none; }
+
+/* —— 分页:复用 layout.css .pagination 全局样式 —— */
+
+/* —— 响应式:平板 / 手机 —— */
+@media (max-width: 900px) {
+	.author-body {
+		display: block;               /* 单栏:信息卡在上,内容在下 */
+	}
+	.author-info {
+		position: static;             /* 关闭 sticky */
+		margin-bottom: 1.5rem;
+	}
+}
+@media (max-width: 768px) {
+	.author-page { margin-top: 1.25rem; }
+	.author-cover { margin-bottom: 3rem; }
+	.author-cover__banner { height: clamp(170px, 34vw, 230px); }
+	.author-cover__id { left: 1rem; bottom: -2rem; gap: 0.75rem; }
+	.author-cover__avatar { width: 4.25rem; height: 4.25rem; border-width: 3px; }
+	.author-cover__name { font-size: 1.3rem; }
+	.author-cover__signature { font-size: 0.88rem; }
+}
+@media (max-width: 480px) {
+	.author-cover__id { bottom: -1.6rem; }
+	.author-cover__avatar { width: 3.5rem; height: 3.5rem; }
+	.author-cover__name { font-size: 1.1rem; }
+	.author-posts__link { padding: 0.75rem 0.85rem; gap: 0.7rem; }
+	.author-posts__thumb { width: 4rem; height: 3rem; }
+	.author-posts__name { font-size: 0.92rem; }
+}

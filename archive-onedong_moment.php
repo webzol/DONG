@@ -42,7 +42,7 @@ get_header();
 				<div class="moments-cover__banner"<?php echo $moments_cover ? ' style="background-image:url(' . esc_url( $moments_cover ) . ')"' : ''; ?>></div>
 				<?php if ( $cover_avatar_html ) : ?>
 					<div class="moments-cover__id">
-						<span class="moments-cover__name"><?php echo esc_html( $cover_name ); ?></span>
+						<span class="moments-cover__name"><?php echo $cover_user ? '<a href="' . esc_url( get_author_posts_url( $cover_user->ID ) ) . '">' . esc_html( $cover_name ) . '</a>' : esc_html( $cover_name ); ?></span>
 						<?php echo $cover_avatar_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — WP 核心 API 已转义 ?>
 					</div>
 				<?php endif; ?>

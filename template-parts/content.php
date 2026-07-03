@@ -16,14 +16,16 @@ $format     = get_post_format();
 	<!-- 1. 头部: 头像 + (昵称/日期) -->
 	<div class="post-card__header">
 		<div class="post-card__avatar-wrap">
-			<?php echo get_avatar( get_the_author_meta( 'ID' ), 96, '', '', array( 'class' => 'post-card__avatar' ) ); ?>
+			<a class="post-card__avatar-link" href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( '%s 的主页', 'onedong' ), get_the_author() ) ); ?>">
+				<?php echo get_avatar( get_the_author_meta( 'ID' ), 96, '', '', array( 'class' => 'post-card__avatar' ) ); ?>
+			</a>
 			<span class="post-card__verified" title="<?php esc_attr_e( '认证作者', 'onedong' ); ?>">
 				<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#FFB300"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</span>
 		</div>
 		<div class="post-card__author-info">
 			<span class="post-card__author-name">
-				<?php the_author(); ?>
+				<a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"><?php the_author(); ?></a>
 				<span class="online-dot" title="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span>
 			</span>
 			<time class="post-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>

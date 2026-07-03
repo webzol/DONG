@@ -71,7 +71,7 @@ if ( ! $any_left ) {
 			$author_name = $author_user ? $author_user->display_name : get_bloginfo( 'name' );
 			?>
 			<h2 class="widget-profile__name">
-				<?php echo esc_html( $author_name ); ?>
+				<?php echo $author_user ? '<a href="' . esc_url( get_author_posts_url( $author_user->ID ) ) . '">' . esc_html( $author_name ) . '</a>' : esc_html( $author_name ); ?>
 				<span class="online-dot" aria-label="<?php esc_attr_e( '在线', 'onedong' ); ?>"></span>
 			</h2>
 			<?php if ( get_bloginfo( 'description' ) ) : ?>

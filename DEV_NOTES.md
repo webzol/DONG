@@ -906,3 +906,42 @@
 - **悬挂头像的留白**:`.moments-cover__id` `bottom:-2.25rem` 让头像伸出 banner 下沿,`.moments-cover { margin-bottom:3rem }` 给悬挂部分腾位(移动端 2.5/2.25rem),不压到下方 feed。
 - **封面图 TD 自行上传**(Customizer);未上传时显主题色渐变,不报错。昵称随左栏同源,无需另配。
 - ⚠️ 部署:改了 PHP(模板 + Customizer + 版本)+ CSS,需把 `functions.php` + `archive-onedong_moment.php` + `moments.css` + `style.css` 一起 scp;刷腾讯云 CDN + 浏览器硬刷新;后台传封面图后 `refresh` 生效。
+
+
+## v6.0.12(2026-07-03)· 作者详情页 author.php(封面 + 信息卡 + 文章/朋友圈)
+
+### 背景
+- TD 要求:点击作者昵称/头像 → 跳一个作者页。页面结构:① 顶部封面(背景图可上传 / 纯色),左下头像 + 昵称 + 签名(空 → 「无限进步」);② 封面下方左侧信息栏:地区(单独一栏)+ 性别 / 简介 / 站点;③ 右侧:作者发布的文章 + 朋友圈。
+- 此前主题**无 `author.php`**(WP 回退 archive.php),作者头像 / 昵称均未链接到作者页;无签名 / 地区 / 性别 / 封面字段。
+
+### 数据来源决策(关键)
+- **用 WP 用户字段(user_meta + 后台「用户 → 个人资料」),不用 Customizer**:
+  - 昵称 = `display_name`、简介 = `description`、站点 = `user_url`(均 WP 核心字段,本就在个人资料页)。
+  - 新增 user_meta:`onedong_signature`(签名)/ `onedong_region`(地区)/ `onedong_gender`(性别)/ `onedong_cover`(封面图 URL)。
+  - 理由:作者属性天然挂在 WP user 上;一处编辑(个人资料页)即可,且支持多作者扩展。Customizer 只放站点级配置。
+- 字段编辑入口:后台「用户 → 个人资料」底部「OneDong 作者页」板块;封面图用 WP 媒体上传器(`wp.media`)+「选择 / 上传图片」按钮(仅 profile / user-edit 屏加载)。
+
+### 改动
+- **`functions.php`**:
+  - 新增 `onedong_author_avatar_html($user_id,$size,$args)`:站点管理员(admin_email)走主题头像来源(logo/gravatar/custom,与左栏 / 朋友圈封面一致),其余作者走本人 gravatar。
+  - 新增 user_meta 字段渲染(`show_user_profile` / `edit_user_profile`)+ 保存(`personal_options_update` / `edit_user_profile_update`,nonce + `edit_user` 权限)+ 媒体上传器(`wp_enqueue_media`)+ 页脚 JS(选择 / 清除 / 预览封面)。
+  - `onedong_get_icon` 增 `info`(简介)、`gender`(性别)图标。
+  - enqueue 扩展:`is_author()` 时加载 `author.css`;并把朋友圈包(`moments.css` + `moments.js` + qrcode + html2canvas)的加载条件加 `is_author()`(作者页朋友圈预览复用 `.moment` 卡 + lightbox + 点赞气泡)。
+- **`author.php`(新建)**:`.author-page` 容器 → `.author-cover`(banner[inline bg-image 或主题色渐变兜底] + 左下 `.author-cover__id`[头像悬挂 + 昵称 h1 + 签名])→ `.author-body` 2 栏:
+  - 左 `.author-info`(sticky):头像 + 昵称 + 地区 chip → 文章 / 朋友圈 统计 → 性别 / 简介 / 站点 / 加入于(均空则不渲染该行)。
+  - 右 `.author-feed`:`.author-section` 文章(主查询 `have_posts()`,紧凑列表 `.author-posts`[缩略图 + 标题 + 日期 / 浏览 / 评论],`template-parts/pagination` 分页)+ 朋友圈预览(`WP_Query` 最新 6 条 + 「查看全部 →」/moments)。无朋友圈则隐藏该区块。
+- **`assets/css/author.css`(新建)**:封面 hero + sticky 信息卡 + 紧凑文章列表(不重复作者头像)+ 响应式(≥900px 2 栏 / <900 单栏关 sticky / 手机缩封面)。全部用 token,浅暗自适应。
+- **入口接线(→ `get_author_posts_url`)**:
+  - `content.php`:文章卡头像(`.post-card__avatar-link`)+ 昵称(`.post-card__author-name a`)均链接作者页(layout.css 加链接样式)。
+  - `sidebar-left.php`:左栏作者名链接作者页。
+  - `archive-onedong_moment.php`:朋友圈封面昵称链接作者页。
+- 版本 6.0.11→6.0.12-ProMax(`style.css` + `ONEDONG_VERSION`,刷 CSS/JS URL 缓存)。
+
+### 坑 / 注意(关键)
+- **作者归档默认开启**:WP 默认 `/author/<slug>/` 可用;若装了禁用作者归档的安全插件(防用户枚举)会 404,需放行。本主题未禁用。
+- **头像一致性**:`onedong_author_avatar_html` 对 admin 复用主题头像来源(logo),保证作者页头像与左栏 / 朋友圈封面是同一张;非 admin 作者走本人 gravatar。
+- **紧凑文章列表不复用 `content.php`**:`content.php` 卡片每张都带头像 + 昵称,在作者自己页面重复显示作者头像很冗余;故作者页用独立 `.author-posts` 紧凑行(缩略图 + 标题 + meta)。
+- **封面纯色兜底**:无封面图时 banner 显示 `--primary→--primary-strong` 渐变(与朋友圈封面一致);设了封面图则 inline `background-image` 覆盖渐变。
+- **封面图上传**:走用户个人资料页的 WP 媒体上传器(`wp.media`),非 Customizer;留空 = 纯色。`wp_enqueue_media` 仅在 profile / user-edit 屏加载。
+- **enqueue 扩展是必须的**:作者页朋友圈预览复用 `.moment` 卡 + lightbox,必须把 moments 包加载条件加 `is_author()`,否则 `.moment` 无样式、图片 lightbox 不工作。
+- ⚠️ 部署:改了 PHP(`functions.php` + `author.php` + `content.php` + `sidebar-left.php` + `archive-onedong_moment.php`)+ CSS(`layout.css` + `moments.css` + 新 `author.css`)+ `style.css`。scp 全部;后台「用户 → 个人资料」填写签名 / 地区 / 性别 / 封面后生效;刷腾讯云 CDN + 浏览器硬刷新。

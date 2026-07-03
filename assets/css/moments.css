@@ -36,6 +36,8 @@
 	letter-spacing: -0.01em;
 	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);   /* 压在照片上保清晰 */
 }
+.moments-cover__name a { color: inherit; text-decoration: none; }         /* v6.0.12:昵称跳作者页 */
+.moments-cover__name a:hover { opacity: 0.85; }
 .moments-cover__avatar {
 	width: 4.5rem;               /* ≈72px,微信封面头像尺寸 */
 	height: 4.5rem;

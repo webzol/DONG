@@ -301,6 +301,13 @@
   border: 2px solid var(--card-bg);
   box-shadow: 0 0 0 1px var(--line-strong);
 }
+.post-card__avatar-link {            /* v6.0.12:头像点击跳作者页 */
+  display: inline-block;
+  border-radius: 50%;
+  line-height: 0;
+}
+.post-card__avatar-link .post-card__avatar { transition: box-shadow 0.15s ease; }
+.post-card__avatar-link:hover .post-card__avatar { box-shadow: 0 0 0 2px var(--primary); }
 /* 黄V认证 */
 .post-card__verified {
   position: absolute;
@@ -333,6 +340,10 @@
   color: var(--text-muted);
   line-height: 1.2;
 }
+.post-card__author-name a { color: inherit; text-decoration: none; }      /* v6.0.12 */
+.post-card__author-name a:hover { color: var(--primary); }
+.widget-profile__name a { color: inherit; text-decoration: none; }        /* 左栏作者名跳作者页 */
+.widget-profile__name a:hover { color: var(--primary); }
 .post-card__date {
   display: inline-flex;
   align-items: center;
