@@ -326,17 +326,27 @@
 .author-tabs__btn {
 	background: none;
 	border: 0;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -1px;
 	padding: 0.6rem 1rem;
+	position: relative;
 	font-size: 0.95rem;
 	font-weight: 600;
 	color: var(--text-faint);
 	cursor: pointer;
-	transition: color 0.15s ease, border-color 0.15s ease;
+	transition: color 0.15s ease;
 }
 .author-tabs__btn:hover { color: var(--text-muted); }
-.author-tabs__btn.is-active { color: var(--text); border-bottom-color: var(--primary); }
+.author-tabs__btn.is-active { color: var(--text); }
+/* 选中态:底部一条主色线(::after 伪元素,压在 tab 栏分隔线上)· v6.0.15 */
+.author-tabs__btn.is-active::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -1px;
+	height: 2px;
+	background: var(--primary);
+	border-radius: 2px;
+}
 
 .author-tab { display: none; }
 .author-tab.is-active { display: block; }

@@ -986,3 +986,19 @@
 - **无 overflow:hidden**:卡未设 `overflow:hidden`(故意),避免裁掉朋友圈 `moment__pop`(•• 菜单)/ 飞心动画等 `position:absolute` 元素;圆角靠内容内边距留白保证(内容不贴卡边,圆角处只显卡背景)。
 - **左侧信息卡未动**:TD 只提右侧;左栏沿用独立卡。
 - ⚠️ 部署:仅 `assets/css/author.css` + `functions.php` + `style.css`(刷 `?ver=6.0.14`);刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.15(2026-07-03)· 作者页 tab 选中态改为底部一条线(::after 伪元素)
+
+### 背景
+- TD:右侧 文章 / 朋友圈 tab 选中态要是一条**底部的线**(下划线指示器)。
+
+### 改动(`assets/css/author.css`)
+- 旧:按钮 `border-bottom: 2px solid transparent` + 激活 `border-bottom-color: var(--primary)` + `margin-bottom:-1px`(靠 border 当指示线,与 tab 栏分隔线对齐)。
+- 新:去掉按钮 border / margin 负值;选中态用 `::after` 伪元素画一条主色线(`position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--primary)`),压在 tab 栏分隔线上 → 选中 tab 正下方一条清晰主色线,其余位置是灰色分隔线。更稳、更明显(不依赖 border 与分隔线的层叠)。
+- 版本 6.0.14→6.0.15。
+
+### 坑 / 注意
+- `::after` 用 `bottom:-1px` 覆盖 tab 栏 `border-bottom`(分隔线)在选中 tab 下方那一段 → 视觉上选中处是 2px 主色线、其余 1px 灰线。
+- 卡未设 overflow:hidden(同 v6.0.14),`::after` 的 -1px 不受裁剪。
+- ⚠️ 部署:`assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。
