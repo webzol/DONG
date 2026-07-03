@@ -1016,3 +1016,26 @@
 ### 坑 / 注意
 - 现在所有 tab 文字同为 `--text-faint`,仅靠蓝线区分选中;若觉得文字偏淡,可把 `.author-tabs__btn` 基色从 `--text-faint` 调到 `--text-muted`(更易读)。
 - ⚠️ 部署:`assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.17(2026-07-03)· 左栏去头像昵称+统计下移 / 封面遮盖头像昵称 / tab 去底色
+
+### 背景(TD 三条 + tab 底色一条)
+1. 左栏去掉头像昵称(头像昵称只在封面)。
+2. 左栏 文章 / 朋友圈 统计移到「加入于」下面(卡底)。
+3. 封面背景要把左下角头像昵称「遮盖住」(头像昵称坐进 banner,banner 背景在身后)。
+4. tab 选中时还有底色 → 只要底部蓝线。
+
+### 改动
+- **`author.php`**:删左栏 `.author-info__head`(头像 + 昵称 + 地区 chip);地区改为 dl 首行(map-pin);`.author-info__stats`(文章 / 朋友圈)从卡顶移到 dl 之后(卡底)。删未用的 `$info_avatar`。
+- **`assets/css/author.css`**:
+  - 封面:`.author-cover__id` `bottom:-2.75rem → 1.5rem`(头像昵称移入 banner 左下,banner 背景遮盖在身后);`.author-cover` `margin-bottom:3.5rem → 2rem`(不再给悬挂头像腾位);banner 高度 clamp(200,26vw,300)→clamp(220,28vw,300)。移动端同步(768:id bottom 1rem;480:0.75rem)。
+  - 左栏:`.author-info__stats` 改 `margin:1.3rem 0 0` + 仅 `border-top`(卡底,去 border-bottom);`.author-info__list` `margin:0`(升为卡首元素)。
+  - **tab 去底色(关键)**:全局 `button:hover{background:var(--primary-strong)}`(layout.css:1273)会在悬停 / 点击 tab 时透出蓝底。补 `.author-tabs__btn:hover/:focus/:active{background:none}`(特异性 0,2,0 > `button:hover` 0,1,1)压掉 → 选中 tab 无底色,只有 `::after` 蓝线。
+- 版本 6.0.16→6.0.17。
+
+### 坑 / 注意
+- **底色根因是全局 button**:`.author-tabs__btn{background:none}` 只压了默认态;hover / focus / active 没压 → 全局 `button:hover` 蓝底透出。任何「裸 button 当 tab / 图标按钮」都要把 hover / focus / active 的 background 显式压掉(同 v6.0.6 `.entry-share` 的教训)。
+- **头像昵称只在封面**:左栏不再有头像 / 昵称;封面 banner 左下角承载头像 + 昵称 + 签名,banner 背景在其身后(纯色渐变或上传图)。
+- `.author-info__head / __avatar / __name / __region / __chip` CSS 残留未删(PHP 已不用),无害。
+- ⚠️ 部署:`author.php` + `assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。

@@ -53,7 +53,6 @@ $has_moments = $moments_preview->have_posts();
 
 // 头像:站点管理员走主题头像来源(与左栏 / 朋友圈封面一致)
 $cover_avatar = onedong_author_avatar_html( $author_id, 144, array( 'class' => 'author-cover__avatar', 'alt' => $display ) );
-$info_avatar  = onedong_author_avatar_html( $author_id, 96, array( 'class' => 'author-info__avatar', 'alt' => $display ) );
 
 $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_url ) . ')"' : '';
 ?>
@@ -80,32 +79,14 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 	<div class="author-body">
 
 		<aside class="author-info" aria-label="<?php esc_attr_e( '作者资料', 'onedong' ); ?>">
-			<?php if ( $info_avatar ) : ?>
-				<div class="author-info__head">
-					<?php echo $info_avatar; // phpcs:ignore — 已转义 ?>
-					<div class="author-info__head-text">
-						<h2 class="author-info__name"><?php echo esc_html( $display ); ?></h2>
-						<?php if ( $region ) : ?>
-							<p class="author-info__region">
-								<span class="author-info__chip"><?php onedong_icon( 'map-pin' ); ?><?php echo esc_html( $region ); ?></span>
-							</p>
-						<?php endif; ?>
-					</div>
-				</div>
-			<?php endif; ?>
-
-			<div class="author-info__stats">
-				<div class="author-info__stat">
-					<strong><?php echo esc_html( number_format_i18n( $posts_count ) ); ?></strong>
-					<small><?php esc_html_e( '文章', 'onedong' ); ?></small>
-				</div>
-				<div class="author-info__stat">
-					<strong><?php echo esc_html( number_format_i18n( $moments_count ) ); ?></strong>
-					<small><?php esc_html_e( '朋友圈', 'onedong' ); ?></small>
-				</div>
-			</div>
-
 			<dl class="author-info__list">
+				<?php if ( $region ) : ?>
+					<div class="author-info__row">
+						<dt><?php onedong_icon( 'map-pin' ); ?><span><?php esc_html_e( '地区', 'onedong' ); ?></span></dt>
+						<dd><?php echo esc_html( $region ); ?></dd>
+					</div>
+				<?php endif; ?>
+
 				<?php if ( $gender_label ) : ?>
 					<div class="author-info__row">
 						<dt><?php onedong_icon( 'gender' ); ?><span><?php esc_html_e( '性别', 'onedong' ); ?></span></dt>
@@ -141,6 +122,17 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 					</div>
 				<?php endif; ?>
 			</dl>
+
+			<div class="author-info__stats">
+				<div class="author-info__stat">
+					<strong><?php echo esc_html( number_format_i18n( $posts_count ) ); ?></strong>
+					<small><?php esc_html_e( '文章', 'onedong' ); ?></small>
+				</div>
+				<div class="author-info__stat">
+					<strong><?php echo esc_html( number_format_i18n( $moments_count ) ); ?></strong>
+					<small><?php esc_html_e( '朋友圈', 'onedong' ); ?></small>
+				</div>
+			</div>
 		</aside>
 
 		<div class="author-feed">

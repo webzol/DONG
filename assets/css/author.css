@@ -14,11 +14,11 @@
 /* —— 1) 封面 banner + 左下头像 / 昵称 / 签名 —— */
 .author-cover {
 	position: relative;
-	margin-bottom: 3.5rem;            /* 给悬挂出 banner 的头像腾位 */
+	margin-bottom: 2rem;             /* 头像昵称已移入 banner,常规间距 */
 }
 .author-cover__banner {
 	width: 100%;
-	height: clamp(200px, 26vw, 300px); /* 宽幅 hero,响应式 */
+	height: clamp(220px, 28vw, 300px); /* 头像昵称移入 banner,略加高留位 */
 	border-radius: var(--radius-large);
 	background-size: cover;
 	background-position: center;
@@ -29,7 +29,7 @@
 .author-cover__id {
 	position: absolute;
 	left: 1.5rem;
-	bottom: -2.75rem;                 /* 头像下沿伸出 banner(左下角悬挂) */
+	bottom: 1.5rem;                   /* 头像昵称移入 banner 左下(banner 背景在身后遮盖) */
 	display: flex;
 	align-items: flex-end;
 	gap: 1rem;
@@ -117,10 +117,9 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 0.5rem;
-	margin: 1.3rem 0 0.2rem;
-	padding: 1rem 0;
+	margin: 1.3rem 0 0;              /* 移到卡底(加入于之下),只留上分隔线 */
+	padding: 1.1rem 0 0;
 	border-top: 1px solid var(--line);
-	border-bottom: 1px solid var(--line);
 }
 .author-info__stat {
 	display: flex;
@@ -140,7 +139,7 @@
 }
 
 /* 资料行 */
-.author-info__list { margin: 1rem 0 0; }
+.author-info__list { margin: 0; }   /* 去掉头像昵称头后,dl 升为卡内首元素 */
 .author-info__row {
 	display: grid;
 	grid-template-columns: 5.5rem 1fr;
@@ -299,15 +298,15 @@
 }
 @media (max-width: 768px) {
 	.author-page { margin-top: 1.25rem; }
-	.author-cover { margin-bottom: 3rem; }
-	.author-cover__banner { height: clamp(170px, 34vw, 230px); }
-	.author-cover__id { left: 1rem; bottom: -2rem; gap: 0.75rem; }
+	.author-cover { margin-bottom: 1.5rem; }
+	.author-cover__banner { height: clamp(180px, 36vw, 240px); }
+	.author-cover__id { left: 1rem; bottom: 1rem; gap: 0.75rem; }
 	.author-cover__avatar { width: 4.25rem; height: 4.25rem; border-width: 3px; }
 	.author-cover__name { font-size: 1.3rem; }
 	.author-cover__signature { font-size: 0.88rem; }
 }
 @media (max-width: 480px) {
-	.author-cover__id { bottom: -1.6rem; }
+	.author-cover__id { bottom: 0.75rem; }
 	.author-cover__avatar { width: 3.5rem; height: 3.5rem; }
 	.author-cover__name { font-size: 1.1rem; }
 	.author-posts__link { padding: 0.75rem 0.85rem; gap: 0.7rem; }
@@ -334,6 +333,9 @@
 	cursor: pointer;
 	transition: color 0.15s ease;
 }
+.author-tabs__btn:hover,
+.author-tabs__btn:focus,
+.author-tabs__btn:active { background: none; }   /* 压过全局 button :hover/:focus 的蓝底 · v6.0.17 */
 .author-tabs__btn:hover { color: var(--text-muted); }
 /* 选中态只用底部蓝线(::after),按钮不改文字色 / 无其他选中样式 · v6.0.16 */
 .author-tabs__btn.is-active::after {
