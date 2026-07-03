@@ -1002,3 +1002,17 @@
 - `::after` 用 `bottom:-1px` 覆盖 tab 栏 `border-bottom`(分隔线)在选中 tab 下方那一段 → 视觉上选中处是 2px 主色线、其余 1px 灰线。
 - 卡未设 overflow:hidden(同 v6.0.14),`::after` 的 -1px 不受裁剪。
 - ⚠️ 部署:`assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.16(2026-07-03)· 作者页 tab 选中态只留底部蓝线(去掉文字色变化)
+
+### 背景
+- TD:点 tab 时去掉按钮的「选中状态」,只要底部一条蓝线。
+
+### 改动(`assets/css/author.css`)
+- 删 `.author-tabs__btn.is-active { color: var(--text); }`(原选中时文字变深 `--text`)。选中 tab 文字回到默认 `--text-faint`(与未选中一致),唯一区分 = `::after` 底部蓝线。
+- 版本 6.0.15→6.0.16。
+
+### 坑 / 注意
+- 现在所有 tab 文字同为 `--text-faint`,仅靠蓝线区分选中;若觉得文字偏淡,可把 `.author-tabs__btn` 基色从 `--text-faint` 调到 `--text-muted`(更易读)。
+- ⚠️ 部署:`assets/css/author.css` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。

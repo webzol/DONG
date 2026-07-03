@@ -335,8 +335,7 @@
 	transition: color 0.15s ease;
 }
 .author-tabs__btn:hover { color: var(--text-muted); }
-.author-tabs__btn.is-active { color: var(--text); }
-/* 选中态:底部一条主色线(::after 伪元素,压在 tab 栏分隔线上)· v6.0.15 */
+/* 选中态只用底部蓝线(::after),按钮不改文字色 / 无其他选中样式 · v6.0.16 */
 .author-tabs__btn.is-active::after {
 	content: '';
 	position: absolute;
