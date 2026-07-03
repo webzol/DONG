@@ -145,13 +145,15 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 
 		<div class="author-feed">
 
-			<!-- 文章(主查询,分页) -->
-			<section class="author-section" data-reveal>
-				<h2 class="author-section__title">
-					<?php onedong_icon( 'document' ); ?>
-					<span><?php esc_html_e( '文章', 'onedong' ); ?></span>
-				</h2>
+			<?php if ( $has_moments ) : ?>
+				<div class="author-tabs" role="tablist" aria-label="<?php esc_attr_e( '作者内容', 'onedong' ); ?>">
+					<button type="button" class="author-tabs__btn is-active" role="tab" id="author-tabbtn-articles" data-tab="articles" aria-selected="true" aria-controls="author-tab-articles"><?php esc_html_e( '文章', 'onedong' ); ?></button>
+					<button type="button" class="author-tabs__btn" role="tab" id="author-tabbtn-moments" data-tab="moments" aria-selected="false" aria-controls="author-tab-moments"><?php esc_html_e( '朋友圈', 'onedong' ); ?></button>
+				</div>
+			<?php endif; ?>
 
+			<!-- 文章(主查询,分页) -->
+			<section id="author-tab-articles" class="author-tab author-tab--articles is-active" role="tabpanel" aria-labelledby="author-tabbtn-articles">
 				<?php if ( have_posts() ) : ?>
 					<ul class="author-posts">
 						<?php
@@ -185,14 +187,9 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 				<?php endif; ?>
 			</section>
 
-			<!-- 朋友圈预览(最新 6 条 + 查看全部) -->
+			<!-- 朋友圈(最新 6 条 + 查看全部) -->
 			<?php if ( $has_moments ) : ?>
-				<section class="author-section" data-reveal>
-					<h2 class="author-section__title">
-						<?php onedong_icon( 'image' ); ?>
-						<span><?php esc_html_e( '朋友圈', 'onedong' ); ?></span>
-						<a class="author-section__more" href="<?php echo esc_url( get_post_type_archive_link( 'onedong_moment' ) ); ?>"><?php esc_html_e( '查看全部 →', 'onedong' ); ?></a>
-					</h2>
+				<section id="author-tab-moments" class="author-tab author-tab--moments" role="tabpanel" aria-labelledby="author-tabbtn-moments">
 					<div class="moments-feed">
 						<?php
 						while ( $moments_preview->have_posts() ) :
@@ -201,6 +198,7 @@ $banner_style = $cover_url ? ' style="background-image:url(' . esc_url( $cover_u
 						endwhile;
 						?>
 					</div>
+					<a class="author-tab__more" href="<?php echo esc_url( get_post_type_archive_link( 'onedong_moment' ) ); ?>"><?php esc_html_e( '查看全部朋友圈 →', 'onedong' ); ?></a>
 				</section>
 				<?php
 				wp_reset_postdata();

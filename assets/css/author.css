@@ -303,3 +303,38 @@
 	.author-posts__thumb { width: 4rem; height: 3rem; }
 	.author-posts__name { font-size: 0.92rem; }
 }
+
+/* —— 标签栏(文章 / 朋友圈)· v6.0.13 —— */
+.author-tabs {
+	display: flex;
+	gap: 0.25rem;
+	border-bottom: 1px solid var(--line);
+	margin-bottom: 1.25rem;
+}
+.author-tabs__btn {
+	background: none;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+	padding: 0.6rem 1rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text-faint);
+	cursor: pointer;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+.author-tabs__btn:hover { color: var(--text-muted); }
+.author-tabs__btn.is-active { color: var(--text); border-bottom-color: var(--primary); }
+
+.author-tab { display: none; }
+.author-tab.is-active { display: block; }
+
+.author-tab__more {
+	display: inline-block;
+	margin-top: 1rem;
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--primary);
+	text-decoration: none;
+}
+.author-tab__more:hover { text-decoration: underline; }

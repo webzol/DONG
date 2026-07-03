@@ -945,3 +945,26 @@
 - **封面图上传**:走用户个人资料页的 WP 媒体上传器(`wp.media`),非 Customizer;留空 = 纯色。`wp_enqueue_media` 仅在 profile / user-edit 屏加载。
 - **enqueue 扩展是必须的**:作者页朋友圈预览复用 `.moment` 卡 + lightbox,必须把 moments 包加载条件加 `is_author()`,否则 `.moment` 无样式、图片 lightbox 不工作。
 - ⚠️ 部署:改了 PHP(`functions.php` + `author.php` + `content.php` + `sidebar-left.php` + `archive-onedong_moment.php`)+ CSS(`layout.css` + `moments.css` + 新 `author.css`)+ `style.css`。scp 全部;后台「用户 → 个人资料」填写签名 / 地区 / 性别 / 封面后生效;刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.13(2026-07-03)· 作者页右侧改「文章 / 朋友圈」标签(对齐参考稿)
+
+### 背景
+- TD 部署 v6.0.12 后给了一张参考稿(社交/博客风作者卡),要求:① 参考其布局;② 客户端**不显示「更换背景」「关注」**按钮(后台编辑即可);③ 统计把参考稿的「获赞 / 粉丝」换成「文章 / 朋友圈」。
+- 参考稿关键结构:封面(右上「更换背景」)→ 头像(左下悬浮)+ 昵称 + 签名 + 「关注」→ 左资料栏(地区 / 性别 / 简介 / 站点)→ 右**标签**(文章 / 专栏 / 朋友圈)+ 文章列表 → 底部统计(获赞 / 粉丝)。
+- 对照现状:封面 / 头像左下悬浮 / 昵称 + 签名 / 左资料栏 / 统计(已是 文章 / 朋友圈)均已对齐;「更换背景」「关注」本就未加;**唯一缺口 = 右侧改成标签**(原为「文章区 + 朋友圈预览」上下堆叠)。
+
+### 改动
+- **`author.php`**:右 `.author-feed` 由两个 `.author-section`(堆叠)改为**标签结构**:
+  - `.author-tabs`(role=tablist)+ 两枚 `.author-tabs__btn`(文章[默认 is-active]/ 朋友圈),仅当有朋友圈时渲染(无朋友圈则不显示标签栏,直接展示文章)。
+  - 两个 `.author-tab` 面板(文章 `is-active` 默认显示 / 朋友圈默认隐藏),文章复用主查询 + 分页,朋友圈复用 `.moments-feed` + 「查看全部朋友圈 →」。
+  - 去掉原 `.author-section__title`(标签即标题),补 ARIA(tablist / tab / tabpanel + aria-selected / controls)。
+- **`assets/css/author.css`**:新增 `.author-tabs`(下划线式标签栏)+ `.author-tab`(display:none / .is-active:block)+ `.author-tab__more`。
+- **`assets/js/author.js`(新建)**:点标签 → toggle `.is-active`(按钮 + 面板)+ aria-selected。纯渐进增强(无 JS 时文章默认可见)。
+- **`functions.php`**:`is_author()` 增加 enqueue `author.js`;版本 6.0.12→6.0.13。
+
+### 坑 / 注意
+- **统计位置未动**:参考稿统计在底部,TD 的「获赞→文章、粉丝→朋友圈」是改标签;本主题统计已在左信息卡且为 文章 / 朋友圈,沿用信息卡(不另设底部行,避免与标签重复)。若 TD 要挪到底部再说。
+- **无 JS 友好**:`.author-tab` 默认 `display:none`,文章面板带 `is-active` 常显 → 关 JS 仍可见文章;朋友圈面板需 JS 才显(渐进增强可接受,且「查看全部」入口在 /moments)。
+- **「专栏」标签未加**:参考稿有「专栏」tab,但本主题无专栏 CPT,故只 文章 / 朋友圈 两标签。
+- ⚠️ 部署:`author.php` + `assets/css/author.css` + 新 `assets/js/author.js` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。

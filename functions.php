@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.12-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.13-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -334,9 +334,10 @@ function onedong_scripts() {
 		);
 	}
 
-	// 作者详情页(author.php)样式 · v6.0.12
+	// 作者详情页(author.php)样式 + 文章/朋友圈标签切换 · v6.0.13
 	if ( is_author() ) {
 		wp_enqueue_style( 'onedong-author', ONEDONG_URI . '/assets/css/author.css', array( 'onedong-layout' ), $ver );
+		wp_enqueue_script( 'onedong-author', ONEDONG_URI . '/assets/js/author.js', array(), $ver, true );
 	}
 
 	// 线程评论(若日后开启评论)
