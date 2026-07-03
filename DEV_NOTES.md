@@ -968,3 +968,21 @@
 - **无 JS 友好**:`.author-tab` 默认 `display:none`,文章面板带 `is-active` 常显 → 关 JS 仍可见文章;朋友圈面板需 JS 才显(渐进增强可接受,且「查看全部」入口在 /moments)。
 - **「专栏」标签未加**:参考稿有「专栏」tab,但本主题无专栏 CPT,故只 文章 / 朋友圈 两标签。
 - ⚠️ 部署:`author.php` + `assets/css/author.css` + 新 `assets/js/author.js` + `functions.php` + `style.css`;刷腾讯云 CDN + 浏览器硬刷新。
+
+
+## v6.0.14(2026-07-03)· 作者页右侧整体一张卡(tab 栏与内容连为一体)
+
+### 背景
+- TD:v6.0.13 后右侧「文章 / 朋友圈」标签 + 列表是**碎片化**的——tab 栏无背景浮在上方,下方 `.author-posts` / `.moments-feed` 各是独立卡。要求:**右侧整体做成单独一张卡**,且 tab 栏要与下方内容**连在一起**(卡头 + 卡身一体)。
+
+### 改动(纯 CSS,`author.php` 未动)
+- `.author-feed`(右侧容器)加卡背景:`--card-bg` + border + radius + shadow,与左栏信息卡对称成两张卡。
+- **tab 栏作卡头**:`.author-tabs` `margin-bottom:0`(原 1.25rem)+ 贴顶,其 `border-bottom` 作 tab 与内容的分隔线 → tab 栏与下方列表在同一张卡内连为一体。
+- **内层去卡背景(避免卡中卡)**:`.author-feed .author-posts` / `.moments-feed` 去 `background / border / border-radius`(原各自是独立卡),融入外卡;`.moments-feed` 同时 `max-width:none`。
+- 分页 / 「查看全部」入卡后补内边距(`padding: ... 1.1rem`),与列表行左对齐。
+- 版本 6.0.13→6.0.14。
+
+### 坑 / 注意
+- **无 overflow:hidden**:卡未设 `overflow:hidden`(故意),避免裁掉朋友圈 `moment__pop`(•• 菜单)/ 飞心动画等 `position:absolute` 元素;圆角靠内容内边距留白保证(内容不贴卡边,圆角处只显卡背景)。
+- **左侧信息卡未动**:TD 只提右侧;左栏沿用独立卡。
+- ⚠️ 部署:仅 `assets/css/author.css` + `functions.php` + `style.css`(刷 `?ver=6.0.14`);刷腾讯云 CDN + 浏览器硬刷新。

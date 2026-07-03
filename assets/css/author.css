@@ -174,7 +174,18 @@
 .author-info__row dd a:hover { text-decoration: underline; }
 
 /* —— 右:内容流 —— */
-.author-feed { min-width: 0; }
+.author-feed {
+	min-width: 0;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-large);
+	box-shadow: var(--shadow);
+}
+/* 右侧整体一张卡:内层列表 / 朋友圈去自带卡背景,融入外卡 · v6.0.14 */
+.author-feed .author-posts { background: none; border: 0; border-radius: 0; }
+.author-feed .moments-feed { background: none; border: 0; border-radius: 0; max-width: none; }
+.author-feed .pagination,
+.author-feed .navigation.pagination { margin: 0; padding: 0.5rem 1.1rem 1.1rem; }
 .author-section { margin-bottom: 2.5rem; }
 .author-section:last-child { margin-bottom: 0; }
 .author-section__title {
@@ -309,7 +320,8 @@
 	display: flex;
 	gap: 0.25rem;
 	border-bottom: 1px solid var(--line);
-	margin-bottom: 1.25rem;
+	margin-bottom: 0;          /* 卡头:贴顶,下边框作与内容的分隔线 */
+	padding: 0 0.2rem;
 }
 .author-tabs__btn {
 	background: none;
@@ -330,8 +342,9 @@
 .author-tab.is-active { display: block; }
 
 .author-tab__more {
-	display: inline-block;
-	margin-top: 1rem;
+	display: block;
+	margin: 0;
+	padding: 0 1.1rem 1.2rem;   /* 入卡后补内边距,与列表左对齐 */
 	font-size: 0.85rem;
 	font-weight: 500;
 	color: var(--primary);
