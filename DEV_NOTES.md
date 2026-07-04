@@ -1087,3 +1087,22 @@
 - **自定义头像存 URL 不存附件 ID**:与封面图一致(`att.url`);尺寸固定(get_avatar 的 `size` 不再生效),故建议源图 ≥160×160。若要按尺寸裁切,后续可改存附件 ID + `wp_get_attachment_image_src`。
 - **管理员头像变更**:管理员在「个人资料」传头像后会覆盖 Customizer 的主题头像来源(全站作者卡 / 朋友圈封面统一走个人资料头像);未传则仍用 Customizer,行为不变。
 - ⚠️ 本机无 PHP,语法未 `php -l` 复验,留待上线复验。部署仅需 `functions.php` + `style.css`;改了 PHP(非纯 CSS)bump `ONEDONG_VERSION` 刷 `?ver=`,页面 HTML 含头像 `<img>` 改动需刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.20(2026-07-04)· 深浅色切换按钮从 header 右上角移至右侧栏最右
+
+### 背景
+- TD:右上角的深浅色切换图标,移到右侧栏的最右边对齐。
+
+### 改动
+- **`sidebar.php`**:`<aside>` 内、widget 循环之前,加 `.sidebar__theme-toggle` 容器(内含一个 `.theme-toggle` 按钮,复用 header 同结构)。`.sidebar` 是 flex column,容器 `justify-content:flex-end` 使按钮贴右栏右边缘。
+- **`layout.css`**:新增 `.sidebar__theme-toggle` 样式 + 两个互斥媒体查询:
+  - `≥993px`:显示右栏切换、隐藏 `.header-controls .theme-toggle`(切换入口移至右栏)。
+  - `≤992px`:右栏此时堆到页面底部,隐藏右栏切换,仍用 header 顶部那个。
+- **`theme-toggle.js`**:`init()` 由 `querySelector`(单按钮)改为 `querySelectorAll`(右栏 + header 可能各一个),`Array.prototype.forEach.call` 遍历绑定点击 + 同步所有按钮 `data-pref` / `aria-pressed` / `title`(共用同一闭包 `p`,点击任一个全量同步)。
+- 版本 6.0.19→6.0.20-ProMax(`style.css` + `ONEDONG_VERSION`)。
+
+### 坑 / 注意
+- **互斥显隐而非两处都显示**:桌面用右栏、窄屏用 header,避免同时出现两个切换按钮;两个按钮 DOM 都在(仅 CSS 显隐),JS 始终同步两者状态,断点切换不会错乱。
+- **分界用 `992px` 而非 `1180px`**:≤1180 平板双栏时右栏仍在右侧(sticky 可见),切换放右栏最右正合适;≤992 才单栏堆底部,此时收回 header。故分界跟「右栏是否在右侧」对齐(992),而非三栏/双栏(1180)。
+- **右栏全关的边缘情况**:`sidebar.php` 在所有右栏模块关闭时整体 `return`,此时桌面 header toggle 又被隐藏 → 该页无切换入口。默认 cats/tags 开启不会触发;若全关右栏模块,需把断点隐藏改回或保留 header toggle。
+- ⚠️ 部署:`sidebar.php` + `assets/css/layout.css` + `assets/js/theme-toggle.js` + `style.css`;bump `ONEDONG_VERSION` 刷 `?ver=`(CSS+JS 都改了),刷腾讯云 CDN + 浏览器硬刷新。

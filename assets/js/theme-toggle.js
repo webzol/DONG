@@ -36,16 +36,19 @@
 	}
 
 	function init() {
-		var toggle = document.querySelector( '.theme-toggle' );
+		var toggles = document.querySelectorAll( '.theme-toggle' );
 		var p = pref();
 		applyPref( p );
-		if ( toggle ) {
-			setButtonState( toggle, p );
-			toggle.addEventListener( 'click', function () {
-				p = ( p === 'light' ) ? 'dark' : 'light';
-				applyPref( p );
+		if ( toggles.length ) {
+			// v6.0.20:右栏 + header 可能各有一个 toggle,全部同步(同一闭包 p)。
+			Array.prototype.forEach.call( toggles, function ( toggle ) {
 				setButtonState( toggle, p );
-				try { localStorage.setItem( THEME_KEY, p ); } catch ( e ) {}
+				toggle.addEventListener( 'click', function () {
+					p = ( p === 'light' ) ? 'dark' : 'light';
+					applyPref( p );
+					Array.prototype.forEach.call( toggles, function ( t ) { setButtonState( t, p ); } );
+					try { localStorage.setItem( THEME_KEY, p ); } catch ( e ) {}
+				} );
 			} );
 		}
 	}
