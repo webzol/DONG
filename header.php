@@ -83,6 +83,10 @@
 				<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true"><?php onedong_icon( 'sun' ); ?></span>
 				<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true"><?php onedong_icon( 'moon' ); ?></span>
 			</button>
+			<script>
+			// 立即设定 toggle 初始 data-pref(与 head anti-flash 同源),避免 footer theme-toggle.js 延迟 / 失败 / 被缓存成旧版时图标空白 · v6.0.21
+			( function () { try { var t = document.querySelector( '.theme-toggle' ); if ( ! t ) { return; } var s = localStorage.getItem( 'onedong-theme' ); var d = window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches; var p = ( s === 'light' || s === 'dark' ) ? s : ( d ? 'dark' : 'light' ); t.setAttribute( 'data-pref', p ); t.setAttribute( 'aria-pressed', p === 'dark' ? 'true' : 'false' ); } catch ( e ) {} } )();
+			</script>
 		</div>
 	</div>
 	<script>

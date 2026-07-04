@@ -1102,3 +1102,20 @@
 - **回退了同日早先一次错误尝试**:曾把按钮移进右栏(`sidebar.php` 加 toggle + 断点显隐 + JS `querySelectorAll`),与 TD 意图(留在 header)相反,已全部回退(`sidebar.php` / `theme-toggle.js` 恢复原样)。最终只改 `layout.css` 一行 `justify-content`。
 - 桌面 / 移动端均适用 `flex-end`:移动端 ≤1180 header 变 flex,controls 由 `margin-left:auto` 推到最右,内部再 `flex-end` 无冲突。
 - ⚠️ 部署仅需 `assets/css/layout.css`(纯 CSS;`ONEDONG_VERSION` 已在 6.0.20 bump,部署即刷 `?ver=`);刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.21(2026-07-04)· 修复深浅色切换图标偶发不显示(防御性立即设 data-pref)
+
+### 背景
+- v6.0.20 上线后 TD 反馈「看不到(切换)图标」。线上排查:CSS / JS / HTML / SVG 均已正确部署(6.0.20),`theme-toggle.js` 逻辑正确。
+- 根因路径:toggle 按钮初始 `data-pref="auto"`,而 CSS 规则 `auto` 时 sun / moon 均 `display:none`;图标只在 `theme-toggle.js`(footer 加载)执行 init 把 `data-pref` 改成 light/dark 后才显示。若该 JS 延迟加载 / 失败 / 被浏览器缓存成旧版未执行 → `data-pref` 停在 auto → 图标空白。
+
+### 改动(`header.php`)
+- 在 `.theme-toggle` 按钮紧跟后加一段内联同步 `<script>`(随 HTML 加载,不依赖 footer 的 theme-toggle.js):复用 head anti-flash 同源逻辑,立即据 localStorage / 系统偏好算出 light/dark 并 `setAttribute('data-pref', p)` + `aria-pressed`。
+- 这样无论 `theme-toggle.js` 加载状态如何,按钮渲染当下就有正确 `data-pref` → 图标立即可见;`theme-toggle.js` 加载后照常 init(设一致值 + 绑点击),无冲突。
+- 版本 6.0.20→6.0.21-ProMax。
+
+### 坑 / 注意
+- **HTML 内联脚本对抗 JS 缓存**:HTML(PHP 动态输出)不被浏览器长期缓存,用户总拿到最新;而 `theme-toggle.js` 可能被缓存成旧版。内联脚本随 HTML 走,绕开 JS 缓存问题。
+- **不替代 theme-toggle.js**:内联脚本只设初始状态(无点击绑定);点击切换仍由 `theme-toggle.js` 负责。两者设值同源,一致。
+- **若仍不显示**:基本可断定为浏览器本地缓存(layout.css / theme-toggle.js 旧版)→ 硬刷新(Ctrl+Shift+R)/ 清缓存;或 CDN 边缘节点未刷新 → 刷腾讯云 CDN。
+- ⚠️ 部署:`header.php` + `style.css`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
