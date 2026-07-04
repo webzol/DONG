@@ -51,11 +51,5 @@ foreach ( $valid as $k ) {
 }
 ?>
 <aside id="secondary" class="sidebar">
-	<div class="sidebar__theme-toggle">
-		<button class="theme-toggle" type="button" aria-label="<?php esc_attr_e( '切换深浅色模式', 'onedong' ); ?>" data-pref="auto" title="<?php esc_attr_e( '切换深浅色', 'onedong' ); ?>">
-			<span class="theme-toggle__icon theme-toggle__sun" aria-hidden="true"><?php onedong_icon( 'sun' ); ?></span>
-			<span class="theme-toggle__icon theme-toggle__moon" aria-hidden="true"><?php onedong_icon( 'moon' ); ?></span>
-		</button>
-	</div>
 	<?php foreach ( $sequence as $k ) { onedong_render_right_module( $k ); } ?>
 </aside>

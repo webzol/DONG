@@ -126,6 +126,7 @@
 .header-controls {
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* v6.0.20:贴 header 第三列右边缘,与下方右侧栏右边缘垂直对齐 */
   gap: 0.5rem;
 }
 
@@ -177,21 +178,6 @@
 .theme-toggle__icon .icon { width: 1.1rem; height: 1.1rem; }
 .theme-toggle[data-pref="light"] .theme-toggle__sun,
 .theme-toggle[data-pref="dark"] .theme-toggle__moon { display: inline-flex; align-items: center; justify-content: center; }
-
-/* 右栏主题切换(v6.0.20:桌面端切换入口从 header 右上角移至右侧栏最右) */
-.sidebar__theme-toggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 0.25rem;
-}
-/* 桌面(≥993px):切换在右栏,隐藏 header 右上角的 */
-@media ( min-width: 993px ) {
-  .header-controls .theme-toggle { display: none; }
-}
-/* 窄屏(≤992px,右栏堆到页面底部):隐藏右栏切换,仍用 header 顶部那个 */
-@media ( max-width: 992px ) {
-  .sidebar__theme-toggle { display: none; }
-}
 
 /* ============================================================
    主区域容器
