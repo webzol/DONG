@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.18-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.19-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -83,11 +83,11 @@ function onedong_setup() {
 add_action( 'after_setup_theme', 'onedong_setup' );
 
 /**
- * 性能优化:资源预连接(gravatar + jsdelivr CDN)· v2.5.14
+ * 性能优化:资源预连接(头像镜像 + jsdelivr CDN)· v2.5.14;头像源改国内镜像 cravatar · v6.0.19
  */
 function onedong_resource_hints( $urls, $relation_type ) {
 	if ( 'preconnect' === $relation_type ) {
-		$urls[] = array( 'href' => 'https://secure.gravatar.com' );
+		$urls[] = array( 'href' => 'https://cravatar.cn' );
 		$urls[] = array( 'href' => 'https://cdn.jsdelivr.net' );
 	}
 	return $urls;
@@ -2072,6 +2072,12 @@ function onedong_author_avatar_html( $user_id, $size = 144, $args = array() ) {
 	$class = isset( $args['class'] ) ? $args['class'] : '';
 	$alt   = isset( $args['alt'] ) ? $args['alt'] : '';
 
+	// 个人资料自定义头像优先(后台「用户 → 个人资料」上传)— v6.0.19
+	$custom_avatar = get_user_meta( $user_id, 'onedong_avatar', true );
+	if ( $custom_avatar ) {
+		return '<img class="' . esc_attr( $class ) . '" src="' . esc_url( $custom_avatar ) . '" alt="' . esc_attr( $alt ) . '" width="' . esc_attr( $size ) . '" height="' . esc_attr( $size ) . '" loading="lazy" decoding="async">';
+	}
+
 	// 站点管理员(admin_email)复用主题头像来源,保证与左栏 / 朋友圈封面一致
 	if ( $user->user_email === get_bloginfo( 'admin_email' ) ) {
 		$source = get_theme_mod( 'onedong_avatar_source', 'logo' );
@@ -2086,9 +2092,67 @@ function onedong_author_avatar_html( $user_id, $size = 144, $args = array() ) {
 		return get_avatar( get_bloginfo( 'admin_email' ), $size, 'retro', $alt, array( 'class' => $class ) );
 	}
 
-	// 其余作者:本人 gravatar
+	// 其余作者:get_avatar()(由 pre_get_avatar_data 接管:个人资料头像优先,否则 cravatar 国内镜像)
 	return get_avatar( $user_id, $size, 'retro', $alt, array( 'class' => $class ) );
 }
+
+/* ============================================================
+ * 全站头像接管 · v6.0.19
+ * 1) pre_get_avatar_data:用户「个人资料」自定义头像(onedong_avatar)优先,直接给定 URL 跳过 Gravatar;
+ * 2) get_avatar_url:无自定义头像时,把 gravatar.com 域名替换为国内镜像 cravatar.cn,
+ *    解决国内网络访问不了 Gravatar、头像不展示的问题。
+ * 两处 filter 自动覆盖全站所有 get_avatar()(文章卡 / 作者页 / 评论 / 朋友圈 / 分享海报)。
+ * ============================================================ */
+
+/**
+ * 自定义头像优先:取到 onedong_avatar 时直接给定 URL,跳过 Gravatar 请求。
+ *
+ * @param array             $args         头像参数。
+ * @param int|string|object $id_or_email  用户标识(ID / 邮箱 / WP_User / WP_Post / WP_Comment)。
+ * @return array
+ */
+function onedong_pre_get_avatar_data( $args, $id_or_email ) {
+	if ( isset( $args['url'] ) ) {
+		return $args; // 已被其它逻辑 short-circuit,尊重既有结果。
+	}
+
+	$user_id = 0;
+	if ( is_numeric( $id_or_email ) ) {
+		$user_id = (int) $id_or_email;
+	} elseif ( $id_or_email instanceof WP_User ) {
+		$user_id = (int) $id_or_email->ID;
+	} elseif ( $id_or_email instanceof WP_Post ) {
+		$user_id = (int) $id_or_email->post_author;
+	} elseif ( $id_or_email instanceof WP_Comment ) {
+		$user_id = (int) $id_or_email->user_id;
+	} elseif ( is_object( $id_or_email ) && ! empty( $id_or_email->user_id ) ) {
+		$user_id = (int) $id_or_email->user_id;
+	}
+
+	if ( $user_id ) {
+		$custom = get_user_meta( $user_id, 'onedong_avatar', true );
+		if ( $custom ) {
+			$args['url']          = $custom;
+			$args['found_avatar'] = true;
+		}
+	}
+	return $args;
+}
+add_filter( 'pre_get_avatar_data', 'onedong_pre_get_avatar_data', 10, 2 );
+
+/**
+ * Gravatar 域名替换为国内镜像 cravatar.cn(两者 URL 结构完全兼容)。
+ *
+ * @param string $url 头像 URL。
+ * @return string
+ */
+function onedong_avatar_cravatar_mirror( $url ) {
+	if ( is_string( $url ) && false !== stripos( $url, 'gravatar.com' ) ) {
+		$url = preg_replace( '#https?://([a-z0-9]+\.)?gravatar\.com#i', 'https://cravatar.cn', $url );
+	}
+	return $url;
+}
+add_filter( 'get_avatar_url', 'onedong_avatar_cravatar_mirror' );
 
 /**
  * 作者页资料字段 user_meta 键。
@@ -2097,6 +2161,7 @@ function onedong_author_avatar_html( $user_id, $size = 144, $args = array() ) {
  */
 function onedong_author_meta_keys() {
 	return array(
+		'avatar'    => 'onedong_avatar',
 		'signature' => 'onedong_signature',
 		'region'    => 'onedong_region',
 		'gender'    => 'onedong_gender',
@@ -2112,6 +2177,7 @@ function onedong_author_meta_keys() {
  */
 function onedong_author_profile_fields( $user ) {
 	$keys = onedong_author_meta_keys();
+	$av   = get_user_meta( $user->ID, $keys['avatar'], true );
 	$sig  = get_user_meta( $user->ID, $keys['signature'], true );
 	$reg  = get_user_meta( $user->ID, $keys['region'], true );
 	$sex  = get_user_meta( $user->ID, $keys['gender'], true );
@@ -2120,6 +2186,18 @@ function onedong_author_profile_fields( $user ) {
 	?>
 	<h2><?php esc_html_e( 'OneDong 作者页', 'onedong' ); ?></h2>
 	<table class="form-table" role="presentation">
+		<tr>
+			<th><label for="onedong_avatar"><?php esc_html_e( '头像', 'onedong' ); ?></label></th>
+			<td>
+				<input type="text" name="onedong_avatar" id="onedong_avatar" value="<?php echo esc_attr( $av ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '粘贴图片地址,或点右侧「选择 / 上传图片」', 'onedong' ); ?>">
+				<p>
+					<button type="button" class="button onedong-media-upload" data-target="onedong_avatar" data-preview="onedong-avatar-preview" data-title="<?php esc_attr_e( '选择头像', 'onedong' ); ?>"><?php esc_html_e( '选择 / 上传图片', 'onedong' ); ?></button>
+					<button type="button" class="button onedong-media-clear" data-target="onedong_avatar" data-preview="onedong-avatar-preview"><?php esc_html_e( '清除', 'onedong' ); ?></button>
+				</p>
+				<div class="onedong-avatar-preview"><?php echo $av ? '<img src="' . esc_url( $av ) . '" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:50%;border:1px solid #ddd;vertical-align:middle;">' : ''; ?></div>
+				<p class="description"><?php esc_html_e( '全站头像(文章卡 / 作者页 / 评论 / 朋友圈 / 分享海报)统一使用此图;留空则按邮箱走国内镜像(Cravatar)。建议正方形,≥ 160×160。', 'onedong' ); ?></p>
+			</td>
+		</tr>
 		<tr>
 			<th><label for="onedong_signature"><?php esc_html_e( '签名', 'onedong' ); ?></label></th>
 			<td>
@@ -2146,10 +2224,10 @@ function onedong_author_profile_fields( $user ) {
 		<tr>
 			<th><label for="onedong_cover"><?php esc_html_e( '作者页封面图', 'onedong' ); ?></label></th>
 			<td>
-				<input type="text" name="onedong_cover" id="onedong_cover" value="<?php echo esc_attr( $cov ); ?>" class="regular-text onedong-cover-input" placeholder="<?php esc_attr_e( '粘贴图片地址,或点右侧「选择 / 上传图片」', 'onedong' ); ?>">
+				<input type="text" name="onedong_cover" id="onedong_cover" value="<?php echo esc_attr( $cov ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '粘贴图片地址,或点右侧「选择 / 上传图片」', 'onedong' ); ?>">
 				<p>
-					<button type="button" class="button onedong-media-upload" data-target="onedong_cover"><?php esc_html_e( '选择 / 上传图片', 'onedong' ); ?></button>
-					<button type="button" class="button onedong-cover-clear"><?php esc_html_e( '清除', 'onedong' ); ?></button>
+					<button type="button" class="button onedong-media-upload" data-target="onedong_cover" data-preview="onedong-cover-preview" data-title="<?php esc_attr_e( '选择封面图片', 'onedong' ); ?>"><?php esc_html_e( '选择 / 上传图片', 'onedong' ); ?></button>
+					<button type="button" class="button onedong-media-clear" data-target="onedong_cover" data-preview="onedong-cover-preview"><?php esc_html_e( '清除', 'onedong' ); ?></button>
 				</p>
 				<div class="onedong-cover-preview"><?php echo $cov ? '<img src="' . esc_url( $cov ) . '" alt="" style="max-width:320px;border-radius:8px;border:1px solid #ddd;">' : ''; ?></div>
 				<p class="description"><?php esc_html_e( '作者页顶部封面背景图;留空显示主题色。建议宽幅图片(约 1200×500)。', 'onedong' ); ?></p>
@@ -2183,6 +2261,10 @@ function onedong_author_save_profile_fields( $user_id ) {
 	}
 
 	$keys = onedong_author_meta_keys();
+
+	if ( isset( $_POST['onedong_avatar'] ) ) {
+		update_user_meta( $user_id, $keys['avatar'], esc_url_raw( wp_unslash( $_POST['onedong_avatar'] ) ) );
+	}
 
 	$sig = isset( $_POST['onedong_signature'] ) ? sanitize_text_field( wp_unslash( $_POST['onedong_signature'] ) ) : '';
 	update_user_meta( $user_id, $keys['signature'], $sig );
@@ -2242,39 +2324,46 @@ function onedong_author_profile_footer_js() {
 		var jq = window.jQuery;
 		if (!jq) { return; }
 		jq(function ($) {
-			function preview(input) {
-				var url = input.value, prev = document.querySelector('.onedong-cover-preview');
+			// 通用预览:按预览容器是「圆头像」还是「封面图」渲染不同样式(v6.0.19 头像 + 封面共用)。
+			function buildPreview(url, prev) {
 				if (!prev) { return; }
-				prev.innerHTML = url ? '<img src="' + url + '" alt="" style="max-width:320px;border-radius:8px;border:1px solid #ddd;">' : '';
+				if (!url) { prev.innerHTML = ''; return; }
+				if (prev.className.indexOf('onedong-avatar-preview') !== -1) {
+					prev.innerHTML = '<img src="' + url + '" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:50%;border:1px solid #ddd;vertical-align:middle;">';
+				} else {
+					prev.innerHTML = '<img src="' + url + '" alt="" style="max-width:320px;border-radius:8px;border:1px solid #ddd;">';
+				}
+			}
+			function inputOf(btn) { return document.getElementById(btn.getAttribute('data-target')); }
+			function previewOf(btn) {
+				var cls = btn.getAttribute('data-preview');
+				return cls ? document.querySelector('.' + cls) : null;
 			}
 			$(document).on('click', '.onedong-media-upload', function (e) {
 				e.preventDefault();
-				var targetId = this.getAttribute('data-target');
+				var btn = this, targetId = btn.getAttribute('data-target'),
+				    title = btn.getAttribute('data-title') || '<?php echo esc_js( __( '选择图片', 'onedong' ) ); ?>';
 				if (window.wp && wp.media) {
-					var frame = wp.media({
-						title: '<?php echo esc_js( __( '选择封面图片', 'onedong' ) ); ?>',
-						multiple: false,
-						library: { type: 'image' }
-					});
+					var frame = wp.media({ title: title, multiple: false, library: { type: 'image' } });
 					frame.on('select', function () {
 						var att = frame.state().get('selection').first().toJSON();
 						var url = att.url;
 						if (att.sizes && att.sizes.large) { url = att.sizes.large.url; }
 						else if (att.sizes && att.sizes.full) { url = att.sizes.full.url; }
 						var input = document.getElementById(targetId);
-						if (input) { input.value = url; preview(input); }
+						if (input) { input.value = url; buildPreview(url, previewOf(btn)); }
 					});
 					frame.open();
 				} else {
 					var url = window.prompt('<?php echo esc_js( __( '媒体库未加载,请直接粘贴图片地址:', 'onedong' ) ); ?>');
 					var input = document.getElementById(targetId);
-					if (url && input) { input.value = url; preview(input); }
+					if (url && input) { input.value = url; buildPreview(url, previewOf(btn)); }
 				}
 			});
-			$(document).on('click', '.onedong-cover-clear', function (e) {
+			$(document).on('click', '.onedong-media-clear', function (e) {
 				e.preventDefault();
-				var input = document.getElementById('onedong_cover');
-				if (input) { input.value = ''; preview(input); }
+				var btn = this, input = inputOf(btn);
+				if (input) { input.value = ''; buildPreview('', previewOf(btn)); }
 			});
 		});
 	})();

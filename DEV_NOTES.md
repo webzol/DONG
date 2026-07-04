@@ -1058,3 +1058,32 @@
 - **冒号解析**:正则用第一个冒号(半角 / 全角)分割;标签 / 值前后 trim;空行跳过。
 - **自定义行无图标**:QQ / 微信 / 爱好 等无对应 icon,dt 只放标签;用 padding-left 与带图标行左对齐。
 - ⚠️ 部署:`functions.php` + `author.php` + `assets/css/author.css` + `style.css`;后台「用户 → 个人资料」填「自定义字段」后生效;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.19(2026-07-04)· 后台个人资料头像上传 + 全站头像接管(自定义优先 / 国内 Cravatar 镜像)
+
+### 背景
+- 现状:全站头像 `get_avatar()` 默认走 Gravatar(`secure.gravatar.com`),国内网络访问不了 → 头像空白 / 裂图。主题原有「自定义头像」只对站点管理员一人(Customizer `onedong_avatar_source=custom`)生效,普通作者 / 评论者无自定义入口。
+- TD 需求:后台「用户 → 个人资料」给每个用户加头像上传;并解决国内头像不展示。
+
+### 改动(单文件 `functions.php`)
+- **后台头像字段**:`onedong_author_meta_keys` 加 `avatar` → `onedong_avatar`;`onedong_author_profile_fields` 新增「头像」行(复用封面图的 WP 媒体库上传模式:`.onedong-media-upload` + `data-target/data-preview/data-title`);`onedong_author_save_profile_fields` 用 `esc_url_raw` 存。
+- **上传 / 清除 JS 通用化**:`onedong_author_profile_footer_js` 重写 —— `buildPreview()` 按预览容器(圆头像 `.onedong-avatar-preview` / 封面 `.onedong-cover-preview`)渲染不同样式;封面「清除」按钮 class 由 `onedong-cover-clear` 统一为 `onedong-media-clear` + `data-preview`。头像 + 封面共用一套 JS。
+- **全站头像接管(核心)**:
+  - `pre_get_avatar_data` filter(`onedong_pre_get_avatar_data`):解析 user_id(ID / WP_User / WP_Post / WP_Comment / 带 user_id 的对象),取到 `onedong_avatar` 时直接给定 `url` + `found_avatar=true`,short-circuit 跳过 Gravatar。
+  - `get_avatar_url` filter(`onedong_avatar_cravatar_mirror`):无自定义头像时,把 `gravatar.com`(含子域)正则替换为国内镜像 `cravatar.cn`(URL 结构完全兼容)。
+  - 一处 filter 自动覆盖全站所有 `get_avatar()`:文章卡(content.php)、作者页(author.php / `onedong_author_avatar_html`)、评论(comments 回调)、朋友圈(inc/moments.php)、分享海报 —— 均无需逐个改。
+- **作者头像 helper 前置自定义检查**:`onedong_author_avatar_html` 函数体最前查 `onedong_avatar`,有则直接 `<img>`(管理员也生效);否则维持原逻辑(管理员走主题来源 / 其他人走 get_avatar)。
+- **preconnect**:`onedong_resource_hints` 头像预连接 `secure.gravatar.com` → `cravatar.cn`。
+- 版本 6.0.18→6.0.19-ProMax(`style.css` + `ONEDONG_VERSION`)。
+
+### 头像来源优先级
+1. 用户「个人资料」上传的 `onedong_avatar`(最高,全站统一)
+2. 站点管理员:主题 Customizer 头像来源(logo / custom / gravatar)
+3. 其余:Gravatar(经 `cravatar.cn` 国内镜像)
+
+### 坑 / 注意
+- **`pre_get_avatar_data` vs `get_avatar_url` 分工**:前者负责「自定义头像 short-circuit」(设 `url` 后 WP 不再生成 Gravatar URL,故自定义头像不经镜像替换);后者只在未 short-circuit 时把 Gravatar 域名换成 cravatar。两者不冲突。
+- **Cravatar 镜像**:`cravatar.cn` 与 Gravatar URL 结构一致(`/avatar/<md5>?d=retro&s=…`),直接换 host;无自定义头像的游客评论也能国内显示。Cravatar 自身会回源 Gravatar,首次可能略慢但可接受。
+- **自定义头像存 URL 不存附件 ID**:与封面图一致(`att.url`);尺寸固定(get_avatar 的 `size` 不再生效),故建议源图 ≥160×160。若要按尺寸裁切,后续可改存附件 ID + `wp_get_attachment_image_src`。
+- **管理员头像变更**:管理员在「个人资料」传头像后会覆盖 Customizer 的主题头像来源(全站作者卡 / 朋友圈封面统一走个人资料头像);未传则仍用 Customizer,行为不变。
+- ⚠️ 本机无 PHP,语法未 `php -l` 复验,留待上线复验。部署仅需 `functions.php` + `style.css`;改了 PHP(非纯 CSS)bump `ONEDONG_VERSION` 刷 `?ver=`,页面 HTML 含头像 `<img>` 改动需刷腾讯云 CDN + 浏览器硬刷新。
