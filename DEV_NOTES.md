@@ -1253,3 +1253,21 @@
 ### 坑 / 注意
 - 内边距固定 `1.5rem 2.5rem`(原「正常」档值),如需调整改 `resources.css` 的 `.resource-banner__inner--card { padding }`。
 - ⚠️ 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.28(2026-07-06)· 资源导航 v1.4.2:Banner 圆角后台可设
+
+### 背景
+- TD:给 Banner(顶部通栏 section)加圆角设置,功能同「内容卡片圆角」。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css`)
+- 新设置项 `banner_radius`(select:直角默认 / 8 / 16 / 24 / 药丸),在「页面设置 → 顶部 Banner」section。
+- `banner_style()` 输出 `--res-banner-radius` 变量(主 return + image case return 两处);CSS `.resource-banner{border-radius:var(--res-banner-radius,0px);overflow:hidden}`。
+- `overflow:hidden` 双重作用:① 圆角裁背景图 / 渐变;② 防 image Ken Burns scale 放大溢出(此前 banner 无 overflow,image ::before scale 1.08 会溢出到 banner 外)。
+- 版本 6.0.27→6.0.28-ProMax。
+
+### 坑 / 注意
+- **默认直角**:`banner_radius=''` → 0px,保持现有全屏通栏方角外观(不改变现状),后台选圆角才生效。
+- **圆角 + margin-top gap**:Banner 有顶部间距 + 圆角后,四角露出 page-bg,视觉为「漂浮圆角通栏」。
+- **overflow:hidden 影响定位**:banner 内 __inner / 内容均为静态 / relative,不受裁剪影响;只裁 ::before 背景。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(选圆角 + 纯色 / 图片背景,看四角圆 + 图片裁圆角)。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
