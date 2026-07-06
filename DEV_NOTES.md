@@ -1239,3 +1239,17 @@
 - **backdrop-filter 兼容**:加 `-webkit-` 前缀(Safari);不支持 blur 的浏览器仍显示半透明底(降级可读)。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(纯色 / 图片背景 + 开卡片、圆角 / 内边距、深浅色文字对比)。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.27(2026-07-06)· 资源导航 v1.4.1:移除「内容卡片内边距」设置
+
+### 背景
+- TD 反馈:「内容卡片」功能保留,但「内容卡片内边距」设置项不需要 —— 内边距改固定值,后台不再可调。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css`)
+- 移除 `banner_card_padding`:defaults / settings_init / sanitize / `onedong_resource_banner_card_style()` 四处删除;padding 从内联改到 CSS 固定 `1.5rem 2.5rem`(`.resource-banner__inner--card`)。
+- 保留:`banner_card`(开关)+ `banner_card_radius`(圆角)。
+- 版本 6.0.26→6.0.27-ProMax。
+
+### 坑 / 注意
+- 内边距固定 `1.5rem 2.5rem`(原「正常」档值),如需调整改 `resources.css` 的 `.resource-banner__inner--card { padding }`。
+- ⚠️ 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
