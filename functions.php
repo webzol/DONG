@@ -10,12 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.21-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.22-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
 // 功能模块(按需拆分,保持 functions.php 精简)
 require_once ONEDONG_DIR . '/inc/moments.php'; // 朋友圈(onedong_moment)— v2.5.0
+require_once ONEDONG_DIR . '/inc/resources.php'; // 资源导航(onedong_resource)— v1.0.0
 
 /**
  * 主题初始化:注册主题支持与菜单位置
@@ -332,6 +333,12 @@ function onedong_scripts() {
 				'siteName'     => get_bloginfo( 'name' ),
 			)
 		);
+	}
+
+	// 资源导航(列表):全屏 Banner + 分类筛选 + 卡片网格 — v1.0.0
+	if ( is_post_type_archive( 'onedong_resource' ) ) {
+		wp_enqueue_style( 'onedong-resources', ONEDONG_URI . '/assets/css/resources.css', array( 'onedong-layout' ), $ver );
+		wp_enqueue_script( 'onedong-resources', ONEDONG_URI . '/assets/js/resources.js', array(), $ver, true );
 	}
 
 	// 作者详情页(author.php)样式 + 文章/朋友圈标签切换 · v6.0.13

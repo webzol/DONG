@@ -1,0 +1,40 @@
+/* OneDong · 资源导航后台 · v1.0.0 */
+
+/* 资源编辑:图标模式 + 预览 */
+.res-icon-mode {
+	padding: .3em 0;
+}
+.res-icon-field {
+	margin: .6em 0;
+	padding: .6em .8em;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+.res-icon-preview {
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: .5em;
+	min-width: 60px;
+	min-height: 60px;
+}
+.res-icon-preview img {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+	border-radius: 4px;
+	border: 1px solid #ccd0d4;
+	display: block;
+}
+#res-icon-add,
+#res-icon-remove {
+	vertical-align: middle;
+}
+
+/* 页面设置:渐变方向预设下拉与角度框对齐 */
+.res-banner-dep .small-text {
+	vertical-align: middle;
+}
+.res-angle-preset {
+	vertical-align: middle;
+}

@@ -1119,3 +1119,41 @@
 - **不替代 theme-toggle.js**:内联脚本只设初始状态(无点击绑定);点击切换仍由 `theme-toggle.js` 负责。两者设值同源,一致。
 - **若仍不显示**:基本可断定为浏览器本地缓存(layout.css / theme-toggle.js 旧版)→ 硬刷新(Ctrl+Shift+R)/ 清缓存;或 CDN 边缘节点未刷新 → 刷腾讯云 CDN。
 - ⚠️ 部署:`header.php` + `style.css`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.22(2026-07-06)· 资源导航模块(onedong_resource)
+
+### 背景
+- TD 提供需求文档(`Downloads/网站新增资源导航页面…docx`):新增独立「资源导航页」(`/resources/`)——全屏通栏 Banner + 分类筛选 + 资源卡片网格,全部后台可视化配置、零代码,响应式适配 PC/手机。
+- 严格复刻既有 `inc/moments.php`(朋友圈)架构:CPT + meta box + nonce + 媒体上传 + Settings API。完整方案见 plan `C:\Users\Administrator.DESKTOP-VIVLMOS\.claude\plans\reflective-sniffing-pearl.md`。
+
+### 改动(新增 6 文件 + 改 functions.php)
+- **`inc/resources.php`(新增,模块主体)**:
+  - CPT `onedong_resource`(slug `resources` → `/resources/`,菜单位 7)+ taxonomy `onedong_resource_cat`(hierarchical);CPT `show_in_menu='onedong-resources'` 挂自建顶级菜单。`add_image_size('onedong-resource-icon',96,96,true)`。一次性 flush(`onedong_res_flushed` option + `after_switch_theme`)。
+  - 资源 meta box:网址(url 必填)/ 分类(单选 select)/ 排序权重 / 启停 / **图标三模式**(系统默认 | 本地上传 | 远程 URL);nonce + capability + sanitize 保存(照 moments)。分类走 `wp_set_object_terms`(taxonomy 关系,非 meta)。
+  - 分类 term meta:排序权重 + 启停;`{tax}_add/edit_form_fields` + `created_/edited_{tax}` 保存;列表加「排序/状态」列;`pre_delete_term` 有资源禁删(`wp_die`)。
+  - 顶级菜单「资源导航」+ 子页「页面设置」(Settings API,option `onedong_resources_settings`):导航名 / Banner 三模式 / 纯色 / 渐变(from/to/角度)/ 高度 / 主副标题。颜色用 `wp-color-picker`,Settings 挂 `admin_init`。
+  - 前台 `pre_get_posts`:排除禁用资源 + 禁用分类下资源 + 按 `_onedong_resource_order` DESC 排序;`posts_per_page=-1`(前端 DOM 过滤需全量)。
+  - nav filter(`wp_nav_menu_items` 判 primary + `wp_page_menu`)注入导航项,**不改 header.php**;`nav_label` 空则不注入(=关闭)。
+- **`archive-onedong_resource.php`(新增)**:全宽布局,`onedong_resource_banner()`(三模式内联 style,纯颜色无图,高度走 `--res-h` CSS 变量便于移动端 @media 缩)+ `onedong_resource_filter_bar()`(启用+排序分类)+ 卡片 loop(`onedong_render_resource_card()`)。
+- **`assets/css/resources.css` + `assets/js/resources.js`(新增)**:grid `auto-fill minmax(240px,1fr)` 响应式(768 单列 / 769–1100 两列);卡片走 tokens 变量自动深浅色;JS 纯 DOM 过滤(切分类 0 请求,无 jQuery)。
+- **`assets/css/resource-admin.css` + `assets/js/resource-admin.js`(新增)**:图标三模式切换 + `wp.media`(限 image)选图 + 取色器 + Banner 模式切字段行 + 方向预设→角度。仅资源编辑页 + 设置页加载。
+- **`functions.php`**:第 18 行下加 `require resources.php`;`onedong_scripts()` 加 `is_post_type_archive('onedong_resource')` 条件 enqueue。
+- 版本 6.0.21→6.0.22-ProMax(`style.css` + `ONEDONG_VERSION`,刷 `?ver=` 缓存)。
+
+### 关键决策
+- **筛选用 JS 前端 DOM 过滤**(非 REST):首屏 PHP 全量渲染,切分类 `[hidden]` 切换,0 请求、瞬时、SEO 友好、与 moments「服务端渲染 + 渐进 JS」一致。未来上千条再升级 REST。
+- **Banner 三模式纯颜色**:default 用 `var(--primary)`(品牌蓝统一)、solid 自定义 hex、gradient `linear-gradient(angle,from,to)`;绝不输出 `<img>`(需求明确不要图片背景)。
+- **高度走 `--res-h` 变量**而非内联 `min-height`:内联 `min-height` 无法被 `@media` 覆盖,改 CSS 变量后移动端可 `calc(var(--res-h)*0.6)` 缩小。
+- **介绍用经典编辑器**(post_content,与 moments 一致,享修订/自动保存);卡片摘要 `wp_trim_words(wp_strip_all_tags(get_the_content()),30)`。
+- **名称=标题、介绍=正文、分类=taxonomy 关系**(非 meta),最贴 WP 惯例。
+
+### 坑 / 注意
+- **首次 `/resources/` 若 404**:`onedong_res_flushed` 已自动 flush;仍 404 则后台「设置→固定链接」点保存重刷。
+- **`get_terms()` 不支持 orderby term meta** → 分类排序用「先查(排除禁用)再 `usort`」(按 `_onedong_rescat_order` + name 兜底),稳健无注入面。
+- **禁用分类的资源也要隐藏**:`pre_get_posts` 同时 `meta_query`(资源自禁)+ `tax_query NOT IN`(分类禁),两条都要。
+- **WP 媒体库非真压缩**:用 `onedong-resource-icon`(96×96)小尺寸省流 + `wp_attachment_is_image` 格式兜底;`wp.media({library:{type:'image'}})` 前端限图。
+- **Settings API 必须挂 `admin_init`**(非 `admin_menu`),否则字段不生效;`show_in_menu` slug(`onedong-resources`)必须等于 `add_menu_page` 第 4 参,否则 CPT 脱离顶级菜单。
+- **nav filter 必须判 `theme_location==='primary'`**,否则 footer 菜单也被注入;`is_admin()` 不注入。
+- **`mb_strtolower` 改 `strtolower`**:避免 mbstring 扩展缺失时 fatal(中文资源名对 strtolower 安全)。
+- ⚠️ 本机无 PHP,语法已人工核对(对照 moments 范本);待本地 WP 启用跑 `php -l` + 后台逐功能实测(见 plan 端到端验证 11 项)。
+- ⚠️ 线上仍跑 Once-main 主题;资源页需部署 onedong + 启用 + 刷腾讯云 CDN 才生效。`onedong.zip` 沿用历史策略不纳入提交。
