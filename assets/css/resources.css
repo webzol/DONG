@@ -12,6 +12,7 @@
 /* —— 顶部 Banner(纯颜色,无图片)—— */
 .resource-banner {
 	width: 100%;
+	margin-top: var(--res-gap, 0px);
 	min-height: var(--res-h, 280px);
 	display: flex;
 	align-items: center;
@@ -111,6 +112,12 @@
 	height: 100%;
 	padding: 1rem 1.1rem;
 	color: inherit;
+	text-decoration: none;
+}
+
+/* 卡片内所有链接 hover 去下划线(覆盖全局 a:hover 的 0,1,1 特异性) */
+.resource-card a:hover,
+.resource-card a:focus {
 	text-decoration: none;
 }
 

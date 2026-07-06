@@ -25,6 +25,8 @@ function onedong_resources_defaults() {
 		'banner_gradient_to'    => '#2b47d1',
 		'banner_gradient_angle' => 90,
 		'banner_height'         => 280,
+		'banner_image'          => 0,
+		'banner_top_gap'        => 0,
 		'banner_title'          => __( '资源导航', 'onedong' ),
 		'banner_subtitle'       => __( '精选优质资源,持续更新。', 'onedong' ),
 	);
@@ -379,11 +381,13 @@ function onedong_resources_settings_init() {
 	add_settings_field( 'nav_label', __( '导航菜单名称', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_nav_section', array( 'key' => 'nav_label', 'type' => 'text', 'desc' => __( '为空则不在导航显示。', 'onedong' ) ) );
 
 	add_settings_field( 'banner_mode', __( '背景模式', 'onedong' ), 'onedong_resources_field_mode_cb', $page, 'onedong_resources_banner_section' );
+	add_settings_field( 'banner_image', __( '背景图片', 'onedong' ), 'onedong_resources_field_image_cb', $page, 'onedong_resources_banner_section' );
 	add_settings_field( 'banner_color', __( '自定义纯色', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_color', 'type' => 'color', 'wrap_class' => 'res-banner-dep res-banner-dep--solid' ) );
 	add_settings_field( 'banner_gradient_from', __( '渐变起点色', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_gradient_from', 'type' => 'color', 'wrap_class' => 'res-banner-dep res-banner-dep--gradient' ) );
 	add_settings_field( 'banner_gradient_to', __( '渐变终点色', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_gradient_to', 'type' => 'color', 'wrap_class' => 'res-banner-dep res-banner-dep--gradient' ) );
 	add_settings_field( 'banner_gradient_angle', __( '渐变角度 / 方向', 'onedong' ), 'onedong_resources_field_angle_cb', $page, 'onedong_resources_banner_section' );
 	add_settings_field( 'banner_height', __( 'Banner 高度(px)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_height', 'type' => 'number', 'min' => 120, 'max' => 600, 'desc' => __( '移动端会自动缩小。', 'onedong' ) ) );
+	add_settings_field( 'banner_top_gap', __( '与顶部导航间距(px)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_top_gap', 'type' => 'number', 'min' => 0, 'max' => 200, 'desc' => __( 'Banner 与上方菜单的留白,0 为紧贴。', 'onedong' ) ) );
 
 	add_settings_field( 'banner_title', __( '主标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_title', 'type' => 'text' ) );
 	add_settings_field( 'banner_subtitle', __( '副标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_subtitle', 'type' => 'textarea' ) );
@@ -423,10 +427,29 @@ function onedong_resources_field_mode_cb() {
 		'default'  => __( '系统默认(品牌蓝)', 'onedong' ),
 		'solid'    => __( '自定义纯色', 'onedong' ),
 		'gradient' => __( '自定义渐变', 'onedong' ),
+		'image'    => __( '上传图片', 'onedong' ),
 	) as $k => $label ) {
 		printf( '<label style="margin-right:1.2em;"><input type="radio" name="%1$s" value="%2$s" %3$s> %4$s</label>', esc_attr( $name ), esc_attr( $k ), checked( $o['banner_mode'], $k, false ), esc_html( $label ) );
 	}
-	echo '<p class="description">' . esc_html__( '仅纯颜色背景,不使用图片。', 'onedong' ) . '</p>';
+	echo '<p class="description">' . esc_html__( '纯颜色或上传图片作背景。', 'onedong' ) . '</p>';
+}
+
+/** Banner 背景图片(上传模式)。 */
+function onedong_resources_field_image_cb() {
+	$o   = onedong_resources_opts();
+	$id  = (int) $o['banner_image'];
+	$src = $id ? wp_get_attachment_image_src( $id, 'large' ) : false;
+	echo '<div class="res-banner-dep res-banner-dep--image">';
+	echo '<div class="res-banner-image-preview">';
+	if ( $src ) {
+		echo '<img src="' . esc_url( $src[0] ) . '" alt="">';
+	}
+	echo '</div>';
+	echo '<button type="button" class="button" id="res-banner-image-add">' . esc_html__( '上传 / 选择图片', 'onedong' ) . '</button> ';
+	echo '<button type="button" class="button" id="res-banner-image-remove"' . ( $id ? '' : ' style="display:none;"' ) . '>' . esc_html__( '移除', 'onedong' ) . '</button>';
+	echo '<input type="hidden" name="onedong_resources_settings[banner_image]" id="res-banner-image-id" value="' . esc_attr( $id ) . '">';
+	echo '<p class="description">' . esc_html__( '图片将自适应铺满 Banner 背景(cover)。', 'onedong' ) . '</p>';
+	echo '</div>';
 }
 
 /** 渐变角度 + 方向预设。 */
@@ -449,7 +472,9 @@ function onedong_resources_sanitize( $in ) {
 	$out                       = onedong_resources_defaults();
 	$out['nav_label']          = isset( $in['nav_label'] ) ? sanitize_text_field( $in['nav_label'] ) : '';
 	$mode                      = isset( $in['banner_mode'] ) ? $in['banner_mode'] : 'default';
-	$out['banner_mode']        = in_array( $mode, array( 'default', 'solid', 'gradient' ), true ) ? $mode : 'default';
+	$out['banner_mode']        = in_array( $mode, array( 'default', 'solid', 'gradient', 'image' ), true ) ? $mode : 'default';
+	$out['banner_image']       = isset( $in['banner_image'] ) ? absint( $in['banner_image'] ) : 0;
+	$out['banner_top_gap']     = max( 0, min( 200, (int) ( isset( $in['banner_top_gap'] ) ? $in['banner_top_gap'] : 0 ) ) );
 	$out['banner_color']       = sanitize_hex_color( isset( $in['banner_color'] ) ? $in['banner_color'] : '' ) ? : $out['banner_color'];
 	$out['banner_gradient_from'] = sanitize_hex_color( isset( $in['banner_gradient_from'] ) ? $in['banner_gradient_from'] : '' ) ? : $out['banner_gradient_from'];
 	$out['banner_gradient_to']   = sanitize_hex_color( isset( $in['banner_gradient_to'] ) ? $in['banner_gradient_to'] : '' ) ? : $out['banner_gradient_to'];
@@ -523,6 +548,7 @@ function onedong_resource_get_cats() {
 function onedong_resource_banner_style() {
 	$o   = onedong_resources_opts();
 	$h   = max( 120, min( 600, (int) $o['banner_height'] ) );
+	$gap = max( 0, min( 200, (int) $o['banner_top_gap'] ) );
 	$bg  = 'var(--primary)';
 	switch ( $o['banner_mode'] ) {
 		case 'solid':
@@ -535,8 +561,17 @@ function onedong_resource_banner_style() {
 			$ang  = max( 0, min( 360, (int) $o['banner_gradient_angle'] ) );
 			$bg   = sprintf( 'linear-gradient(%ddeg, %s, %s)', $ang, $from, $to );
 			break;
+		case 'image':
+			$iid = (int) $o['banner_image'];
+			if ( $iid ) {
+				$src = wp_get_attachment_image_src( $iid, 'full' );
+				if ( $src ) {
+					$bg = sprintf( 'url("%s") center/cover no-repeat', esc_url( $src[0] ) );
+				}
+			}
+			break;
 	}
-	return 'background:' . $bg . ';--res-h:' . $h . 'px;';
+	return 'background:' . $bg . ';--res-h:' . $h . 'px;--res-gap:' . $gap . 'px;';
 }
 
 function onedong_resource_banner() {

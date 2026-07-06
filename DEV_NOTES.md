@@ -1157,3 +1157,22 @@
 - **`mb_strtolower` 改 `strtolower`**:避免 mbstring 扩展缺失时 fatal(中文资源名对 strtolower 安全)。
 - ⚠️ 本机无 PHP,语法已人工核对(对照 moments 范本);待本地 WP 启用跑 `php -l` + 后台逐功能实测(见 plan 端到端验证 11 项)。
 - ⚠️ 线上仍跑 Once-main 主题;资源页需部署 onedong + 启用 + 刷腾讯云 CDN 才生效。`onedong.zip` 沿用历史策略不纳入提交。
+
+## v6.0.23(2026-07-06)· 资源导航 v1.1:Banner 间距可设 + 图片背景模式 + 卡片 hover 去下划线
+
+### 背景
+- TD 线上(dingxudong.com/resources)反馈三点:① Banner 紧贴顶部导航,要可后端设间距;② Banner 现纯色,要能上传图片(自适应铺满);③ 资源卡片 hover 有下划线,去掉。
+- 排查:线上已部署 v6.0.22,导航注入正常(菜单末尾有「资源导航」项),Banner 默认纯色 200px。卡片下划线根因:`.resource-card__link{text-decoration:none}` 特异性 0,1,0,被全局 `a:hover`(base.css,0,1,1)压过 → hover 仍下划线。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css` + `assets/js/resource-admin.js` + `assets/css/resource-admin.css`)
+- **Banner 顶部间距可设**:新设置项 `banner_top_gap`(0–200px,默认 0);`banner_style()` 输出 `--res-gap` 变量;`.resource-banner` 加 `margin-top:var(--res-gap,0px)`(上方露出 page-bg 形成留白)。
+- **Banner 图片背景模式**(第 4 种):`banner_mode` 加 `image`;新设置项 `banner_image`(attachment ID);后台「页面设置」加「背景图片」字段(`wp.media` 选图 + 预览 + 移除);`banner_style()` image 分支输出 `url("...") center/cover no-repeat`(自适应铺满);`resource-admin.js` 的 `syncBannerMode` 加 image 字段行显隐。
+- **卡片 hover 去下划线**:`.resource-card a:hover, .resource-card a:focus { text-decoration:none }`(特异性 0,2,1 > 全局 a:hover 的 0,1,1,胜出)。
+- 版本 6.0.22→6.0.23-ProMax。
+
+### 坑 / 注意
+- **图片背景 cover**:用 `background:center/cover no-repeat`,图片填满 Banner 区域(min-height 仍由 `--res-h` 控制);小图会被放大,建议上传宽图(如 1600×400)。深色模式下图片不变暗(如需加深色遮罩,后续可加 `::before` 半透明层)。
+- **间距是 margin-top**:留白露出 `--page-bg`(浅色灰 / 深色黑),非透明;0 = 紧贴(原状)。
+- **卡片去下划线靠特异性**:`.resource-card a:hover`(0,2,1)压过 base.css `a:hover`(0,1,1);若将来 base.css 加 `!important` 需相应升级。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(后台选 image 模式传图、设间距、前台看卡片 hover 无下划线)。
+- 部署:`inc/resources.php` + 3 个 assets + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

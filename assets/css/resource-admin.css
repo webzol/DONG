@@ -38,3 +38,20 @@
 .res-angle-preset {
 	vertical-align: middle;
 }
+
+/* 页面设置:Banner 背景图片预览 */
+.res-banner-image-preview {
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: .5em;
+	min-width: 120px;
+	min-height: 45px;
+}
+.res-banner-image-preview img {
+	width: 120px;
+	height: 45px;
+	object-fit: cover;
+	border-radius: 4px;
+	border: 1px solid #ccd0d4;
+	display: block;
+}

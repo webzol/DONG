@@ -80,6 +80,9 @@
 			if ( m === 'gradient' ) {
 				$( '.res-banner-dep--gradient' ).closest( 'tr' ).show();
 			}
+			if ( m === 'image' ) {
+				$( '.res-banner-dep--image' ).closest( 'tr' ).show();
+			}
 		}
 		if ( $bannerRadios.length ) {
 			$bannerRadios.on( 'change', syncBannerMode );
@@ -94,6 +97,43 @@
 			}
 			$( 'input[name="onedong_resources_settings[banner_gradient_angle]"]' ).val( v );
 			$( this ).val( '' ); // 重置占位,便于再次选择
+		} );
+
+		/* —— 页面设置:Banner 背景图片上传(image 模式)—— */
+		var $biAdd     = $( '#res-banner-image-add' );
+		var $biRemove  = $( '#res-banner-image-remove' );
+		var $biId      = $( '#res-banner-image-id' );
+		var $biPreview = $( '.res-banner-image-preview' );
+
+		$biAdd.on( 'click', function ( e ) {
+			e.preventDefault();
+			if ( ! window.wp || ! wp.media ) {
+				return;
+			}
+			var frame = wp.media( {
+				title: '选择 Banner 背景图',
+				multiple: false,
+				library: { type: 'image' },
+				button: { text: '设为背景' }
+			} );
+			frame.on( 'select', function () {
+				var a = frame.state().get( 'selection' ).first().toJSON();
+				if ( ! a || ! a.id ) {
+					return;
+				}
+				$biId.val( a.id );
+				var s = a.sizes || {};
+				var url = ( s.large && s.large.url ) || ( s.medium && s.medium.url ) || a.url;
+				$biPreview.html( '<img src="' + url + '" alt="">' );
+				$biRemove.show();
+			} );
+			frame.open();
+		} );
+
+		$biRemove.on( 'click', function () {
+			$biId.val( '' );
+			$biPreview.empty();
+			$biRemove.hide();
 		} );
 	} );
 }( jQuery ) );
