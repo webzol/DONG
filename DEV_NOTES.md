@@ -1271,3 +1271,16 @@
 - **overflow:hidden 影响定位**:banner 内 __inner / 内容均为静态 / relative,不受裁剪影响;只裁 ::before 背景。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(选圆角 + 纯色 / 图片背景,看四角圆 + 图片裁圆角)。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.29(2026-07-06)· 资源导航 v1.4.3:Banner 圆角新增「跟随网站」选项
+
+### 改动(`inc/resources.php`)
+- `banner_radius` select 新增 `'site'` =>「跟随网站」选项(应用 `var(--radius-large)`),与内容卡片圆角 / 卡片圆角的「跟随网站」一致。
+- sanitize 白名单加 `'site'`;`banner_style()` 的 `$brad` 加 `'site'` 分支 → `var(--radius-large)`。
+- 保留原选项:直角(默认)/ 8 / 16 / 24 / 药丸。
+- 版本 6.0.28→6.0.29-ProMax。
+
+### 坑 / 注意
+- 「跟随网站」用 `var(--radius-large)`(tokens.css 12px),自动跟随主题圆角令牌。
+- 默认仍为直角(''),不改变现状。
+- 部署:`inc/resources.php` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

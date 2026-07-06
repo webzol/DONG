@@ -405,11 +405,12 @@ function onedong_resources_settings_init() {
 		'999' => __( '药丸', 'onedong' ),
 	) ) );
 	add_settings_field( 'banner_radius', __( 'Banner 圆角', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_radius', 'type' => 'select', 'options' => array(
-		''    => __( '直角(默认)', 'onedong' ),
-		'8'   => __( '小(8px)', 'onedong' ),
-		'16'  => __( '中(16px)', 'onedong' ),
-		'24'  => __( '大(24px)', 'onedong' ),
-		'999' => __( '药丸', 'onedong' ),
+		''     => __( '直角(默认)', 'onedong' ),
+		'site' => __( '跟随网站', 'onedong' ),
+		'8'    => __( '小(8px)', 'onedong' ),
+		'16'   => __( '中(16px)', 'onedong' ),
+		'24'   => __( '大(24px)', 'onedong' ),
+		'999'  => __( '药丸', 'onedong' ),
 	) ) );
 
 	add_settings_field( 'banner_title', __( '主标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_title', 'type' => 'text' ) );
@@ -521,7 +522,7 @@ function onedong_resources_sanitize( $in ) {
 	$bcr                       = isset( $in['banner_card_radius'] ) ? $in['banner_card_radius'] : '';
 	$out['banner_card_radius'] = in_array( $bcr, array( '', '0', '8', '16', '24', '999' ), true ) ? $bcr : '';
 	$brr                       = isset( $in['banner_radius'] ) ? $in['banner_radius'] : '';
-	$out['banner_radius']      = in_array( $brr, array( '', '0', '8', '16', '24', '999' ), true ) ? $brr : '';
+	$out['banner_radius']      = in_array( $brr, array( '', '0', '8', '16', '24', '999', 'site' ), true ) ? $brr : '';
 	$out['banner_color']       = sanitize_hex_color( isset( $in['banner_color'] ) ? $in['banner_color'] : '' ) ? : $out['banner_color'];
 	$out['banner_gradient_from'] = sanitize_hex_color( isset( $in['banner_gradient_from'] ) ? $in['banner_gradient_from'] : '' ) ? : $out['banner_gradient_from'];
 	$out['banner_gradient_to']   = sanitize_hex_color( isset( $in['banner_gradient_to'] ) ? $in['banner_gradient_to'] : '' ) ? : $out['banner_gradient_to'];
@@ -597,7 +598,11 @@ function onedong_resource_banner_style() {
 	$h   = max( 120, min( 600, (int) $o['banner_height'] ) );
 	$gap = max( 0, min( 200, (int) $o['banner_top_gap'] ) );
 	$brr  = $o['banner_radius'];
-	$brad = '' === $brr ? '0px' : ( ( '999' === $brr ) ? '999px' : ( (int) $brr ) . 'px' );
+	if ( 'site' === $brr ) {
+		$brad = 'var(--radius-large)';
+	} else {
+		$brad = '' === $brr ? '0px' : ( ( '999' === $brr ) ? '999px' : ( (int) $brr ) . 'px' );
+	}
 	$bg  = 'var(--primary)';
 	switch ( $o['banner_mode'] ) {
 		case 'solid':
