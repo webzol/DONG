@@ -1219,3 +1219,23 @@
 - **卡片圆角默认空字符串**:select 选「跟随网站」= 不输出变量,CSS `var(--res-card-radius, var(--radius-large))` 兜底到网站圆角。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(后台选圆角、gradient 流动、image 呼吸、系统开「减少动态效果」验证兜底)。
 - 部署:`inc/resources.php` + `archive-onedong_resource.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.26(2026-07-06)· 资源导航 v1.4:Banner 内容卡片(玻璃磨砂)后台可设
+
+### 背景
+- TD 用 ui-ux-pro-max skill:Banner 背景模式(纯色 / 图片 / 渐变)下新增「卡片样式」后台设置 —— 把标题 / 副标题做成可配置卡片,增强彩色 / 图片背景上的层次与可读性。
+- skill Glassmorphism 指引:`backdrop-filter blur(10-20px)` + 半透明底 + 浅 border + 文字色翻转保证 4.5:1;common rules 提醒浅模式用高透明度(bg/80+ 非 /10)。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css`)
+- **Banner 内容卡片(玻璃磨砂)**:新设置项 `banner_card`(开关,默认关)+ `banner_card_radius`(select:跟随网站 / 直角 / 8 / 16 / 24 / 药丸)+ `banner_card_padding`(select:紧凑 / 正常 / 宽松);均在「页面设置 → 顶部 Banner」section。
+- 渲染:`.resource-banner__inner` 启用时加 `--card` class + 内联 `border-radius`/`padding`;新增 `onedong_resource_banner_card_style()` 生成内联 style。
+- CSS `.resource-banner__inner--card`:`backdrop-filter:blur(12px)` + 浅模式 `rgba(255,255,255,.86)`(高透明度保对比)+ border + 阴影 + max-width 720px 居中;**文字色翻转**为 `var(--text)`(浅深 / 暗浅)+ 去 text-shadow;暗模式 `rgba(20,20,22,.72)`。
+- 版本 6.0.25→6.0.26-ProMax。
+
+### 坑 / 注意
+- **文字色翻转是关键**:卡片启用前标题 / 副标题是白色(彩色背景上);启用后卡片是浅底,白字不可见 → 翻转为 `var(--text)`(浅模式 #1D2129 深、暗模式 #F7F8FA 浅),并去掉 text-shadow(卡片上不需要)。
+- **玻璃对比度**:浅模式用 0.86 高透明度(common rules:勿用 0.1-0.3 太透)+ blur 12px;暗模式 0.72 + 浅文字,保 4.5:1。
+- **默认关**:不改变现有 Banner 外观(无卡片),后台勾选「内容卡片」启用。
+- **backdrop-filter 兼容**:加 `-webkit-` 前缀(Safari);不支持 blur 的浏览器仍显示半透明底(降级可读)。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(纯色 / 图片背景 + 开卡片、圆角 / 内边距、深浅色文字对比)。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
