@@ -1284,3 +1284,21 @@
 - 「跟随网站」用 `var(--radius-large)`(tokens.css 12px),自动跟随主题圆角令牌。
 - 默认仍为直角(''),不改变现状。
 - 部署:`inc/resources.php` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.30(2026-07-06)· 资源导航 v1.4.4:纯色背景透明度可设
+
+### 背景
+- TD:Banner「系统默认(品牌蓝)」「自定义纯色」两种纯色背景新增透明度设置。
+
+### 改动(`inc/resources.php`)
+- 新设置项 `banner_opacity`(number 0-100,默认 100 不透明),在「页面设置 → 顶部 Banner」section。
+- `banner_style()`:加 `$op`;switch 后对 `default`/`solid` 模式用 `color-mix(in srgb, {bg} {op}%, transparent)` 应用透明度(`$op<100` 才生效);`gradient`/`image` 不受影响。
+- 版本 6.0.29→6.0.30-ProMax。
+
+### 坑 / 注意
+- **color-mix 兼容**:tokens.css 已用 color-mix(站点支持);旧浏览器不识别则背景回退为不透明(降级,无害)。
+- **仅纯色模式生效**:gradient(双色渐变)/ image(图片)不加透明度;后台字段常显但 desc 注明仅纯色。
+- **透明度 + 白字对比**:纯色半透明后露出 page-bg,白字对比可能下降;建议配合「内容卡片」(文字进卡片)或保持较高透明度。
+- **默认 100**:不改变现有不透明外观。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(default/solid 调透明度,gradient/image 不变)。
+- 部署:`inc/resources.php` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

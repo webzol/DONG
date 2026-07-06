@@ -32,6 +32,7 @@ function onedong_resources_defaults() {
 		'banner_card'           => '0',
 		'banner_card_radius'    => '',
 		'banner_radius'         => '',
+		'banner_opacity'        => 100,
 		'banner_title'          => __( '资源导航', 'onedong' ),
 		'banner_subtitle'       => __( '精选优质资源,持续更新。', 'onedong' ),
 	);
@@ -412,6 +413,7 @@ function onedong_resources_settings_init() {
 		'24'   => __( '大(24px)', 'onedong' ),
 		'999'  => __( '药丸', 'onedong' ),
 	) ) );
+	add_settings_field( 'banner_opacity', __( '背景透明度(纯色)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_opacity', 'type' => 'number', 'min' => 0, 'max' => 100, 'desc' => __( '0-100,仅「系统默认 / 自定义纯色」生效;100 为不透明。', 'onedong' ) ) );
 
 	add_settings_field( 'banner_title', __( '主标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_title', 'type' => 'text' ) );
 	add_settings_field( 'banner_subtitle', __( '副标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_subtitle', 'type' => 'textarea' ) );
@@ -523,6 +525,7 @@ function onedong_resources_sanitize( $in ) {
 	$out['banner_card_radius'] = in_array( $bcr, array( '', '0', '8', '16', '24', '999' ), true ) ? $bcr : '';
 	$brr                       = isset( $in['banner_radius'] ) ? $in['banner_radius'] : '';
 	$out['banner_radius']      = in_array( $brr, array( '', '0', '8', '16', '24', '999', 'site' ), true ) ? $brr : '';
+	$out['banner_opacity']     = max( 0, min( 100, (int) ( isset( $in['banner_opacity'] ) ? $in['banner_opacity'] : 100 ) ) );
 	$out['banner_color']       = sanitize_hex_color( isset( $in['banner_color'] ) ? $in['banner_color'] : '' ) ? : $out['banner_color'];
 	$out['banner_gradient_from'] = sanitize_hex_color( isset( $in['banner_gradient_from'] ) ? $in['banner_gradient_from'] : '' ) ? : $out['banner_gradient_from'];
 	$out['banner_gradient_to']   = sanitize_hex_color( isset( $in['banner_gradient_to'] ) ? $in['banner_gradient_to'] : '' ) ? : $out['banner_gradient_to'];
@@ -603,6 +606,7 @@ function onedong_resource_banner_style() {
 	} else {
 		$brad = '' === $brr ? '0px' : ( ( '999' === $brr ) ? '999px' : ( (int) $brr ) . 'px' );
 	}
+	$op  = max( 0, min( 100, (int) $o['banner_opacity'] ) );
 	$bg  = 'var(--primary)';
 	switch ( $o['banner_mode'] ) {
 		case 'solid':
@@ -625,6 +629,9 @@ function onedong_resource_banner_style() {
 				}
 			}
 			break;
+	}
+	if ( in_array( $o['banner_mode'], array( 'default', 'solid' ), true ) && $op < 100 ) {
+		$bg = sprintf( 'color-mix(in srgb, %s %d%%, transparent)', $bg, $op );
 	}
 	return 'background:' . $bg . ';--res-h:' . $h . 'px;--res-gap:' . $gap . 'px;--res-banner-radius:' . $brad . ';';
 }
