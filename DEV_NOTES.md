@@ -1302,3 +1302,20 @@
 - **默认 100**:不改变现有不透明外观。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(default/solid 调透明度,gradient/image 不变)。
 - 部署:`inc/resources.php` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.31(2026-07-06)· 资源导航 v1.4.5:Banner 限宽对齐卡片网格
+
+### 背景
+- TD:Banner 全宽通栏(100%)与下方资源卡片网格(max-width 1280 居中)左右不对齐;要 Banner 和卡片同宽对齐。
+- skill common rule:Consistent max-width(同 max-width,勿混容器宽度)。
+
+### 改动(`assets/css/resources.css`)
+- `.resource-banner`:`width:100%` → `max-width:var(--site-width,1280px)` + `margin:var(--res-gap,0px) auto 0`(限宽居中,与 `.resources-main` 同 max-width 同居中 → 左右对齐)。
+- Banner 不再全屏通栏,变成与内容区等宽的居中块;圆角 / overflow / gap 等其他属性不变。
+- 版本 6.0.30→6.0.31-ProMax。
+
+### 坑 / 注意
+- **Banner 块 vs grid 边**:Banner 背景 = max-width 1280 边;grid 在 `.resources-main` padding(1.25rem)内 → Banner 背景比 grid 左右各宽 1.25rem(块对齐)。若要 Banner 严格 = grid 边,改 Banner max-width 为 `calc(var(--site-width) - 2.5rem)`(本期按「块对齐」,与内容区等宽)。
+- **移动端**:≤768 Banner padding 1rem = resources-main 左右 1rem,对齐。
+- ⚠️ 待部署看 Banner 与卡片左右对齐效果。
+- 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
