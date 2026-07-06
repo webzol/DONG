@@ -1176,3 +1176,23 @@
 - **卡片去下划线靠特异性**:`.resource-card a:hover`(0,2,1)压过 base.css `a:hover`(0,1,1);若将来 base.css 加 `!important` 需相应升级。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(后台选 image 模式传图、设间距、前台看卡片 hover 无下划线)。
 - 部署:`inc/resources.php` + 3 个 assets + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.24(2026-07-06)· 资源导航 v1.2:卡片风格统一 + 「访问」CTA 引导(ui-ux-pro-max)
+
+### 背景
+- TD 用 ui-ux-pro-max skill 审查 dingxudong.com/resources,要求:① 页面元素与整站风格统一(圆角/卡片质感);② 资源卡片加引导点击/跳转的标识或文字。
+- skill UX 指引:可点击元素须有 hover 反馈 + active 按压态 + cursor pointer,且不能只靠 hover(tap 也要反馈)。
+- 排查发现 `--shadow-hover` 全站只被 layout.css:280 使用、**无任何定义** → `.post-card:hover` 实际只有 translateY(-2px)、阴影为空。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css`)
+- **卡片底部加「访问 →」CTA**(`onedong_render_resource_card`):新 `.resource-card__foot`(左分类标签 + 右「访问」+ 箭头 SVG);hover 时箭头 translateX(2px) 右移 + CTA/标题/边框变 `--primary`,明确引导跳转。
+- **风格对齐 `.post-card`**:卡片 `cursor:pointer`;hover 改 `translateY(-2px)`(对齐 post-card);padding `1rem→1.25rem 1.4rem`(靠拢 post-card 1.5rem);标题 hover 变 `--primary`(对齐 `.post-card__title a:hover`);图标 40→44px。
+- **按压反馈(skill active state)**:`.resource-card:active{scale(0.99)}`、`.resource-filter:active{scale(0.96)}`(tap 也有反馈,非仅 hover)。
+- 版本 6.0.23→6.0.24-ProMax。
+
+### 坑 / 注意
+- **未补 `--shadow-hover` 全局定义**:layout.css:280 用了但未定义(post-card hover 阴影一直为空)。资源卡 hover 用局部写死阴影 `0 8px 22px rgba(27,26,49,.1)`(不污染全局);若日后要全站统一 hover 阴影,在 tokens.css 补 `--shadow-hover` 浅/暗两值即可同时惠及 post-card。
+- **CTA「访问」是纯展示文字 + 箭头**:整卡是 `<a target=_blank>`,CTA 不另开链接(避免 `<a>` 嵌套);hover 动画纯视觉引导。
+- **hover 边框变 primary**:比 post-card(仅 translateY)反馈更强,因资源卡是外链 CTA,需更强点击引导(skill 高严重度:hoverable cards need feedback)。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(卡片 hover 标题/箭头/边框、移动端 tap 反馈、深浅色)。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

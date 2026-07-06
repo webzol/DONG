@@ -641,9 +641,17 @@ function onedong_render_resource_card() {
 			<?php if ( $desc ) : ?>
 				<p class="resource-card__desc"><?php echo esc_html( $desc ); ?></p>
 			<?php endif; ?>
-			<?php if ( $cat ) : ?>
-				<span class="resource-card__cat"><?php echo esc_html( $cat->name ); ?></span>
-			<?php endif; ?>
+			<div class="resource-card__foot">
+				<?php if ( $cat ) : ?>
+					<span class="resource-card__cat"><?php echo esc_html( $cat->name ); ?></span>
+				<?php else : ?>
+					<span aria-hidden="true"></span>
+				<?php endif; ?>
+				<span class="resource-card__visit">
+					<?php esc_html_e( '访问', 'onedong' ); ?>
+					<svg class="resource-card__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</span>
+			</div>
 		</a>
 	</article>
 	<?php
