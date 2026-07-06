@@ -45,6 +45,53 @@
 	line-height: 1.6;
 }
 
+/* —— Banner 动效:渐变流动 / 图片 Ken Burns 呼吸 ——
+   skill UX:用 ease 非 linear;尊重 prefers-reduced-motion;每屏仅此一个动画 —— */
+.resource-banner[data-mode="image"] {
+	position: relative;
+}
+
+.resource-banner[data-mode="image"]::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: var(--res-bg);
+	background-size: cover;
+	background-position: center;
+	z-index: 0;
+}
+
+.resource-banner[data-mode="image"] > * {
+	position: relative;
+	z-index: 1;
+}
+
+.resource-banner[data-mode="gradient"][data-animate] {
+	background-size: 200% 200%;
+	animation: resBannerFlow 16s ease infinite;
+}
+
+.resource-banner[data-mode="image"][data-animate]::before {
+	animation: resBannerBreathe 18s ease-in-out infinite alternate;
+}
+
+@keyframes resBannerFlow {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+}
+
+@keyframes resBannerBreathe {
+	from { transform: scale(1); }
+	to { transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.resource-banner[data-mode="gradient"][data-animate],
+	.resource-banner[data-mode="image"][data-animate]::before {
+		animation: none;
+	}
+}
+
 /* —— 内容区 —— */
 .resources-main {
 	max-width: var(--site-width, 1280px);
@@ -98,7 +145,7 @@
 .resource-card {
 	background: var(--card-bg);
 	border: 1px solid var(--line);
-	border-radius: var(--radius-large);
+	border-radius: var(--res-card-radius, var(--radius-large));
 	box-shadow: var(--shadow);
 	overflow: hidden;
 	cursor: pointer;

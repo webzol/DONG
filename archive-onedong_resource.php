@@ -10,7 +10,7 @@
 get_header();
 ?>
 
-<div class="resources-page">
+<div class="resources-page"<?php echo onedong_resource_card_style_attr(); // 卡片圆角(默认空 = 跟随网站) ?>>
 	<?php onedong_resource_banner(); ?>
 
 	<div class="resources-main">

@@ -27,6 +27,8 @@ function onedong_resources_defaults() {
 		'banner_height'         => 280,
 		'banner_image'          => 0,
 		'banner_top_gap'        => 0,
+		'banner_animate'        => '1',
+		'card_radius'           => '',
 		'banner_title'          => __( '资源导航', 'onedong' ),
 		'banner_subtitle'       => __( '精选优质资源,持续更新。', 'onedong' ),
 	);
@@ -377,6 +379,7 @@ function onedong_resources_settings_init() {
 	add_settings_section( 'onedong_resources_nav_section', __( '导航', 'onedong' ), '__return_false', $page );
 	add_settings_section( 'onedong_resources_banner_section', __( '顶部 Banner', 'onedong' ), '__return_false', $page );
 	add_settings_section( 'onedong_resources_text_section', __( '文案', 'onedong' ), '__return_false', $page );
+	add_settings_section( 'onedong_resources_card_section', __( '卡片样式', 'onedong' ), '__return_false', $page );
 
 	add_settings_field( 'nav_label', __( '导航菜单名称', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_nav_section', array( 'key' => 'nav_label', 'type' => 'text', 'desc' => __( '为空则不在导航显示。', 'onedong' ) ) );
 
@@ -388,9 +391,18 @@ function onedong_resources_settings_init() {
 	add_settings_field( 'banner_gradient_angle', __( '渐变角度 / 方向', 'onedong' ), 'onedong_resources_field_angle_cb', $page, 'onedong_resources_banner_section' );
 	add_settings_field( 'banner_height', __( 'Banner 高度(px)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_height', 'type' => 'number', 'min' => 120, 'max' => 600, 'desc' => __( '移动端会自动缩小。', 'onedong' ) ) );
 	add_settings_field( 'banner_top_gap', __( '与顶部导航间距(px)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_top_gap', 'type' => 'number', 'min' => 0, 'max' => 200, 'desc' => __( 'Banner 与上方菜单的留白,0 为紧贴。', 'onedong' ) ) );
+	add_settings_field( 'banner_animate', __( '背景动效', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_animate', 'type' => 'checkbox', 'desc' => __( '渐变流动 / 图片呼吸缩放(自动尊重系统「减少动态效果」设置)。', 'onedong' ) ) );
 
 	add_settings_field( 'banner_title', __( '主标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_title', 'type' => 'text' ) );
 	add_settings_field( 'banner_subtitle', __( '副标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_subtitle', 'type' => 'textarea' ) );
+	add_settings_field( 'card_radius', __( '卡片圆角', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_card_section', array( 'key' => 'card_radius', 'type' => 'select', 'options' => array(
+		''    => __( '跟随网站(默认)', 'onedong' ),
+		'0'   => __( '直角(0px)', 'onedong' ),
+		'6'   => __( '小(6px)', 'onedong' ),
+		'12'  => __( '中(12px)', 'onedong' ),
+		'20'  => __( '大(20px)', 'onedong' ),
+		'999' => __( '药丸', 'onedong' ),
+	) ) );
 }
 add_action( 'admin_init', 'onedong_resources_settings_init' );
 
@@ -410,6 +422,14 @@ function onedong_resources_field_cb( $args ) {
 		printf( '<input type="number" name="onedong_resources_settings[%1$s]" value="%2$s"%3$s%4$s class="regular-text">', esc_attr( $key ), esc_attr( $val ), $min, $max );
 	} elseif ( 'color' === $type ) {
 		printf( '<input type="text" name="onedong_resources_settings[%1$s]" value="%2$s" class="res-color-picker" data-default-color="#3858F6">', esc_attr( $key ), esc_attr( $val ) );
+	} elseif ( 'select' === $type ) {
+		echo '<select name="onedong_resources_settings[' . esc_attr( $key ) . ']">';
+		foreach ( $args['options'] as $ov => $ol ) {
+			echo '<option value="' . esc_attr( $ov ) . '" ' . selected( (string) $val, (string) $ov, false ) . '>' . esc_html( $ol ) . '</option>';
+		}
+		echo '</select>';
+	} elseif ( 'checkbox' === $type ) {
+		printf( '<label><input type="checkbox" name="onedong_resources_settings[%1$s]" value="1" %2$s></label>', esc_attr( $key ), checked( (string) $val, '1', false ) );
 	} else {
 		printf( '<input type="text" name="onedong_resources_settings[%1$s]" value="%2$s" class="regular-text">', esc_attr( $key ), esc_attr( $val ) );
 	}
@@ -475,6 +495,9 @@ function onedong_resources_sanitize( $in ) {
 	$out['banner_mode']        = in_array( $mode, array( 'default', 'solid', 'gradient', 'image' ), true ) ? $mode : 'default';
 	$out['banner_image']       = isset( $in['banner_image'] ) ? absint( $in['banner_image'] ) : 0;
 	$out['banner_top_gap']     = max( 0, min( 200, (int) ( isset( $in['banner_top_gap'] ) ? $in['banner_top_gap'] : 0 ) ) );
+	$out['banner_animate']     = isset( $in['banner_animate'] ) ? '1' : '0';
+	$cr                        = isset( $in['card_radius'] ) ? $in['card_radius'] : '';
+	$out['card_radius']        = in_array( $cr, array( '', '0', '6', '12', '20', '999' ), true ) ? $cr : '';
 	$out['banner_color']       = sanitize_hex_color( isset( $in['banner_color'] ) ? $in['banner_color'] : '' ) ? : $out['banner_color'];
 	$out['banner_gradient_from'] = sanitize_hex_color( isset( $in['banner_gradient_from'] ) ? $in['banner_gradient_from'] : '' ) ? : $out['banner_gradient_from'];
 	$out['banner_gradient_to']   = sanitize_hex_color( isset( $in['banner_gradient_to'] ) ? $in['banner_gradient_to'] : '' ) ? : $out['banner_gradient_to'];
@@ -566,7 +589,8 @@ function onedong_resource_banner_style() {
 			if ( $iid ) {
 				$src = wp_get_attachment_image_src( $iid, 'full' );
 				if ( $src ) {
-					$bg = sprintf( 'url("%s") center/cover no-repeat', esc_url( $src[0] ) );
+					// 图片走 --res-bg 变量 + CSS ::before(支持呼吸缩放);section 底色用 primary 兜底
+					return 'background:var(--primary);--res-bg:url(' . esc_url( $src[0] ) . ');--res-h:' . $h . 'px;--res-gap:' . $gap . 'px;';
 				}
 			}
 			break;
@@ -575,9 +599,11 @@ function onedong_resource_banner_style() {
 }
 
 function onedong_resource_banner() {
-	$o = onedong_resources_opts();
+	$o       = onedong_resources_opts();
+	$mode    = $o['banner_mode'];
+	$animate = ( '1' === $o['banner_animate'] ) && in_array( $mode, array( 'gradient', 'image' ), true );
 	?>
-	<section class="resource-banner" style="<?php echo esc_attr( onedong_resource_banner_style() ); ?>">
+	<section class="resource-banner" data-mode="<?php echo esc_attr( $mode ); ?>"<?php echo $animate ? ' data-animate' : ''; ?> style="<?php echo esc_attr( onedong_resource_banner_style() ); ?>">
 		<div class="resource-banner__inner">
 			<h1 class="resource-banner__title"><?php echo esc_html( $o['banner_title'] ); ?></h1>
 			<?php if ( $o['banner_subtitle'] ) : ?>
@@ -586,6 +612,17 @@ function onedong_resource_banner() {
 		</div>
 	</section>
 	<?php
+}
+
+/** 卡片圆角 CSS 变量(供模板 .resources-page 输出;默认空 = 跟随网站 --radius-large)。 */
+function onedong_resource_card_style_attr() {
+	$o  = onedong_resources_opts();
+	$cr = $o['card_radius'];
+	if ( '' === $cr ) {
+		return '';
+	}
+	$val = ( '999' === $cr ) ? '999px' : ( (int) $cr ) . 'px';
+	return ' style="--res-card-radius:' . esc_attr( $val ) . '"';
 }
 
 function onedong_resource_filter_bar() {

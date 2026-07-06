@@ -1196,3 +1196,26 @@
 - **hover 边框变 primary**:比 post-card(仅 translateY)反馈更强,因资源卡是外链 CTA,需更强点击引导(skill 高严重度:hoverable cards need feedback)。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(卡片 hover 标题/箭头/边框、移动端 tap 反馈、深浅色)。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.25(2026-07-06)· 资源导航 v1.3:卡片圆角后台可设 + Banner 渐变流动 / 图片呼吸动效
+
+### 背景
+- TD 用 ui-ux-pro-max skill:① 资源卡片圆角后台可设(默认跟随网站 --radius-large);② Banner 渐变 / 图片模式要有流动 / 呼吸动态展示。
+- skill UX(animation 域):respect prefers-reduced-motion(高)、每屏最多 1-2 动画(高,Banner 单 hero 合规)、用 ease 非 linear(低)。
+
+### 改动(`inc/resources.php` + `archive-onedong_resource.php` + `assets/css/resources.css`)
+- **卡片圆角后台可设**:新设置项 `card_radius`(select:跟随网站 / 直角 / 6 / 12 / 20 / 药丸);新 section「卡片样式」;模板 `.resources-page` 输出 `--res-card-radius` 变量;`.resource-card{border-radius:var(--res-card-radius, var(--radius-large))}`(默认跟随网站)。
+- **Banner 渐变流动**:`[data-mode="gradient"][data-animate]` + `background-size:200%` + `resBannerFlow` 16s ease infinite(background-position 0→100→0)。
+- **Banner 图片呼吸(Ken Burns)**:image 模式改用 `--res-bg` 变量 + `::before` 伪元素 cover 显示图(替代原 section background-image,因 background-image 不能 transform);`[data-animate]::before` + `resBannerBreathe` 18s ease-in-out alternate(scale 1→1.08)。
+- **背景动效开关**:新设置项 `banner_animate`(checkbox,默认开);仅 gradient / image 模式生效;banner section 输出 `data-mode` + `data-animate` 属性。
+- **reduced-motion 兜底**:`@media (prefers-reduced-motion: reduce)` 禁用两个动画(skill 高优先级 a11y)。
+- 通用 settings 回调扩展 select / checkbox 类型。
+- 版本 6.0.24→6.0.25-ProMax。
+
+### 坑 / 注意
+- **图片改 ::before 才能呼吸**:`background-image` 无法 transform,scale 动画需伪元素;故 image 模式 section 不再直接 `background-image`,改 `--res-bg` 变量 + `::before`(z-index:0)+ 内容 z-index:1。无 `data-animate` 时 `::before` 仍静态显示图(呼吸关闭)。
+- **渐变流动靠 background-size:200%**:linear-gradient 默认 100% 无移动空间,放大到 200% + position 动画才有流动感。
+- **每屏单动画合规**:仅 Banner 一个循环动画(筛选 / 卡片 hover 是交互反馈非循环动画),符合 skill「animate 1-2 key elements」。
+- **卡片圆角默认空字符串**:select 选「跟随网站」= 不输出变量,CSS `var(--res-card-radius, var(--radius-large))` 兜底到网站圆角。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署后实测(后台选圆角、gradient 流动、image 呼吸、系统开「减少动态效果」验证兜底)。
+- 部署:`inc/resources.php` + `archive-onedong_resource.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
