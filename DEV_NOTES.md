@@ -1494,4 +1494,23 @@
 - **Banner column + 无 4 卡**:column 布局本为容纳「标题 + 4 卡」,删卡后只剩标题(column + justify-content:center 仍居中),padding 2.5rem 保留(比 v6.0.39 的 2rem 略大)。若觉空可再调。
 - ⚠️ 待部署实测:① Banner = v6.0.38 布局(1280 + padding 2.5rem)② 无 4 卡 ③ hover 白字不变。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.39→6.0.40。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.41(2026-07-07)· Banner 加宽到 1600 + 资源网格 PC 固定 4 列
+
+### 背景
+- TD:Banner 继续变宽(1280 → 1600);资源网格目前 2 个,要 4 个。
+- AskUserQuestion 定向:Banner = 1600(比 header 1280 宽,超出内容区,大 hero 感)。
+
+### 改动(`assets/css/resources.css`)
+- **Banner 加宽**:`.resource-banner` `max-width: var(--site-width, 1280px)` → `max-width: 1600px`(margin auto 居中,比 header / main 内容区 1280 宽,两侧超出)。`.resource-banner__inner` 保持 max-width site-width(1280)→ 标题区在 1600 Banner 内 1280 居中(标题不拉满,可读)。
+- **网格 4 列**:`.resource-grid` `repeat(auto-fill, minmax(240px, 1fr))` → `repeat(4, minmax(0, 1fr))`(PC 固定 4 列,不再 auto-fill)。
+- `.resources-main` 不动(仍 1280):Banner 1600 超出内容区,符合 TD 选择;网格在 main 1280 内 4 列。
+- 版本 6.0.40→6.0.41-ProMax。
+
+### 坑 / 注意
+- **Banner(1600)> main(1280)**:Banner 比下方内容区 / 网格宽,两侧超出 main,hero 突出。若要 Banner 与网格对齐,需 main 也加宽到 1600(本期不做,TD 选了 Banner 超 content)。
+- **标题限宽**:`.resource-banner__inner` max-width 1280,Banner 1600 内标题区 1280 居中(标题不拉满 1600,保持可读)。
+- **网格 PC 4 列**:`repeat(4, minmax(0,1fr))` 固定 4 列,main 1280 内每列约 300px。平板(@media 1100)仍 2 列、移动(@media 768)1 列,响应式不变。若 TD 视口在 769–1100 看到 2 列,是平板断点;要平板也 4 列需改 @media 1100(本期不改)。
+- ⚠️ 待部署实测:① Banner 1600 宽(比 header 宽)② 网格 PC 4 列 ③ 标题居中可读。
+- 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.40→6.0.41。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
