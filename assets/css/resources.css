@@ -165,10 +165,13 @@
 	display: grid;
 	gap: 1rem;
 	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	align-items: start;          /* 卡片各自自然高度:hover 展开描述只影响本卡,不撑高同行 */
 }
 
 /* —— 单卡片(对齐 .post-card:--radius-large / --shadow / --line;hover 标题变 primary)—— */
 .resource-card {
+	position: relative;          /* ::before 渐变光边定位基准 + hover 提升层级 */
+	isolation: isolate;           /* 独立 stacking context:光边 ::before 不外溢到相邻卡 */
 	background: var(--card-bg);
 	border: 1px solid var(--line);
 	border-radius: var(--res-card-radius, var(--radius-large));
@@ -176,6 +179,27 @@
 	overflow: hidden;
 	cursor: pointer;
 	transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+/* hover 主题色渐变环绕光边(conic-gradient + @property 旋转;mask 镂空仅留 1.5px 边)
+   不支持 @property 的旧浏览器:angle 不转 = 静态渐变边,仍可见(可接受降级) */
+.resource-card::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	padding: 1.5px;              /* 光边宽度 */
+	background: conic-gradient(from var(--res-angle, 0deg),
+		transparent 0%, var(--primary) 12%, transparent 30%,
+		transparent 70%, var(--primary) 88%, transparent 100%);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	        mask-composite: exclude;
+	opacity: 0;
+	transition: opacity .3s ease;
+	pointer-events: none;
+	z-index: 0;
 }
 
 .resource-card:hover {
@@ -189,6 +213,8 @@
 }
 
 .resource-card__link {
+	position: relative;           /* 内容层浮于光边 ::before 之上 */
+	z-index: 1;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -257,8 +283,11 @@
 	line-height: 1.6;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+	max-height: 3.2em;           /* ≈ 2 行,默认截断;hover 展开时 max-height 过渡到完整 */
+	transition: max-height .3s ease, color .15s ease;
 }
 
 /* 卡片底部:左分类标签 + 右「访问 →」CTA */
@@ -337,4 +366,39 @@
 	.resource-grid {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* ============================================================
+   资源卡 hover 增强:展开介绍 + 主题色渐变环绕光边(v6.0.34)
+   - 仅 hover 设备生效(@media hover:hover):触屏 :hover 会粘住,故降级为静态卡
+   - prefers-reduced-motion:光边静止(仍显示渐变),不旋转;描述无过渡
+   ============================================================ */
+@property --res-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+@keyframes resCardBorderSpin {
+	to { --res-angle: 360deg; }
+}
+
+@media (hover: hover) {
+	.resource-card:hover {
+		z-index: 2;               /* 展开的描述浮于相邻卡之上,避免被遮 */
+	}
+	.resource-card:hover::before {
+		opacity: 1;
+		animation: resCardBorderSpin 3s linear infinite;
+	}
+	.resource-card:hover .resource-card__desc {
+		-webkit-line-clamp: unset;
+		line-clamp: unset;
+		max-height: 40em;          /* 足够容纳完整介绍 */
+		color: var(--text);        /* 展开时文字加深,提示完整可读态 */
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.resource-card:hover::before { animation: none; }
+	.resource-card__desc { transition: none; }
 }

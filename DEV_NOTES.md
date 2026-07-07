@@ -1359,4 +1359,26 @@
 - **分类修复是数据兼容**:老分类(无 meta)现在自动显示;若 TD 想隐藏某分类,仍可在后台取消「启用此分类」(写 `enabled='0'`)。
 - ⚠️ 本机无 PHP,语法已人工核对;待部署实测:① 筛选栏出现其他分类 ② Banner / 卡片左右与 logo / toggle 对齐 ③ 小屏对齐。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `assets/css/layout.css`(6.0.32 sticky footer)+ `style.css` + `functions.php`;bump `ONEDONG_VERSION` 6.0.32→6.0.33 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.34(2026-07-07)· 资源卡 hover:展开介绍 + 主题色渐变环绕光边
+
+### 背景
+- TD:资源卡 hover 时 ① 把未显示完整的介绍展开 ② 卡片边框变主题色渐变环绕旋转动画。
+- ui-ux-pro-max skill 指导(ux 域,均 High):① 必须尊重 prefers-reduced-motion ② hover 在触屏失效,重要交互不要只靠 hover ③ 避免过多动画;Common Rule:hover 不用 scale 导致 layout shift。
+
+### 改动(`assets/css/resources.css`)
+- **展开介绍**:`.resource-card__desc` 加 `max-height:3.2em`(≈2 行)+ transition;hover 时 `line-clamp:unset` + `max-height:40em` + 文字加深。用 `max-height` 过渡实现平滑展开(line-clamp 本身不能 transition)。
+- **不撑高同行**:`.resource-grid` 加 `align-items:start`,卡片各自自然高度,hover 展开只动本卡。
+- **渐变环绕光边**:`.resource-card::before` 用 `conic-gradient(from var(--res-angle))` 双光弧 + `@property --res-angle` 注册 + `@keyframes resCardBorderSpin` 旋转;`mask`(content-box + exclude)镂空仅留 1.5px 边;hover `opacity 0→1` + 旋转 3s。
+- **层叠**:`.resource-card` 加 `position:relative; isolation:isolate`;`.resource-card__link` 加 `position:relative; z-index:1`(内容浮于光边之上)。
+
+### 坑 / 注意
+- **触屏降级**:整个 hover 效果包进 `@media (hover:hover)`,触屏(:hover 会粘住)降级为静态 2 行卡。原 `.resource-card:hover`(transform/shadow/border-color,无 @media)保留,触屏 tap 仍 sticky 上浮(历史行为,未动)。
+- **@property 降级**:不支持 `@property` 的旧浏览器(Chrome<85 / Safari<16.4 / FF<128)angle 不转 = 静态渐变边,仍可见无动画 —— 可接受。
+- **reduced-motion**:`.resource-card:hover::before { animation:none }`(光边静止仍显示)+ `__desc { transition:none }`。
+- **conic 双弧**:`transparent 0%→primary 12%→transparent 30%` / `70%→primary 88%→100%`,两道对称光弧绕圈;想改单弧调一处即可。
+- **max-height 40em**:em 相对 desc font-size(.88rem),≈563px,远超 `wp_trim_words(30)` 介绍,确保展开不裁剪。
+- **光边盖原 border**:hover 时光边(1.5px,opacity 1)盖原 border(1px line)上,视觉为旋转渐变;未 hover 显示原 line 边。
+- ⚠️ 本机无 PHP / 浏览器,纯 CSS 待 TD 部署后实测:① hover 描述展开 ② 光边旋转 ③ 浅 / 深主题对比 ④ 触屏不触发 ⑤ reduced-motion 静止。
+- **部署分工变更**(2026-07-07):TD 自管打包 / 部署 / CDN,Claude 只 push GitHub;本次不打包,仅 commit + push。bump `ONEDONG_VERSION` 6.0.33→6.0.34。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
