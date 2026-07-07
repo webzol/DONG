@@ -1381,4 +1381,27 @@
 - **光边盖原 border**:hover 时光边(1.5px,opacity 1)盖原 border(1px line)上,视觉为旋转渐变;未 hover 显示原 line 边。
 - ⚠️ 本机无 PHP / 浏览器,纯 CSS 待 TD 部署后实测:① hover 描述展开 ② 光边旋转 ③ 浅 / 深主题对比 ④ 触屏不触发 ⑤ reduced-motion 静止。
 - **部署分工变更**(2026-07-07):TD 自管打包 / 部署 / CDN,Claude 只 push GitHub;本次不打包,仅 commit + push。bump `ONEDONG_VERSION` 6.0.33→6.0.34。
+
+## v6.0.35(2026-07-07)· Banner 满宽重构 + 底部精选 4 卡
+
+### 背景
+- TD:Banner 宽度对齐 header 内容外框(满 1280 —— v6.0.33 内收后嫌太窄);Banner 底部新增 4 个资源卡片(按权重前 4);网格保留全部。
+- AskUserQuestion 定向:宽度=满内容区 1280 / 4 卡=按权重前 4 / 网格=照常全部。
+- ui-ux-pro-max:资源页 = Directory 模式(Hero + Categories + Featured Listings),4 卡 = Featured Listings;ux 预留尺寸防 layout shift、多断点测试。
+
+### 改动
+- **撤销 v6.0.33 内收**:`.resource-banner` / `.resources-main` 由 `width:calc(100% - clamp(...))` 改回 `max-width:var(--site-width); margin:auto`(满内容区,与 header 内容外框等宽);main padding 恢复 `1.25rem`(与 Banner padding 一致 → 网格与 4 卡左右对齐)。@768 同步撤销。
+- **Banner 结构**:`.resource-banner` display 改 `flex-direction:column` + gap,容纳「标题区 + 4 卡区」;`inc/resources.php` `onedong_resource_banner()` 末尾调 `onedong_resource_banner_cards()`。
+- **新函数 `onedong_resource_banner_cards()`**:`WP_Query` 查 4 个启用资源(按 `_onedong_resource_order` DESC + title ASC,排除 `_onedong_rescat_enabled=0` 分类),与主查询 `pre_get_posts` 同序;loop 内 `the_post()` + 复用 `onedong_render_resource_card()`(自带 hover 光边 / 上浮);`wp_reset_postdata()` 收尾。无资源则不输出。
+- **4 卡样式**:`.resource-banner__cards` grid `repeat(4, minmax(0, 1fr))`;Banner 内 `.resource-card` `text-align:left`(覆盖 Banner center);desc `line-clamp:1`(紧凑)+ hover 不展开(避免撑高 Banner 抖动)。
+- **响应式**:1100–769 4 卡 → 2×2;≤768 4 卡 → 2×2。
+
+### 坑 / 注意
+- **撤销 v6.0.33**:本期把 v6.0.33 的「内收到 logo/toggle content 边」改回「满内容区 1280」。两版方向相反 —— v6.0.33 贴 header 内容边(窄),v6.0.35 满 header 外框(宽)。日后若再调,先确认 TD 要哪个方向。
+- **4 卡 = 主查询前 4**:Banner `WP_Query` 参数与 `pre_get_posts` 完全一致(同排序、同 `enabled='1'`、同排除禁用分类),保证 Banner 4 卡 = 网格前 4 张。改排序逻辑要两处同步。
+- **Banner 内卡不展开**:网格卡 hover 展开介绍(v6.0.34),但 Banner 内卡 hover 不展开(否则撑高 Banner 整体抖动),只保留光边 / 上浮。`.resource-banner__cards .resource-card:hover .resource-card__desc` 覆盖回 `clamp:1`。
+- **图片模式层叠**:`.resource-banner[data-mode="image"] > * { z-index:1 }`,`__cards` 是直接子,在图片 `::before` 之上,白卡叠图可读。✓
+- **Banner 高度**:`min-height` 280 仍是下限,标题 + 4 卡内容撑高到约 450px,正常。
+- ⚠️ 本机无 PHP,语法已人工核对(`WP_Query` + `the_post()` + `wp_reset_postdata()` 标准用法);待 TD 部署实测:① Banner 满 1280 宽 ② 底部 4 卡横排(权重前 4)③ 网格仍全部 ④ 平板 / 移动 2×2 ⑤ 浅 / 深主题 + 各 banner 背景模式(纯色 / 渐变 / 图片)下 4 卡可读。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.34→6.0.35。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

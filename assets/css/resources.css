@@ -11,16 +11,16 @@
 
 /* —— 顶部 Banner(纯颜色,无图片)—— */
 .resource-banner {
-	width: calc(100% - clamp(2rem, 8vw, 4rem));       /* 左右内收 = 2×header padding,与 logo 最左 / 切换按钮最右对齐 */
-	max-width: calc(var(--site-width, 1280px) - clamp(2rem, 8vw, 4rem));
+	max-width: var(--site-width, 1280px);       /* 满内容区 1280(撤销 v6.0.33 内收),与 header 内容外框等宽 */
 	margin: var(--res-gap, 0px) auto 0;
 	min-height: var(--res-h, 280px);
 	border-radius: var(--res-banner-radius, 0px);
 	overflow: hidden;
 	display: flex;
-	align-items: center;
+	flex-direction: column;                      /* 纵向:标题区 + 底部精选 4 卡 */
 	justify-content: center;
-	padding: 2rem 1.25rem;
+	gap: 1.75rem;
+	padding: 2.5rem 1.25rem;
 	color: #fff;
 	text-align: center;
 	box-sizing: border-box;
@@ -119,10 +119,9 @@
 
 /* —— 内容区 —— */
 .resources-main {
-	width: calc(100% - clamp(2rem, 8vw, 4rem));       /* 与 Banner 同列,左右贴 header 内容边 */
-	max-width: calc(var(--site-width, 1280px) - clamp(2rem, 8vw, 4rem));
+	max-width: var(--site-width, 1280px);       /* 满内容区,与 Banner 等宽对齐 */
 	margin: 0 auto;
-	padding: 2rem 0 4rem;                              /* 水平内收归零:筛选栏 / 卡片网格贴 header 内容边对齐 */
+	padding: 2rem 1.25rem 4rem;                 /* 水平 1.25rem 与 Banner padding 一致 → 网格与 Banner 4 卡左右对齐 */
 }
 
 /* —— 分类筛选栏 —— */
@@ -347,20 +346,23 @@
 	.resource-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
+	.resource-banner__cards {
+		grid-template-columns: repeat(2, 1fr);          /* 平板 4 卡 → 2×2 */
+	}
 }
 
 @media (max-width: 768px) {
 	.resource-banner {
-		width: calc(100% - 2rem);                       /* 小屏 header padding 固定 1rem ×2 */
-		max-width: none;
 		min-height: calc(var(--res-h, 280px) * 0.6);
-		padding: 1.5rem 1rem;                           /* Banner 内部 padding(标题内收),不影响色块外对齐 */
+		padding: 1.5rem 1rem;
 	}
 
 	.resources-main {
-		width: calc(100% - 2rem);
-		max-width: none;
-		padding: 1.5rem 0 3rem;                         /* 水平归零,贴 header 边 */
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	.resource-banner__cards {
+		grid-template-columns: repeat(2, 1fr);          /* 移动端 4 卡 → 2×2 */
 	}
 
 	.resource-grid {
@@ -401,4 +403,30 @@
 @media (prefers-reduced-motion: reduce) {
 	.resource-card:hover::before { animation: none; }
 	.resource-card__desc { transition: none; }
+}
+
+/* ============================================================
+   Banner 底部精选 4 卡(v6.0.35):复用 .resource-card,横排按权重前 4
+   ============================================================ */
+.resource-banner__cards {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1rem;
+	width: 100%;
+}
+.resource-banner__cards .resource-card {
+	text-align: left;            /* 覆盖 Banner 的 text-align:center,卡片内容左对齐 */
+}
+.resource-banner__cards .resource-card__desc {
+	-webkit-line-clamp: 1;       /* Banner 内卡紧凑:介绍只 1 行 */
+	line-clamp: 1;
+	max-height: 1.6em;
+}
+@media (hover: hover) {
+	.resource-banner__cards .resource-card:hover .resource-card__desc {
+		-webkit-line-clamp: 1;   /* Banner 内卡 hover 不展开,避免撑高 Banner 抖动 */
+		line-clamp: 1;
+		max-height: 1.6em;
+		color: var(--text-muted);
+	}
 }
