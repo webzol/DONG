@@ -1588,3 +1588,21 @@
 - ⚠️ 待部署实测:首页 logo / 导航 / toggle 与三栏(左作者卡 / 中文章 / 右侧栏)逐栏对齐。
 - 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.44→6.0.45。**务必刷首页 HTML CDN(全站目录 `/`)**。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.46(2026-07-07)· 移动端 ≤768 logo 与栏目左边对齐(修三层 padding 叠加)
+
+### 背景
+- TD:首页 logo 左边对齐下面栏目左边;导航对齐中间栏左边。
+
+### 改动
+- `assets/css/layout.css` 768px 断点:
+  - `.site-header__inner` 横向 padding `1rem` → `0.75rem`(对齐 `.site-main`)。
+  - `.site-content--three-col` 加 `padding: 0`(去掉自身 clamp ~1.9rem,改吃主区 0.75rem)。
+- 移动端三层 padding 收敛成 0.75rem 基准线:logo 左 == 文章卡/作者卡左 == site-main 左。
+- 版本 6.0.45→6.0.46-ProMax。
+
+### 坑 / 注意
+- **只动了移动端(≤768)**:桌面 grid 三栏本就共线(v6.0.45 已确认 logo/nav/toggle 逐栏对齐 site-content),未改桌面 CSS。
+- **导航对齐中间栏 = CDN 嫌疑**:v6.0.45 已查明「首页没对齐」是首页 HTML 缓存旧 CSS(ver 戳旧版),grid 代码本就对齐。本次 TD 再提导航对齐,桌面端代码无需改,大概率仍是 CDN 未刷 → 刷腾讯云 CDN(全站目录 `/`)+ 浏览器硬刷新即可。
+- **移动端三层 padding 叠加**(本次修):≤768 时 `.site-main`(0.75rem)是 `.site-content--three-col` 父级,后者自身又带 clamp padding,叠加后内容比 header(1rem)偏右 ~1.7rem。修法:统一 0.75rem,去掉 content 自身 padding。
+- 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.45→6.0.46。刷腾讯云 CDN(CSS + 首页 HTML)+ 浏览器硬刷新。

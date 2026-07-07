@@ -1801,7 +1801,7 @@ html.js [data-reveal].is-revealed {
   .site-header__inner {
     grid-template-columns: 1fr auto;
     column-gap: 1rem;
-    padding: 0 1rem;
+    padding: 0 0.75rem; /* 与 .site-main 移动端横向 padding 对齐,使 logo 左边与下方栏目左边共线 */
   }
   /* 汉堡菜单:移动端显示按钮,nav 为左侧滑出抽屉,点开 .is-open 滑入 */
   .mobile-menu-toggle {
@@ -1867,6 +1867,7 @@ html.js [data-reveal].is-revealed {
   .site-content--three-col {
     margin-top: 1rem;
     gap: 1rem;
+    padding: 0; /* 移动端去掉自身 clamp padding,改由 .site-main 的 0.75rem 统一留白,与顶栏 logo 左边对齐 */
   }
 
   /* 动态卡片适配 */
