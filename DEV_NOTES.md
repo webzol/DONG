@@ -1476,4 +1476,22 @@
 - v6.0.38(加 4 卡)被本次覆盖;历史 DEV_NOTES 保留。
 - ⚠️ 待部署实测:① Banner 1280 宽 ② 无 4 卡 ③ 分类 hover 白字。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.38→6.0.39。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.40(2026-07-07)· 精准移除 Banner 4 卡(保留 v6.0.38 的 Banner 布局)
+
+### 背景
+- TD:v6.0.39 用 `git checkout 2858da8` 删 4 卡时,连带把 Banner 布局从 `column`(padding 2.5rem)改成了 `align-items:center`(padding 2rem)——「其他也变了」。TD 要:**只删 4 卡**,Banner 宽度 / 布局 / hover 全部保持 v6.0.38 不变。
+
+### 改动
+- `git checkout e84e65f -- onedong/inc/resources.php onedong/assets/css/resources.css` 先恢复 v6.0.38(1280 + column + padding 2.5rem + 4 卡 + hover 白字)。
+- 再**只删 4 卡**,Banner `.resource-banner`(column / padding 2.5rem / gap / 1280)原样保留:
+  - `inc/resources.php`:删 `onedong_resource_banner()` 内的 `onedong_resource_banner_cards()` 调用 + 删 `onedong_resource_banner_cards()` 函数整体。
+  - `assets/css/resources.css`:删 `.resource-banner__cards` 主样式块 + 1100 / 768 响应式中的 cards 规则。
+- 版本 6.0.39→6.0.40-ProMax。
+
+### 坑 / 注意
+- **与 v6.0.39 的区别**:v6.0.39 连 Banner 布局一起改了(column → align-items center,padding 2.5 → 2rem);v6.0.40 只删 4 卡,Banner 保持 v6.0.38 的 column + padding 2.5rem。
+- **Banner column + 无 4 卡**:column 布局本为容纳「标题 + 4 卡」,删卡后只剩标题(column + justify-content:center 仍居中),padding 2.5rem 保留(比 v6.0.39 的 2rem 略大)。若觉空可再调。
+- ⚠️ 待部署实测:① Banner = v6.0.38 布局(1280 + padding 2.5rem)② 无 4 卡 ③ hover 白字不变。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.39→6.0.40。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
