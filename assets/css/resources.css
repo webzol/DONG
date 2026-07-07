@@ -165,7 +165,7 @@
 	display: grid;
 	gap: 1rem;
 	grid-template-columns: repeat(4, minmax(0, 1fr));   /* PC 固定 4 列(v6.0.41) */
-	align-items: start;          /* 卡片各自自然高度:hover 展开描述只影响本卡,不撑高同行 */
+	align-items: stretch;        /* v6.0.42:卡片默认等高(同行高度一致);hover 展开描述时整行随之变高 */
 }
 
 /* —— 单卡片(对齐 .post-card:--radius-large / --shadow / --line;hover 标题变 primary)—— */

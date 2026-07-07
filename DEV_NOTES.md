@@ -1513,4 +1513,21 @@
 - **网格 PC 4 列**:`repeat(4, minmax(0,1fr))` 固定 4 列,main 1280 内每列约 300px。平板(@media 1100)仍 2 列、移动(@media 768)1 列,响应式不变。若 TD 视口在 769–1100 看到 2 列,是平板断点;要平板也 4 列需改 @media 1100(本期不改)。
 - ⚠️ 待部署实测:① Banner 1600 宽(比 header 宽)② 网格 PC 4 列 ③ 标题居中可读。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.40→6.0.41。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.42(2026-07-07)· 资源卡片默认等高 + 确认 hover 展开介绍
+
+### 背景
+- TD:资源卡片默认大小保持一致(等高);名称下介绍文字 hover 时展示完整。
+- ui-ux-pro-max 指导:hover 触屏不工作(High,渐进增强即可)、hover 要有视觉反馈(Medium)。
+
+### 改动(`assets/css/resources.css`)
+- **卡片等高**:`.resource-grid` `align-items: start`(v6.0.34 不等高,避免 hover 撑高同行)→ `align-items: stretch`(同行卡片高度一致,默认等高)。
+- **hover 展开介绍**:沿用 v6.0.34 实现(`.resource-card__desc` 默认 `line-clamp:2 + max-height:3.2em`,hover `line-clamp:unset + max-height:40em` + 文字加深;`.resource-card:hover{z-index:2}` 提升层级)。已存在,未改。
+
+### 坑 / 注意
+- **等高 + hover 展开的 trade-off**:stretch 等高下,hover 一卡展开描述会撑高整行(同行 4 卡 stretch 到展开卡高度,未展开的卡底部留白)。这是「默认等高」的必然代价 —— v6.0.34 用 start 不等高来避免撑高,但卡片不齐;v6.0.42 要等高,恢复撑高。若 TD 嫌 hover 撑高同行抖动,可改回 start(不等高)或用浮出方案(absolute,复杂)。
+- **触屏**:hover 展开仅 `@media (hover:hover)`,触屏看 2 行截断(渐进增强,卡片可点击访问,desc 非关键)。
+- **reduced-motion**:desc transition 已在 reduced-motion 下禁用。
+- ⚠️ 待部署实测:① 卡片默认等高 ② hover 展开完整介绍 ③ hover 撑高同行是否可接受。
+- 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.41→6.0.42。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
