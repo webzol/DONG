@@ -180,9 +180,19 @@
 .theme-toggle[data-pref="dark"] .theme-toggle__moon { display: inline-flex; align-items: center; justify-content: center; }
 
 /* ============================================================
-   主区域容器
+   主区域容器 + Sticky Footer
+   body 弹性纵列布局:#main 占满剩余高度,页脚始终贴视口底部。
+   内容不足一屏(资源页 / 空归档 / 404)时,避免页脚信息栏悬空留白。
+   长页面(文章流)不受影响:内容溢出后 #main 自然撑高,页脚跟在后面。
    ============================================================ */
+body {
+  min-height: 100vh;
+  min-height: 100dvh; /* 移动端动态视口高度,避免地址栏收起时空白 */
+  display: flex;
+  flex-direction: column;
+}
 .site-main {
+  flex: 1 0 auto;     /* 占满 header 与 footer 之间的剩余空间 */
   max-width: var(--site-width);
   margin: 0 auto;
   padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
@@ -1217,6 +1227,7 @@ article.page {
 
 /* —— 页脚 —— */
 .site-footer {
+  flex-shrink: 0;     /* sticky footer:页脚不被压缩,始终贴底 */
   margin-top: 3rem;
   border-top: 1px solid var(--line);
   background: var(--titlebar-bg);

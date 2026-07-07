@@ -1318,4 +1318,23 @@
 - **Banner 块 vs grid 边**:Banner 背景 = max-width 1280 边;grid 在 `.resources-main` padding(1.25rem)内 → Banner 背景比 grid 左右各宽 1.25rem(块对齐)。若要 Banner 严格 = grid 边,改 Banner max-width 为 `calc(var(--site-width) - 2.5rem)`(本期按「块对齐」,与内容区等宽)。
 - **移动端**:≤768 Banner padding 1rem = resources-main 左右 1rem,对齐。
 - ⚠️ 待部署看 Banner 与卡片左右对齐效果。
+
+## v6.0.32(2026-07-07)· 全站 Sticky Footer:短页面页脚贴视口底部
+
+### 背景
+- TD:资源页 `/resources` 内容少(一个 Banner + 一个卡片 + 空提示)撑不满一屏,Copyright / ICP 底部信息栏(`.site-info`)悬在半空,下方留大片空白;要求「底部信息栏到最底部」。
+
+### 改动(`assets/css/layout.css`)
+- `body`:加 `min-height:100vh`( + `100dvh` 移动端动态视口 fallback)+ `display:flex; flex-direction:column`,整页变弹性纵列。
+- `.site-main`:加 `flex:1 0 auto`,占满 header 与 footer 之间的剩余高度。
+- `.site-footer`:加 `flex-shrink:0`,确保页脚不被压缩、始终贴底。
+- 版本 6.0.31→6.0.32-ProMax(`style.css` Version + `functions.php` `ONEDONG_VERSION` 同步)。
+
+### 坑 / 注意
+- **全局生效,不止资源页**:所有短页面(空归档 / 404 / 搜索无结果)页脚都贴底,符合普遍期望;长页面(文章流 / 文章详情)内容溢出后 `#main` 自然撑高,页脚跟在后面,**不受影响**。
+- **flex 不破坏 sticky header**:`.site-header` 是 flex item + `position:sticky`,sticky 在 flex 容器内仍正常工作。
+- **body 直接子项**:`.skip-link`(absolute)、`.nav-overlay`(PC `display:none` / 移动端 fixed)均脱离流,不占 flex 空间;`.footer-widgets` 条件渲染,作为普通 flex item 紧跟 `#main` 之后。
+- **`margin-top:3rem` 保留**:页脚上方留白照旧,参与 flex 布局计算。
+- 本机无 PHP,纯 CSS 改动无需运行时验证;待部署看短页面页脚是否贴底。
+- 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
