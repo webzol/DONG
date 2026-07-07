@@ -574,12 +574,18 @@ add_action( 'pre_get_posts', 'onedong_resource_pre_get_posts' );
  * 8. 前台渲染辅助:Banner / 筛选栏 / 卡片
  * ============================================================ */
 
-/** 取「启用 + 按权重升序」的分类(先查再 usort,get_terms 不支持 orderby term meta)。 */
+/** 取「启用(默认启用,仅排除显式禁用)+ 按权重升序」的分类(先查再 usort,get_terms 不支持 orderby term meta)。
+ *  与后台语义一致:资源 / 分类「不是 '0' 即启用」。老分类未设 _onedong_rescat_enabled meta 同样视为启用,
+ *  修复「筛选栏只有『全部』、其他分类不显示」(此前严格匹配 enabled='1' 漏掉未设 meta 的分类)。 */
 function onedong_resource_get_cats() {
 	$cats = get_terms( array(
 		'taxonomy'   => 'onedong_resource_cat',
 		'hide_empty' => false,
-		'meta_query' => array( array( 'key' => '_onedong_rescat_enabled', 'value' => '1', 'compare' => '=' ) ),
+		'meta_query' => array(
+			'relation' => 'OR',
+			array( 'key' => '_onedong_rescat_enabled', 'value' => '0', 'compare' => '!=' ),
+			array( 'key' => '_onedong_rescat_enabled', 'compare' => 'NOT EXISTS' ),
+		),
 	) );
 	if ( is_wp_error( $cats ) || empty( $cats ) ) {
 		return array();

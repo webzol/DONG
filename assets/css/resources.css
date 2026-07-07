@@ -11,7 +11,8 @@
 
 /* —— 顶部 Banner(纯颜色,无图片)—— */
 .resource-banner {
-	max-width: var(--site-width, 1280px);
+	width: calc(100% - clamp(2rem, 8vw, 4rem));       /* 左右内收 = 2×header padding,与 logo 最左 / 切换按钮最右对齐 */
+	max-width: calc(var(--site-width, 1280px) - clamp(2rem, 8vw, 4rem));
 	margin: var(--res-gap, 0px) auto 0;
 	min-height: var(--res-h, 280px);
 	border-radius: var(--res-banner-radius, 0px);
@@ -118,9 +119,10 @@
 
 /* —— 内容区 —— */
 .resources-main {
-	max-width: var(--site-width, 1280px);
+	width: calc(100% - clamp(2rem, 8vw, 4rem));       /* 与 Banner 同列,左右贴 header 内容边 */
+	max-width: calc(var(--site-width, 1280px) - clamp(2rem, 8vw, 4rem));
 	margin: 0 auto;
-	padding: 2rem 1.25rem 4rem;
+	padding: 2rem 0 4rem;                              /* 水平内收归零:筛选栏 / 卡片网格贴 header 内容边对齐 */
 }
 
 /* —— 分类筛选栏 —— */
@@ -320,12 +322,16 @@
 
 @media (max-width: 768px) {
 	.resource-banner {
+		width: calc(100% - 2rem);                       /* 小屏 header padding 固定 1rem ×2 */
+		max-width: none;
 		min-height: calc(var(--res-h, 280px) * 0.6);
-		padding: 1.5rem 1rem;
+		padding: 1.5rem 1rem;                           /* Banner 内部 padding(标题内收),不影响色块外对齐 */
 	}
 
 	.resources-main {
-		padding: 1.5rem 1rem 3rem;
+		width: calc(100% - 2rem);
+		max-width: none;
+		padding: 1.5rem 0 3rem;                         /* 水平归零,贴 header 边 */
 	}
 
 	.resource-grid {

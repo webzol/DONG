@@ -1337,4 +1337,26 @@
 - **`margin-top:3rem` 保留**:页脚上方留白照旧,参与 flex 布局计算。
 - 本机无 PHP,纯 CSS 改动无需运行时验证;待部署看短页面页脚是否贴底。
 - 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
+
+## v6.0.33(2026-07-07)· 资源页对齐 header + 修筛选栏分类缺失
+
+### 背景
+- TD:资源页 Banner / 筛选栏 / 卡片网格左右要与顶部 header(logo 最左、深浅色切换按钮最右)对齐;且筛选栏目前只有「全部」,其他分类不显示。
+
+### 改动一:对齐(`assets/css/resources.css`)
+- `.resource-banner` / `.resources-main`:由 `max-width:site-width + margin:auto` 改为 `width:calc(100% - clamp(2rem,8vw,4rem)) + max-width:calc(site-width - clamp(2rem,8vw,4rem)) + margin:auto`。`clamp(2rem,8vw,4rem)` = 2 × header `.site-header__inner` 的 `padding:clamp(1rem,4vw,2rem)`,使色块 / 内容区左右边 = header 内容边(logo 左 / toggle 右),大中小屏全对齐。
+- `.resources-main` 水平 padding `1.25rem → 0`:筛选栏 / 卡片网格贴 header 内容边,不再二次内收。
+- `@768`:`.site-header__inner` 小屏 padding 固定 1rem(layout.css)→ Banner / main 覆盖 `width:calc(100% - 2rem); max-width:none`,水平 padding 归零。
+
+### 改动二:筛选栏分类缺失(`inc/resources.php`)
+- `onedong_resource_get_cats()` 的 `meta_query` 由「严格匹配 `_onedong_rescat_enabled='1'`」改为「排除显式禁用」(`'!=' '0'` OR `NOT EXISTS`)。
+- 根因:后台全用「不是 '0' 即启用」语义(资源勾选 L153 / 分类勾选 L288 / 状态列 L330 / 新建默认 checked L269),但前台取数却要求严格 `='1'`,漏掉未设 meta 的老 / 导入分类 → 筛选栏只剩硬编码「全部」。改后语义统一,显式禁用的分类仍不显示。
+
+### 坑 / 注意
+- **对齐用 width + max-width 双约束**:大屏 max-width 生效(= site-width - 2pad 居中),中小屏 width 生效(= vw - 2pad)。单一 max-width 在小屏失效(满屏不对齐),单一 width 在大屏会超 site-width。
+- **Banner 内部 padding 保留**:色块边缘由 width 决定,内部 padding(标题内收)不影响外对齐。
+- **clamp 倍数关系**:`clamp(2rem,8vw,4rem)` 必须严格 = 2 × `clamp(1rem,4vw,2rem)`,否则与 header 错位;日后改 header padding 时记得同步本处。
+- **分类修复是数据兼容**:老分类(无 meta)现在自动显示;若 TD 想隐藏某分类,仍可在后台取消「启用此分类」(写 `enabled='0'`)。
+- ⚠️ 本机无 PHP,语法已人工核对;待部署实测:① 筛选栏出现其他分类 ② Banner / 卡片左右与 logo / toggle 对齐 ③ 小屏对齐。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `assets/css/layout.css`(6.0.32 sticky footer)+ `style.css` + `functions.php`;bump `ONEDONG_VERSION` 6.0.32→6.0.33 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
