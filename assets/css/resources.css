@@ -119,9 +119,9 @@
 
 /* —— 内容区 —— */
 .resources-main {
-	max-width: var(--site-width, 1280px);       /* 满内容区,与 Banner 等宽对齐 */
+	max-width: var(--site-width, 1280px);       /* 满内容区 */
 	margin: 0 auto;
-	padding: 2rem 1.25rem 4rem;                 /* 水平 1.25rem 与 Banner padding 一致 → 网格与 Banner 4 卡左右对齐 */
+	padding: 2rem clamp(1rem, 4vw, 2rem) 4rem;  /* v6.0.43:水平 padding 用 clamp,与 .site-header__inner / footer / site-content 一致 → header logo/toggle 与内容区左右对齐 */
 }
 
 /* —— 分类筛选栏 —— */

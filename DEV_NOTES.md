@@ -1530,4 +1530,22 @@
 - **reduced-motion**:desc transition 已在 reduced-motion 下禁用。
 - ⚠️ 待部署实测:① 卡片默认等高 ② hover 展开完整介绍 ③ hover 撑高同行是否可接受。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.41→6.0.42。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.43(2026-07-07)· resources-main 水平 padding 统一 clamp,header 与内容区对齐
+
+### 背景
+- TD:header 的 logo 对齐内容区 / 底部最左,nav 对齐中间栏左,toggle 对齐右栏右。
+- 诊断:`.site-header__inner` / `.site-footer__inner` / `.site-content--three-col` 都用 `padding: clamp(1rem,4vw,2rem)` + grid 16/1fr/16(三栏页 header 与 site-content 完全一致,本就对齐)。**唯独资源页 `.resources-main` 水平 padding 是固定 `1.25rem`**,与 header 的 clamp 不一致(大屏 header 2rem vs main 1.25rem,差 0.75rem)→ 资源页 header 的 logo/toggle 不贴 main 左 / 右。
+
+### 改动(`assets/css/resources.css`)
+- `.resources-main` 水平 padding `1.25rem` → `clamp(1rem, 4vw, 2rem)`,与 `.site-header__inner` / footer / site-content 一致 → 资源页 header logo(第一列左 = content 左)贴 main 左,toggle(第三列右 = content 右)贴 main 右。
+- nav 在 header 第二列(`justify-self:start`,贴中栏左):三栏页(首页 / 文章)与 site-content 中栏对齐(已对齐);资源页单栏,nav 在 logo 右 16rem + gap 处(三栏布局固定位置)。
+- 版本 6.0.42→6.0.43-ProMax。
+
+### 坑 / 注意
+- **三栏页(首页 / 文章)无需改**:header__inner 与 site-content--three-col 都是 clamp + 16/1fr/16 + 1.5rem gap,本就对齐(logo 左栏 / nav 中栏 / toggle 右栏)。
+- **资源页单栏**:无中栏 / 右栏概念,nav 在 header 第二列(三栏位置),toggle 贴 content 右。改 main padding 后 logo/toggle 贴 main 左 / 右。
+- **Banner(1600)不受影响**:Banner 独立宽 + 独立 padding,不与 main 对齐(Banner 比 main 宽,v6.0.41 TD 选择)。
+- ⚠️ 待部署实测:资源页 header logo/toggle 与 main 网格左右对齐。
+- 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.42→6.0.43。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
