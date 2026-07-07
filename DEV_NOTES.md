@@ -1404,4 +1404,19 @@
 - **Banner 高度**:`min-height` 280 仍是下限,标题 + 4 卡内容撑高到约 450px,正常。
 - ⚠️ 本机无 PHP,语法已人工核对(`WP_Query` + `the_post()` + `wp_reset_postdata()` 标准用法);待 TD 部署实测:① Banner 满 1280 宽 ② 底部 4 卡横排(权重前 4)③ 网格仍全部 ④ 平板 / 移动 2×2 ⑤ 浅 / 深主题 + 各 banner 背景模式(纯色 / 渐变 / 图片)下 4 卡可读。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.34→6.0.35。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.36(2026-07-07)· 移除 Banner 底部精选 4 卡
+
+### 背景
+- TD:去掉 Banner 里面的资源卡片展示(v6.0.35 加的 4 卡)。
+
+### 改动
+- `inc/resources.php`:`onedong_resource_banner()` 移除 `onedong_resource_banner_cards()` 调用;删除 `onedong_resource_banner_cards()` 函数整体(死代码清理)。
+- `assets/css/resources.css`:`.resource-banner` display 由 `flex-direction:column`(为容纳 4 卡)恢复 `align-items:center; justify-content:center`(单标题居中),padding `2.5rem→2rem`;删除 `.resource-banner__cards` 样式块 + 1100 / 768 响应式中的 cards 规则。
+- **保留**:Banner / main 满内容区 1280(v6.0.35 撤销内收的成果不变);网格卡 hover 展开 + 渐变光边(v6.0.34)。
+- 版本 6.0.35→6.0.36-ProMax。
+
+### 坑 / 注意
+- Banner 回到纯标题英雄区(满宽 1280 居中),无卡片。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.35→6.0.36。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
