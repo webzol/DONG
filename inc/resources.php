@@ -655,8 +655,46 @@ function onedong_resource_banner() {
 				<p class="resource-banner__subtitle"><?php echo wp_kses_post( $o['banner_subtitle'] ); ?></p>
 			<?php endif; ?>
 		</div>
+		<?php onedong_resource_banner_cards(); ?>
 	</section>
 	<?php
+}
+
+/** Banner 底部精选 4 卡:按权重前 4 的启用资源(排除禁用分类),与主查询同序;复用 onedong_render_resource_card。 */
+function onedong_resource_banner_cards() {
+	$disabled = get_terms( array(
+		'taxonomy'   => 'onedong_resource_cat',
+		'hide_empty' => false,
+		'fields'     => 'ids',
+		'meta_query' => array( array( 'key' => '_onedong_rescat_enabled', 'value' => '0', 'compare' => '=' ) ),
+	) );
+	$args = array(
+		'post_type'      => 'onedong_resource',
+		'posts_per_page' => 4,
+		'meta_key'       => '_onedong_resource_order',
+		'orderby'        => array( 'meta_value_num' => 'DESC', 'title' => 'ASC' ),
+		'meta_query'     => array( array( 'key' => '_onedong_resource_enabled', 'value' => '1', 'compare' => '=' ) ),
+	);
+	if ( ! is_wp_error( $disabled ) && ! empty( $disabled ) ) {
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'onedong_resource_cat',
+				'terms'    => $disabled,
+				'operator' => 'NOT IN',
+			),
+		);
+	}
+	$q = new WP_Query( $args );
+	if ( ! $q->have_posts() ) {
+		return;
+	}
+	echo '<div class="resource-banner__cards" data-res-banner-cards>';
+	while ( $q->have_posts() ) :
+		$q->the_post();
+		onedong_render_resource_card();
+	endwhile;
+	wp_reset_postdata();
+	echo '</div>';
 }
 
 /** 内容卡片的圆角 + 内边距内联 style。 */

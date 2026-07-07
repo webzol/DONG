@@ -1440,4 +1440,23 @@
 - ⚠️ 本机无浏览器,满屏 margin trick + overflow-x clip 待部署实测:① Banner 占满屏宽 ② 无横向滚动条 ③ 顶栏仍 sticky 吸顶 ④ 分类 hover 白字 ⑤ 移动端满屏正常。
 - **线上 functions.php 漏传**:戳仍 6.0.34,浏览器缓存旧窄版 —— 部署本次务必连同 `functions.php` 一起传(戳变 6.0.37,缓存失效)。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`(务必);bump 6.0.36→6.0.37。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.38(2026-07-07)· Banner 回到 site-header 宽度(1280)+ 恢复底部 4 卡
+
+### 背景
+- TD:满屏(100vw,v6.0.37)太宽 → Banner 参考 `.site-header__inner` 宽度(`max-width: var(--site-width)` 1280 居中,不占满屏);底部再加回 4 个资源卡横排。
+- 即回到 v6.0.35 的布局(满宽 1280 + 4 卡),保留 v6.0.37 的分类 hover 白字。
+
+### 改动
+- `git checkout afdce87 -- onedong/inc/resources.php onedong/assets/css/resources.css` 恢复 v6.0.35 的两文件:Banner `max-width:var(--site-width) + margin:auto`(= `.site-header__inner` 宽度,1280 居中)+ `onedong_resource_banner_cards()` + `.resource-banner__cards`(4 卡横排,column 布局)。
+- 保留 `.resource-filter:hover` 白字(v6.0.37 加的,afdce87 没有,手动补回)。
+- 撤销 v6.0.37 的满屏(`width:100vw` / margin trick)与 `body{overflow-x:clip}`(1280 不满屏,无需防横向滚动)。
+- 版本 6.0.37→6.0.38-ProMax。
+
+### 坑 / 注意
+- **状态 ≈ v6.0.35 + hover 白字**:Banner 1280 居中(= header inner 宽度)+ 底部 4 卡 + 分类 hover 白字。
+- **Banner vs header inner 宽度**:两者都 `max-width:var(--site-width)` + `margin:auto`,外框宽一致(1280)。Banner padding 1.25rem、inner padding clamp,视觉左右外框对齐。
+- v6.0.36(删 4 卡)/ v6.0.37(满屏)被本次覆盖;历史 DEV_NOTES 保留。
+- ⚠️ 待部署实测:① Banner = header 宽度(1280,不占满屏)② 底部 4 卡横排 ③ 分类 hover 白字 ④ 平板 / 移动 2×2。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.37→6.0.38。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
