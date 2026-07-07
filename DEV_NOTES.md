@@ -1459,4 +1459,21 @@
 - v6.0.36(删 4 卡)/ v6.0.37(满屏)被本次覆盖;历史 DEV_NOTES 保留。
 - ⚠️ 待部署实测:① Banner = header 宽度(1280,不占满屏)② 底部 4 卡横排 ③ 分类 hover 白字 ④ 平板 / 移动 2×2。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.37→6.0.38。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.39(2026-07-07)· 移除 Banner 底部 4 卡(保留 1280 宽度 + hover 白字)
+
+### 背景
+- TD:去掉 Banner 底部精选 4 卡(按权重前 4);Banner 宽度保持 1280(header 宽度)+ 分类 hover 白字不变。
+
+### 改动
+- `git checkout 2858da8 -- onedong/inc/resources.php onedong/assets/css/resources.css` 恢复 v6.0.36 的两文件:删除 `onedong_resource_banner_cards()` 函数及调用、`.resource-banner__cards` 样式与响应式;`.resource-banner` 恢复 `align-items:center` 单标题居中(padding 2rem)。
+- **保留** v6.0.37/38 的:Banner 1280 宽度(`max-width:var(--site-width)`,= header 宽度,非满屏)、`.resource-filter:hover` 白字(2858da8 是 primary,手动补回白字)。
+- 版本 6.0.38→6.0.39-ProMax。
+
+### 坑 / 注意
+- **状态 = v6.0.36 + hover 白字**:Banner 1280 居中 + 单标题 + 分类 hover 白字,无 4 卡。
+- **Banner 宽度策略最终落点**:1280(`.site-header__inner` 宽度),非满屏(v6.0.37 满屏已撤销)。
+- v6.0.38(加 4 卡)被本次覆盖;历史 DEV_NOTES 保留。
+- ⚠️ 待部署实测:① Banner 1280 宽 ② 无 4 卡 ③ 分类 hover 白字。
+- 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.38→6.0.39。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

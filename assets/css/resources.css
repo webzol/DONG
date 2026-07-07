@@ -11,16 +11,15 @@
 
 /* —— 顶部 Banner(纯颜色,无图片)—— */
 .resource-banner {
-	max-width: var(--site-width, 1280px);       /* 满内容区 1280(撤销 v6.0.33 内收),与 header 内容外框等宽 */
+	max-width: var(--site-width, 1280px);       /* 满内容区 1280,与 header 内容外框等宽 */
 	margin: var(--res-gap, 0px) auto 0;
 	min-height: var(--res-h, 280px);
 	border-radius: var(--res-banner-radius, 0px);
 	overflow: hidden;
 	display: flex;
-	flex-direction: column;                      /* 纵向:标题区 + 底部精选 4 卡 */
+	align-items: center;                         /* 单标题居中(v6.0.35 的 4 卡已移除,column 布局不再需要) */
 	justify-content: center;
-	gap: 1.75rem;
-	padding: 2.5rem 1.25rem;
+	padding: 2rem 1.25rem;
 	color: #fff;
 	text-align: center;
 	box-sizing: border-box;
@@ -347,9 +346,6 @@
 	.resource-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
-	.resource-banner__cards {
-		grid-template-columns: repeat(2, 1fr);          /* 平板 4 卡 → 2×2 */
-	}
 }
 
 @media (max-width: 768px) {
@@ -360,10 +356,6 @@
 
 	.resources-main {
 		padding: 1.5rem 1rem 3rem;
-	}
-
-	.resource-banner__cards {
-		grid-template-columns: repeat(2, 1fr);          /* 移动端 4 卡 → 2×2 */
 	}
 
 	.resource-grid {
@@ -404,30 +396,4 @@
 @media (prefers-reduced-motion: reduce) {
 	.resource-card:hover::before { animation: none; }
 	.resource-card__desc { transition: none; }
-}
-
-/* ============================================================
-   Banner 底部精选 4 卡(v6.0.35):复用 .resource-card,横排按权重前 4
-   ============================================================ */
-.resource-banner__cards {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 1rem;
-	width: 100%;
-}
-.resource-banner__cards .resource-card {
-	text-align: left;            /* 覆盖 Banner 的 text-align:center,卡片内容左对齐 */
-}
-.resource-banner__cards .resource-card__desc {
-	-webkit-line-clamp: 1;       /* Banner 内卡紧凑:介绍只 1 行 */
-	line-clamp: 1;
-	max-height: 1.6em;
-}
-@media (hover: hover) {
-	.resource-banner__cards .resource-card:hover .resource-card__desc {
-		-webkit-line-clamp: 1;   /* Banner 内卡 hover 不展开,避免撑高 Banner 抖动 */
-		line-clamp: 1;
-		max-height: 1.6em;
-		color: var(--text-muted);
-	}
 }
