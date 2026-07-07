@@ -1419,4 +1419,25 @@
 ### 坑 / 注意
 - Banner 回到纯标题英雄区(满宽 1280 居中),无卡片。
 - 部署:`inc/resources.php` + `assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.35→6.0.36。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.37(2026-07-07)· Banner 满屏全宽 + 分类按钮 hover 白字
+
+### 背景
+- TD:满宽 1280 大屏两侧留白仍嫌窄 → Banner 改**满屏全宽(100vw)**;筛选分类按钮 hover 文字变白。
+- 线上诊断(本机直连核对):服务器 `resources.css` / `style.css` 已是 6.0.36 满宽 1280,但 `functions.php` 漏传(戳仍 6.0.34)→ 浏览器缓存旧窄版。
+
+### 改动(`assets/css/resources.css`)
+- **Banner 满屏**:`.resource-banner` 由 `max-width:site-width + margin:auto` 改 `width:100vw + max-width:100vw + margin-left/right:calc(50% - 50vw)`(突破 #main 限宽到视口左右缘)。标题仍由 `.resource-banner__inner`(max-width site-width)限宽居中。
+- **防横向滚动**:加 `body { overflow-x: clip }`(100vw 含滚动条宽度会溢出;clip 裁掉超出 viewport 部分,且 clip 不创建 scroll container,不影响 `.site-header` 的 sticky)。
+- **分类 hover 白字**:`.resource-filter:hover` 由 `color:var(--primary)` 改 `background:var(--primary) + border-color:var(--primary) + color:#fff`(primary 底白字,与 `.is-active` 视觉一致)。
+- 版本 6.0.36→6.0.37-ProMax。
+
+### 坑 / 注意
+- **满屏 margin trick**:`calc(50% - 50vw)` 中 `50%` 相对 Banner 包含块(`.resources-page` = #main content 宽)。#main 必须 margin auto 居中,公式才成立(v6.0.32 sticky footer 给了 #main flex + margin auto,满足)。
+- **overflow-x clip vs hidden**:用 clip 不用 hidden —— hidden 创建 scroll container 会破坏 `.site-header` position:sticky(顶栏不再吸顶);clip 不影响 sticky。clip 需较新浏览器(Chrome 90+ / Safari 16+ / FF 81+,2020 年后)。
+- **Banner 圆角**:满屏 + 后台 banner_radius 圆角时四角露 page-bg(漂浮感);要贴边无圆角,后台设直角。
+- **hover = active 视觉**:`.resource-filter:hover` 与 `.is-active` 都是 primary 底白字,悬停即高亮成主题色块。
+- ⚠️ 本机无浏览器,满屏 margin trick + overflow-x clip 待部署实测:① Banner 占满屏宽 ② 无横向滚动条 ③ 顶栏仍 sticky 吸顶 ④ 分类 hover 白字 ⑤ 移动端满屏正常。
+- **线上 functions.php 漏传**:戳仍 6.0.34,浏览器缓存旧窄版 —— 部署本次务必连同 `functions.php` 一起传(戳变 6.0.37,缓存失效)。
+- 部署:`assets/css/resources.css` + `style.css` + `functions.php`(务必);bump 6.0.36→6.0.37。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
