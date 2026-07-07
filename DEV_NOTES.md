@@ -1548,4 +1548,25 @@
 - **Banner(1600)不受影响**:Banner 独立宽 + 独立 padding,不与 main 对齐(Banner 比 main 宽,v6.0.41 TD 选择)。
 - ⚠️ 待部署实测:资源页 header logo/toggle 与 main 网格左右对齐。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump 6.0.42→6.0.43。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.44(2026-07-07)· header 改 flex 布局(参考 inkspire):logo+导航靠左、toggle 靠右
+
+### 背景
+- TD:OneDong header 参考 inkspire(169.html)的对齐方式 —— logo+导航靠左、深浅色 toggle 靠右(flex)。
+- 169.html 是 inkspire 主题(不同主题),其 header:`.header-inner` flex space-between,`.header-left`(logo + 导航 gap 48px)靠左、`.header-right`(toggle + 订阅)靠右。
+- AskUserQuestion 定向:布局改 flex(logo+导航靠左、toggle 靠右),替代 OneDong 原 grid 三栏。
+
+### 改动(`assets/css/layout.css`)
+- `.site-header__inner`:`display: grid + grid-template-columns: 16rem/1fr/16rem + column-gap` → `display: flex + align-items:center + gap:1.5rem`。3 个子(`.site-brand` logo / `.primary-nav` 导航 / `.header-controls` toggle)flex 排列。
+- `.header-controls`:加 `margin-left: auto`(推到右侧)→ logo + 导航靠左(gap 1.5rem),toggle 靠右。与 inkspire `.header-left` / `.header-right` space-between 效果一致。
+- 不改 `header.php`(3 子结构用 CSS flex 即可);不改 padding(仍 clamp,响应式);不照搬 inkspire 的渐变 logo / 订阅按钮(OneDong 用图片 logo,无订阅)。
+- 版本 6.0.43→6.0.44-ProMax。
+
+### 坑 / 注意
+- **放弃三栏对应**:原 grid 三栏(logo 16rem 对齐左作者卡 / nav 中栏 / toggle 16rem 对齐右侧栏)改为 flex 后,header 不再和 site-content 三栏逐栏对齐。TD 选了 flex(参考 inkspire),接受此变化。
+- **logo+导航靠左**:flex gap 1.5rem,logo 和导航紧邻(inkspire gap 48px ≈ 3rem,这里用 1.5rem 协调 OneDong 间距)。
+- **≤1180 已是 flex**:`@media 1180` 的 `.site-header__inner{display:flex}` 之前就有(汉堡菜单),本次 PC(>1180)也改 flex,全屏一致 flex。
+- **padding 仍 clamp**:logo 贴 clamp 左(= 内容区左),toggle 贴 clamp 右(= 内容区右),与 resources-main / site-content / footer 对齐。
+- ⚠️ 待部署实测:① logo+导航靠左 ② toggle 靠右 ③ 各页 header 一致 ④ 移动端汉堡正常。
+- 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.43→6.0.44。Claude 只 push GitHub,部署 TD 自管。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。

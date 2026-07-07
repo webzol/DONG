@@ -52,10 +52,9 @@
   min-height: var(--topbar-height);
   margin: 0 auto;
   padding: 0 clamp(1rem, 4vw, 2rem);
-  display: grid;
-  grid-template-columns: 16rem minmax(0, 1fr) 16rem;
+  display: flex;                /* v6.0.44:参考 inkspire 改 flex(原 grid 三栏):logo+导航靠左、toggle 靠右 */
   align-items: center;
-  column-gap: 1.5rem;
+  gap: 1.5rem;                  /* logo 与导航间距(inkspire 48px) */
 }
 .site-brand {
   display: flex;
@@ -126,7 +125,8 @@
 .header-controls {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* v6.0.20:贴 header 第三列右边缘,与下方右侧栏右边缘垂直对齐 */
+  justify-content: flex-end;
+  margin-left: auto;           /* v6.0.44:推到右侧(logo+导航靠左,参考 inkspire space-between) */
   gap: 0.5rem;
 }
 
