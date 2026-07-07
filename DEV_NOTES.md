@@ -1569,4 +1569,22 @@
 - **padding 仍 clamp**:logo 贴 clamp 左(= 内容区左),toggle 贴 clamp 右(= 内容区右),与 resources-main / site-content / footer 对齐。
 - ⚠️ 待部署实测:① logo+导航靠左 ② toggle 靠右 ③ 各页 header 一致 ④ 移动端汉堡正常。
 - 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.43→6.0.44。Claude 只 push GitHub,部署 TD 自管。
+
+## v6.0.45(2026-07-07)· header 回到 grid 三栏(撤销 v6.0.44 flex):三栏对齐
+
+### 背景
+- TD:首页 logo 对齐左栏左、导航对齐中栏左、太阳对齐右栏右 —— 即**三栏对齐**(header 与 site-content 三栏逐栏对齐)。
+- v6.0.44 改 flex(logo+导航靠左、toggle 靠右)不是三栏对齐,撤销回 grid 三栏。
+
+### 改动
+- `git checkout 1150e60 -- onedong/assets/css/layout.css` 恢复 v6.0.43 的 layout.css:`.site-header__inner` grid `16rem/1fr/16rem` + clamp padding;`.header-controls` `justify-content:flex-end`(无 margin-left auto)。
+- grid 三栏 == `.site-content--three-col`(`16rem/1fr/16rem` + clamp + 1.5rem gap):logo 第一列(`justify-self:start`,贴左栏左)、nav 第二列(贴中栏左)、toggle 第三列(`flex-end`,贴右栏右)。三栏逐栏对齐。
+- 版本 6.0.44→6.0.45-ProMax。
+
+### 坑 / 注意
+- **三栏对齐 = grid**:header grid 三栏与 site-content 三栏完全一致(max-width site-width + clamp padding + 16/1fr/16 + 1.5rem gap),logo / nav / toggle 逐栏对齐左栏 / 中栏 / 右栏。v6.0.44 flex 不满足(logo+nav 挤左)。
+- **之前「首页没对齐」是 CDN**:首页 HTML 之前缓存 6.0.4(ver 戳 6.0.4),加载旧 CSS。grid 代码本就对齐,刷首页 HTML CDN(ver 变 6.0.45)即对齐。
+- **资源页单栏**:header grid 三栏 vs resources-main 单栏(无中栏),nav 在第二列(logo 右 16rem)。资源页 logo/toggle 贴 main 左/右(v6.0.43 resources-main clamp),nav 在 16rem 处。
+- ⚠️ 待部署实测:首页 logo / 导航 / toggle 与三栏(左作者卡 / 中文章 / 右侧栏)逐栏对齐。
+- 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.44→6.0.45。**务必刷首页 HTML CDN(全站目录 `/`)**。
 - 部署:`assets/css/resources.css` + `style.css` + `functions.php`;bump `ONEDONG_VERSION` 刷 `?ver=`;刷腾讯云 CDN + 浏览器硬刷新。
