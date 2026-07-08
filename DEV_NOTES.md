@@ -1654,3 +1654,20 @@
 - 治本 = 裁掉透明像素的方案 A:已生成 `dingxd_logo_trimmed.png`(2055×445,存 TD 桌面),TD 重传后可将 `margin-left` 归 0 且 logo 填满 38px 更清晰;本次 TD 未采用。
 - `ONEDONG_VERSION` 与 `style.css` 版本号此前长期不同步(6.0.46 vs 6.0.47),本次拉平到 6.0.48,后续 bump 记得两处一起。
 - 部署后强刷 + 清腾讯云 CDN(CSS 与首页/单篇 HTML),否则读旧缓存(v6.0.45 的「以为没对齐」即缓存所致)。
+
+## v6.0.49(2026-07-08)· 导航对齐目标改为「文章头像左缘」(非卡外框)
+
+### 背景
+- v6.0.48 把导航文字对到文章卡**外框左缘**(=中列左缘)后,TD 仍觉未对齐。经带图确认:TD 要的是导航「首页」对齐每篇文章**头像的左缘**(卡内容左起点),不是卡外框。
+
+### 改动
+- `assets/css/layout.css` `.primary-nav` `margin-left` **-0.75rem → +0.75rem**:
+  - 头像左缘 = `.post-card` padding-left `1.5rem`(24px,已核 `.post-card__header`/`__avatar-wrap` 无额外左偏)。
+  - nav 盒 `justify-self:start` 在中列左缘;首链接文字 = 盒左 + margin-left + 链接 padding-left(0.75rem)。
+  - 令 `margin-left + 0.75rem = 1.5rem` → `margin-left = 0.75rem` → 首链接文字落在中列左缘 + 1.5rem = 头像左缘。
+- `style.css` 6.0.48→6.0.49;`functions.php` `ONEDONG_VERSION` 6.0.48→6.0.49。
+- ≤1180 / ≤768 的 `margin-left:0` 复位保持不变(平板 flex / 移动抽屉)。
+
+### 坑 / 注记
+- **单篇页(169.html)对齐不同**:`single.php` 的 `article.post` padding = `clamp(1.5rem,4vw,3rem)`(桌面达 48px)且**无头像**,故其正文(面包屑)左缘 ≈48px,比首页头像(24px)更靠右。本次导航按首页头像(24px)对齐 → 单篇页导航会比面包屑偏左 24px。若要单篇也共线,需把 `article.post` padding 收成固定 `1.5rem`(TD 未定,暂留首页优先)。
+- 对齐目标口径:列表页(home/archive/search)= 头像左缘;导航按此。数值绑定 `.post-card` 的 `1.5rem` padding,若改卡片 padding 需同步 nav margin。
