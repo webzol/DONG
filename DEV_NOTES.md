@@ -1606,3 +1606,51 @@
 - **导航对齐中间栏 = CDN 嫌疑**:v6.0.45 已查明「首页没对齐」是首页 HTML 缓存旧 CSS(ver 戳旧版),grid 代码本就对齐。本次 TD 再提导航对齐,桌面端代码无需改,大概率仍是 CDN 未刷 → 刷腾讯云 CDN(全站目录 `/`)+ 浏览器硬刷新即可。
 - **移动端三层 padding 叠加**(本次修):≤768 时 `.site-main`(0.75rem)是 `.site-content--three-col` 父级,后者自身又带 clamp padding,叠加后内容比 header(1rem)偏右 ~1.7rem。修法:统一 0.75rem,去掉 content 自身 padding。
 - 部署:`assets/css/layout.css` + `style.css` + `functions.php`;bump 6.0.45→6.0.46。刷腾讯云 CDN(CSS + 首页 HTML)+ 浏览器硬刷新。
+
+## v6.0.47(2026-07-08)· logo 与左侧作者卡左边对齐(桌面端,改 CSS 不换图)
+
+### 背景
+- TD:首页 logo 最左边要和左侧作者卡最左边对齐;顺带导航↔中文章流、主题按钮↔右侧栏右边也要对齐。
+
+### 排查(关键结论,勿重走弯路)
+- 顶栏 `.site-header__inner` 与内容区 `.site-content--three-col` 的 grid 配置**逐字一致**(`16rem 1fr 16rem` + 同 padding `clamp(1rem,4vw,2rem)` + gap 1.5rem),左右缘**本就共线**。
+- 故**导航↔文章流、主题按钮↔右栏右边本就对齐**,无需动。
+- logo 偏移**唯一根因 = logo 图自带透明左留白**:`cropped-logo.png` 原图 1721×458,左边 128px 全透明(7.4%);顶栏等比缩放后留白 ≈ 11px → logo 可见内容比其容器(=作者卡左缘)缩进 11px。**图的问题,非布局问题。**
+- 像素测量坑:卡片 `--shadow` 仅 rgb 1% 透明、边框 `--line:#F2F3F5` 极浅(sum≈730),常规阈值测不到卡真实左缘,易误判偏移 40+px;需用深色文字/图标边缘作锚。
+
+### 改动(用户选「改代码不换图」)
+- `assets/css/layout.css` `.site-brand img`:`max-height:38; height:auto` → `height:38px`(固定显示高度,任意 logo 锁此尺寸、宽按比例自适应)+ `margin-left:-11px`(抵消当前 logo 透明留白,可见左边与作者卡共线)。
+- `style.css`:版本号 6.0.46→6.0.47(刷 CSS 缓存)。
+- commit `4b27577`,push main。
+
+### 坑 / 注记
+- `margin-left:-11px` 按**当前 logo 图**留白算(128/1721 × 38/458 ≈ 11px);换不同留白的 logo 需重测微调。
+- 治本方案 = 裁掉 logo 图透明边(Pillow `getbbox()` 已生成 `logo-trimmed.png` 1478×377,用户未采用)。
+- 部署后需强刷(Ctrl+F5)+ 清腾讯云 CDN(全站目录 `/`),否则旧 CSS 缓存。
+
+## v6.0.48(2026-07-08)· 三栏对齐修正:logo 换图后重测留白 + 导航文字对齐(非仅盒对齐)
+
+### 背景
+- TD:首页 logo 对齐左侧作者卡左缘、导航菜单对齐中间文章流左缘、主题按钮对齐右栏右缘;所有三栏布局页(含单篇 169.html)统一此对齐。
+
+### 排查(两个独立根因,勿再当成一个)
+1. **logo 又偏 = 换过图,旧 -11px 失配**:v6.0.47 的 `-11px` 是按当时 logo(1721×458)算的。现线上 logo 已换成 `cropped-dingxd_logo_transparent-scaled-1.png` **2559×681**,Pillow `getbbox()` 实测不透明区 bbox=(269,112,2324,557) → 透明左留白在 38px 显示高度下 ≈**15px**(右13/上6.3/下6.9)。旧 -11px 欠补 ~4px,logo 右偏。
+2. **导航「文字」从未对齐,只是「盒」对齐**:v6.0.45/47 笔记认定「导航↔文章流本就对齐,无需动」——**只对到 nav 盒左缘**(`justify-self:start` = 中列左缘)。但 `.primary-nav a` 有 `padding-left:0.75rem`,首个链接**文字**比中列左缘(=文章卡外框左缘=「文章流左侧」)内缩 12px。TD 要的是文字对齐,非盒对齐。
+
+### 改动(TD 选方案 B:只改 CSS 不换图)
+- `assets/css/layout.css`:
+  - `.site-brand img` `margin-left` **-11px → -15px**(匹配当前 2559×681 logo 的 15px 透明左留白)。
+  - `.primary-nav` 加 `margin-left:-0.75rem`(负边距抵消首链接 padding-left,使菜单文字左缘 = 中列左缘 = 文章卡外框左缘)。
+  - `@media(max-width:1180px)` 加 `.primary-nav{margin-left:0}`(顶栏转 flex + 左栏隐藏,复位)。
+  - `@media(max-width:768px)` `.primary-nav` 加 `margin-left:0`(fixed 抽屉复位,否则被推出屏幕左缘)。
+- `style.css` 6.0.47→6.0.48;`functions.php` `ONEDONG_VERSION` **6.0.46→6.0.48**(此前停在 6.0.46,比 style.css 还旧;资源 `?ver=` 用的是它,不 bump 则 CSS 缓存不刷)。
+- 主题按钮(小太阳):`.header-controls justify-content:flex-end` 已贴右列右缘,标尺仅差 ~1px(边框/亚像素),**未动**。
+
+### 覆盖范围
+- 顶栏是全站唯一 `header.php`,故三处对齐**全站生效**。三栏页(`home/archive/search/single/archive-onedong_moment/single-onedong_moment` 均用 `.site-content--three-col`,与顶栏 grid 逐字一致)自动共用同一基线。**169.html = single.php 三栏**,已覆盖。
+
+### 坑 / 注记
+- `-15px` 仍按**当前 logo** 留白算,**换 logo 必重测**(`from PIL import Image; Image.open(f).getbbox()` → 透明边×(38/图高))。这是方案 B 的固有脆弱点。
+- 治本 = 裁掉透明像素的方案 A:已生成 `dingxd_logo_trimmed.png`(2055×445,存 TD 桌面),TD 重传后可将 `margin-left` 归 0 且 logo 填满 38px 更清晰;本次 TD 未采用。
+- `ONEDONG_VERSION` 与 `style.css` 版本号此前长期不同步(6.0.46 vs 6.0.47),本次拉平到 6.0.48,后续 bump 记得两处一起。
+- 部署后强刷 + 清腾讯云 CDN(CSS 与首页/单篇 HTML),否则读旧缓存(v6.0.45 的「以为没对齐」即缓存所致)。
