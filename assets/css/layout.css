@@ -70,7 +70,7 @@
 [data-theme="dark"] .site-brand--has-dark .site-logo--dark { display: inline-block; }
 .site-brand img { height: 38px; width: auto; max-width: 180px; margin-left: -15px; }   /* 固定显示高度 38px + 抵消当前 logo PNG 的透明左留白(Pillow getbbox 实测 @38h ≈15px,原 -11px 欠补致 logo 右偏 ~4px)使 logo 可见左缘与左侧作者卡左缘共线。⚠ 换 logo 须重测此值 · v6.0.48 */
 @media (max-width: 768px) {
-  .site-brand img { max-height: 32px; max-width: 150px; }
+  .site-brand img { max-height: 32px; max-width: 150px; margin-left: 0; }  /* reset 桌面 -15px 透明留白补偿:移动 header padding 仅 0.75rem,-15px 会把 logo 推出左屏 3px · v6.0.57 */
 }
 .site-title {
   margin: 0;

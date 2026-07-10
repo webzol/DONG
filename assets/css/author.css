@@ -6,7 +6,7 @@
  * ============================================================ */
 
 .author-page {
-	max-width: 1000px;
+	max-width: var(--site-width);   /* 1000 → site-width(1280):两边对齐顶栏 logo / 小太阳(同 .site-header__inner / .resources-main:border-box max-width=site-width + clamp padding + auto 居中 → content 左右缘 = logo/toggle 缘)· v6.0.57 */
 	margin: 2rem auto 0;
 	padding: 0 clamp(1rem, 4vw, 2rem) 4rem;
 }
