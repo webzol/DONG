@@ -1671,3 +1671,22 @@
 ### 坑 / 注记
 - **单篇页(169.html)对齐不同**:`single.php` 的 `article.post` padding = `clamp(1.5rem,4vw,3rem)`(桌面达 48px)且**无头像**,故其正文(面包屑)左缘 ≈48px,比首页头像(24px)更靠右。本次导航按首页头像(24px)对齐 → 单篇页导航会比面包屑偏左 24px。若要单篇也共线,需把 `article.post` padding 收成固定 `1.5rem`(TD 未定,暂留首页优先)。
 - 对齐目标口径:列表页(home/archive/search)= 头像左缘;导航按此。数值绑定 `.post-card` 的 `1.5rem` padding,若改卡片 padding 需同步 nav margin。
+
+## v6.0.52(2026-07-10)· 导航文字回到「中列左缘」对齐 + 合并 50/51 未提交改动
+
+### 背景
+- v6.0.49 曾把导航对到**文章头像左缘**(中列左缘 + 1.5rem)。本轮 TD 明确要求:中间导航菜单**文字**对齐中间文章流的**左边缘**(= 中列左缘,文章卡外框左缘),不再 + 1.5rem 内缩。
+- 工作区另有 50/51 阶段未提交、未记日志的改动,本次一并归入 6.0.52 提交。
+
+### 改动
+- `assets/css/layout.css` `.primary-nav` `margin-left` **0.25rem → 0**,配合已有 `@media (min-width:769px) .primary-nav li:first-child > a { padding-left:0 }`:首菜单文字精确落在中列左缘。
+  - 依据:`.site-header__inner` 与 `.site-content--three-col` 两个 grid 列定义完全一致(`16rem / minmax(0,1fr) / 16rem`,gap 1.5rem,同 max-width 同 padding),故中列左缘 x 在页头与内容区同位;nav 盒 `justify-self:start` 贴中列左缘,首链接 padding-left 归零 → 文字贴左缘 = 文章卡外框左缘。
+- 合并入本版的 50/51 未提交改动:
+  - `.sidebar-left,.content-main,.sidebar` 顶对齐(原写 `.sidebar-right` 从未命中,右栏真实 class 是 `.sidebar`)。
+  - `.article-card` padding `1.5rem` → `1.25rem 1.5rem 1.5rem`,顶部与左右栏 `.widget` 首行共线。
+- `style.css` / `functions.php` `ONEDONG_VERSION` 6.0.49 → 6.0.52。
+
+### 坑 / 注记
+- **对齐口径又变了**:v6.0.48 = 卡外框(中列左缘)→ v6.0.49 = 头像左缘(+1.5rem)→ v6.0.52 = 回到卡外框/中列左缘。若 TD 后续反复,直接确认「要不要 +1.5rem 内缩到头像」这一个问题即可。
+- 数值不再绑定 `.post-card` padding(归零后与卡内 padding 解耦),改卡片 padding 不影响导航对齐。
+- 单篇页(`article.post` padding `clamp(1.5rem,4vw,3rem)`)仍比首页更内缩,导航按列表页(中列左缘)对齐,单篇页面包屑会偏右 —— 与 v6.0.49 注记同源,未处理。

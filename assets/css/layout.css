@@ -91,7 +91,8 @@
 }
 
 /* —— 主导航(suxing:灰色文字、悬浮淡背景、当前项 primary)—— */
-.primary-nav { display: flex; align-items: center; gap: 0.2rem; justify-self: start; margin-left: 0.75rem; }  /* 首链接文字落在 中列左缘 + 1.5rem = 文章卡头像左缘(卡 padding 1.5rem)。0.75rem 边距 + 0.75rem 链接 padding-left = 1.5rem · v6.0.49(v6.0.48 曾对齐卡外框,TD 要对齐头像列) */
+.primary-nav { display: flex; align-items: center; gap: 0.2rem; justify-self: start; margin-left: 0; }
+/* 首个菜单文字精确落在中列左缘 = 文章流卡片左边框(header/内容区 grid 列定义一致,故中列左缘 x 同位)。配合下方首链接 padding-left:0 · v6.0.50 */
 .primary-nav ul {
   list-style: none;
   margin: 0;
@@ -110,6 +111,9 @@
   font-size: 0.9rem;
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
+}
+@media (min-width: 769px) {
+  .primary-nav li:first-child > a { padding-left: 0; }
 }
 .primary-nav a:hover {
   background: var(--btn-hover);
@@ -211,10 +215,10 @@ body {
   padding: 0 clamp(1rem, 4vw, 2rem); /* 与 site-header__inner 对齐 */
 }
 
-/* 确保侧边栏和主内容顶部对齐 */
+/* 确保侧边栏和主内容顶部对齐(右栏真实 class 为 .sidebar,原 .sidebar-right 从未命中) */
 .sidebar-left,
 .content-main,
-.sidebar-right {
+.sidebar {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
@@ -279,7 +283,7 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-large);
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem 1.5rem; /* 顶 1.25rem 对齐左右栏 .widget,首行内容三栏共线 · 首页三栏顶对齐 */
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
