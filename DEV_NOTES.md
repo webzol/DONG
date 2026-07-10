@@ -1708,3 +1708,20 @@
 - **未动的点及原因**:① 顶栏毛玻璃(`--titlebar-bg` + `backdrop-filter`)系主题特色,静止态近白、滚动半透,与设计图纯白无实质冲突,保留;② 设计图「渐变圆图标 + 品牌名」判为占位示意,主题已支持后台上传 logo + 暗色 logo(`functions.php:847`),无需代码改;③ 移动端汉堡抽屉(`layout.css:1804+`)未动。
 - 两处微调属「更极简」取向,可能略弱化 suxing 悬浮淡背景的整体语言;若 TD 观感不合,回退这两行即可(无连锁依赖)。
 - 本地无 PHP 环境(见 dev-environment 记忆),未本地跑;由 TD 线上/测试环境浏览器验证桌面 hover 与 toggle 外观,并确认移动端无回归。
+
+## v6.0.54(2026-07-10)· 极淡蓝灰渐变背景
+
+### 背景
+- TD 要求「背景改为 suxing.me 的背景风格」。调研 suxing `reset.css`:页面背景是纯色 `--bg-body: #F7F8FA`,**无渐变背景**(它的 `--gradient-red/orange` 是按钮/标签强调色,非页面背景)。OneDong `--page-bg` 已 = #F7F8FA(v2.0 suxing 还原),背景色本就一致。
+- TD 进一步想要「渐变色背景」。suxing 无渐变背景可抄,故基于 suxing 灰+蓝配色基调**自设计**一个极淡蓝灰渐变。
+
+### 改动
+- `assets/css/tokens.css`:新增 `--page-bg-2`(浅 `#E8EDF5` / 暗 `#0a0b16`),作渐变终点色。`--page-bg` 不动(其他引用处仍纯色)。
+- `assets/css/base.css` `body`:`background: var(--page-bg)` → `linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2, var(--page-bg)) 100%) fixed`。`fixed` 钉视口,防长页面渐变被拉伸稀释。
+- `style.css` / `functions.php` `ONEDONG_VERSION` 6.0.53 → 6.0.54。
+
+### 坑 / 注记
+- **不是抄 suxing**:suxing 页面纯色无渐变;此渐变为 OneDong 自设计,色值落在 suxing 灰阶+蓝基调内。
+- **`background-attachment: fixed` 移动端**:iOS Safari 历史有渲染问题(渐变可能不显示或跟随滚动);现代版本(15+)基本正常。若反馈异常,降级:小屏改 `scroll` 或回退纯色 `--page-bg`。
+- **主题切换过渡**:原 `transition: background-color` 不作用于 `background-image`(渐变),切深浅色时背景硬切(非平滑过渡)。影响小,未处理。
+- 强度/方向易调:改 `--page-bg-2` 色值调强弱,改 `linear-gradient` 方向或换 `radial-gradient`。TD 部署后看实际效果再定。

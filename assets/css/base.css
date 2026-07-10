@@ -13,7 +13,7 @@ html { min-height: 100%; font-size: 16px; }
 body {
   min-height: 100%;
   margin: 0;
-  background: var(--page-bg);
+  background: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2, var(--page-bg)) 100%) fixed;   /* 极淡蓝灰渐变背景,钉视口防长页拉伸(suxing 灰+蓝基调自设计,suxing 无渐变背景)· v6.0.54 */
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 1rem;

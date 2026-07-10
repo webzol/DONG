@@ -21,6 +21,7 @@
 
   /* —— 浅色调色板(suxing :root)—— */
   --page-bg: #F7F8FA;       /* gray-1 / bg-body */
+  --page-bg-2: #E8EDF5;     /* 页面渐变终点:略沉带蓝(suxing 灰+蓝基调内自设计,suxing 无渐变背景)· v6.0.54 */
   --card-bg: #ffffff;       /* card-bg */
   --text: #1D2129;          /* gray-8 / color-body */
   --text-muted: #4E5969;    /* gray-6 / color-muted */
@@ -104,6 +105,7 @@
   --primary-strong: #6b87ff;
 
   --page-bg: #0f0f11;        /* gray-8 */
+  --page-bg-2: #0a0b16;      /* 暗色渐变终点:略深带蓝 · v6.0.54 */
   --card-bg: #202022;        /* gray-7 */
   --text: #F7F8FA;           /* gray-1 */
   --text-muted: #C9CDD4;     /* gray-4 */
