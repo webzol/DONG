@@ -116,8 +116,7 @@
   .primary-nav li:first-child > a { padding-left: 0; }
 }
 .primary-nav a:hover {
-  background: var(--btn-hover);
-  color: var(--primary);
+  color: var(--primary);     /* 对齐设计图:hover 仅变色、无淡背景 · v6.0.53-ProMax */
   text-decoration: none;
 }
 .primary-nav .current-menu-item > a,
@@ -164,7 +163,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
+  border: none;              /* 对齐设计图:纯浅灰圆、无描边 · v6.0.53-ProMax */
   border-radius: var(--radius-max);
   background: var(--btn-bg);
   color: var(--text);

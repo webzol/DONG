@@ -1690,3 +1690,21 @@
 - **对齐口径又变了**:v6.0.48 = 卡外框(中列左缘)→ v6.0.49 = 头像左缘(+1.5rem)→ v6.0.52 = 回到卡外框/中列左缘。若 TD 后续反复,直接确认「要不要 +1.5rem 内缩到头像」这一个问题即可。
 - 数值不再绑定 `.post-card` padding(归零后与卡内 padding 解耦),改卡片 padding 不影响导航对齐。
 - 单篇页(`article.post` padding `clamp(1.5rem,4vw,3rem)`)仍比首页更内缩,导航按列表页(中列左缘)对齐,单篇页面包屑会偏右 —— 与 v6.0.49 注记同源,未处理。
+
+## v6.0.53(2026-07-10)· 顶部对齐设计图(nav hover 去背景 + 主题按钮去描边)
+
+### 背景
+- TD 提供顶部 header UI 设计图,要求「按设计图还原顶部布局」。
+- 逐项对照(`header.php` + `assets/css/layout.css` 顶部段 + `tokens.css`):当前顶部已与设计图**高度一致**——三栏 grid(logo / 导航 / toggle)、56px 高、底边框、sticky、灰文字 nav + 当前项 primary 高亮、右侧圆形主题切换,均吻合(结构源自 v2.0 suxing 还原)。
+- 导航对齐取舍:设计图为水平居中,但 TD 明确**保留**「贴中列左缘」(v6.0.52:首菜单文字与文章卡外框左缘共线),不改。
+
+### 改动
+- `assets/css/layout.css`:
+  - `.primary-nav a:hover` 去掉 `background: var(--btn-hover)`,仅留 `color: var(--primary)`。设计图 hover 只变色、无淡背景。
+  - `.theme-toggle` `border: 1px solid var(--line)` → `border: none`。设计图为纯浅灰圆、无描边。
+- `style.css` / `functions.php` `ONEDONG_VERSION` 6.0.52 → 6.0.53。
+
+### 坑 / 注记
+- **未动的点及原因**:① 顶栏毛玻璃(`--titlebar-bg` + `backdrop-filter`)系主题特色,静止态近白、滚动半透,与设计图纯白无实质冲突,保留;② 设计图「渐变圆图标 + 品牌名」判为占位示意,主题已支持后台上传 logo + 暗色 logo(`functions.php:847`),无需代码改;③ 移动端汉堡抽屉(`layout.css:1804+`)未动。
+- 两处微调属「更极简」取向,可能略弱化 suxing 悬浮淡背景的整体语言;若 TD 观感不合,回退这两行即可(无连锁依赖)。
+- 本地无 PHP 环境(见 dev-environment 记忆),未本地跑;由 TD 线上/测试环境浏览器验证桌面 hover 与 toggle 外观,并确认移动端无回归。
