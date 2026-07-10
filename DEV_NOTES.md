@@ -1725,3 +1725,20 @@
 - **`background-attachment: fixed` 移动端**:iOS Safari 历史有渲染问题(渐变可能不显示或跟随滚动);现代版本(15+)基本正常。若反馈异常,降级:小屏改 `scroll` 或回退纯色 `--page-bg`。
 - **主题切换过渡**:原 `transition: background-color` 不作用于 `background-image`(渐变),切深浅色时背景硬切(非平滑过渡)。影响小,未处理。
 - 强度/方向易调:改 `--page-bg-2` 色值调强弱,改 `linear-gradient` 方向或换 `radial-gradient`。TD 部署后看实际效果再定。
+
+## v6.0.55(2026-07-10)· resources 页 banner 两边对齐顶栏
+
+### 背景
+- TD 反馈 `/resources` 页顶部 banner 背景两边超出,要求对齐顶栏 logo 左缘 / 主题切换按钮右缘。
+- 根因:`.resource-banner` v6.0.41 时 `max-width:1600px`(故意比 header 内容区 1280 宽,做"大 hero 感")→ 大屏两边各超出约 160px。
+- `.resources-main`(下方筛选+卡片)早已对齐:`max-width:1280` + `padding:clamp`(同 `header__inner`,v6.0.43)。唯独 banner 是 1600。
+
+### 改动
+- `assets/css/resources.css` `.resource-banner`:`max-width:1600px` → `calc(var(--site-width) - clamp(1rem,4vw,2rem) * 2)`(= `header__inner` content box 宽,同款 clamp padding、同样居中 → banner 左右缘与 logo/toggle、resources-main 内容区三者共线)。
+- `style.css` / `functions.php` `ONEDONG_VERSION` 6.0.54 → 6.0.55。
+
+### 坑 / 注记
+- **放弃 v6.0.41 的 1600 大 hero 感**:TD 明确要 banner 收进对齐;若后续想恢复通栏,把 max-width 改回 `1600px` 或 `100vw` 即可。
+- banner 原有 `padding:2.5rem 1.25rem` 保留(标题区内边距,不影响背景边缘对齐)。
+- banner `border-radius`(`--res-banner-radius`,默认 0)未动;对齐后若想要两端圆角可调它。
+- calc 内 `clamp(...) * 2` 合法;值随视口在 ~1216px(桌面 2rem)到更窄(小屏 1rem)间变化,始终与 header padding 同步对齐。
