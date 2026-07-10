@@ -715,7 +715,9 @@ function onedong_render_resource_card() {
 			break;
 	}
 	if ( ! $icon ) {
-		$icon = '<span class="resource-card__icon resource-card__icon--default" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.9 12c3-4 5.2-6 7.1-6 1 0 1.9.5 2.7 1.4l1-1.1A4.3 4.3 0 0011 4C8.3 4 5.5 6.4 2.7 10.3L3.9 12zm16.2-1.3c-2.7-3.5-5.2-5.4-7.5-5.7l1.2 1.6c1.5.5 3.2 2 5.1 4.4l1.2-.3zM7.5 15l1.2 1.6c.9-.4 1.8-1.1 2.7-2L10.2 13c-.9.8-1.8 1.5-2.7 2zm9-2.8l1.2 1.6c.6-.7 1.2-1.5 1.8-2.3l-1.2-.5c-.6.5-1.2 1-1.8 1.2z" fill="currentColor"/></svg></span>';
+		// 默认图标:2×2 圆角网格(apps / 资源集合)——与「资源导航」菜单 dashicons-screenoptions 同语义,
+		// 矩形几何在任意尺寸渲染锐利;fill=currentColor 跟随品牌蓝,深浅色自动适配。
+		$icon = '<span class="resource-card__icon resource-card__icon--default" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></svg></span>';
 	}
 	$cats   = get_the_terms( $id, 'onedong_resource_cat' );
 	$cat    = ( $cats && ! is_wp_error( $cats ) ) ? $cats[0] : null;
@@ -762,7 +764,11 @@ function onedong_resource_nav_item() {
 	if ( ! $url ) {
 		return '';
 	}
-	return '<li class="menu-item res-nav-item"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
+	// 本入口由 wp_nav_menu_items filter 注入,非真实 WP 菜单对象 → WP 不会自动加 current-* 类,
+	// 在资源归档 / 单资源页时手动补 current-menu-item,使 layout.css 的主题色高亮生效(菜单文字激活态)
+	$is_current = is_post_type_archive( 'onedong_resource' ) || is_singular( 'onedong_resource' );
+	$classes    = 'menu-item res-nav-item' . ( $is_current ? ' current-menu-item' : '' );
+	return '<li class="' . esc_attr( $classes ) . '"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
 }
 
 add_filter( 'wp_nav_menu_items', function ( $items, $args ) {

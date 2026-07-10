@@ -1742,3 +1742,26 @@
 - banner 原有 `padding:2.5rem 1.25rem` 保留(标题区内边距,不影响背景边缘对齐)。
 - banner `border-radius`(`--res-banner-radius`,默认 0)未动;对齐后若想要两端圆角可调它。
 - calc 内 `clamp(...) * 2` 合法;值随视口在 ~1216px(桌面 2rem)到更窄(小屏 1rem)间变化,始终与 header padding 同步对齐。
+
+## v6.0.56(2026-07-10)· resources 菜单激活态 + 资源卡默认图标重做
+
+### 背景(TD 两个反馈)
+1. **菜单激活态缺失**:点击 `/resources` 跳转后,顶部导航「资源」文字不高亮(其他菜单项在自己页面会变蓝)。
+2. **资源卡默认图标不好看**:无图标的资源卡左上角那个抽象 SVG 波形图标难看,要画一个好看的。
+
+### 改动
+
+#### 1. 资源菜单激活态修复(`inc/resources.php` `onedong_resource_nav_item()`)
+- **根因**:「资源」导航入口不是真实 WP 菜单对象,而是经 `wp_nav_menu_items` filter **注入的裸 `<li>`**(v1.0.0 起就这么做,为不改 header.php)。WP 的 `_wp_menu_item_classes_by_context()` 只对真实菜单项加 `current-menu-item` → 注入项永远拿不到 → `layout.css:122` 的 `.current-menu-item > a { color: var(--primary) }` 不生效。
+- **修复**:渲染该 `<li>` 时判断 `is_post_type_archive('onedong_resource') || is_singular('onedong_resource')`,命中则手动加 `current-menu-item` 类。归档页 + 单资源页都会高亮。
+- 复用现有 CSS,无需改样式;`wp_page_menu` 兜底分支同函数同源,一并覆盖。
+
+#### 2. 资源卡默认图标重做(`inc/resources.php` `onedong_render_resource_card()` 兜底 `$icon`)
+- 旧:一段抽象波形 `path`(语义不明、不美观)。
+- 新:**2×2 圆角网格**(apps / 资源集合),4 个 `rx=2.2` 圆角方块。与「资源导航」菜单 `dashicons-screenoptions`(同为网格)语义一致;矩形几何任意尺寸渲染锐利;`fill=currentColor` 跟随 `--primary`,深浅色自动适配。
+- 仅改 SVG 内容,容器 `.resource-card__icon--default`(44px 浅蓝 tint 块 + 24px 字形)未动,完全沿用现有 tokens。
+
+### 坑 / 注记
+- **注入式菜单项的通病**:凡经 `wp_nav_menu_items` 注入的导航项都拿不到 WP 原生 current-* 类,激活态都得自己判断条件补类。后续若再注入别的入口,照此处理。
+- 图标预览(`E:\X\onedong\icon-preview.png`,Pillow 渲染浅/深两格)已核对:浅色 `#3858F6`、深色 `#4d6bff`,网格居中无变形。**该 PNG 是临时预览,不入仓库**(见下 Git)。
+- **无本地 PHP**:开发机无 php,`php -l` 仍跑不了;本次改动均为字符串字面量替换,语法风险低,部署后实测。
