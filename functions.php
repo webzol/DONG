@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.56-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.58-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -314,6 +314,8 @@ function onedong_scripts() {
 			array(
 				'saveText' => __( '保存为图片', 'onedong' ),
 				'busyText' => __( '生成中…', 'onedong' ),
+				'title'    => wp_strip_all_tags( get_the_title( get_the_ID() ) ),
+				'url'      => get_permalink( get_the_ID() ),
 			)
 		);
 	}
@@ -636,6 +638,122 @@ function onedong_article_schema() {
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'onedong_article_schema', 20 );
+
+/**
+ * 全站输出 Open Graph + Twitter Card meta(社交分享卡片预览:微信 / 朋友圈 / QQ / iMessage 等)。
+ * 挂 wp_head(优先级 5,紧跟 charset / viewport)。按页面类型取 title / description / image / url;
+ * og:image 兜底链:特色图 → 站点图标(512)→ 自定义 logo → assets/img/default-thumb.png。· v6.0.58
+ */
+function onedong_og_meta() {
+	$site_name   = get_bloginfo( 'name' );
+	$site_desc   = get_bloginfo( 'description' );
+	$title       = '';
+	$description = '';
+	$type        = 'website';
+	$image       = '';
+	$url         = '';
+	$card        = 'summary';
+	$article     = array();
+
+	if ( is_singular() ) {
+		$post_id = get_the_ID();
+		if ( $post_id ) {
+			$type        = 'article';
+			$title       = wp_strip_all_tags( get_the_title( $post_id ) );
+			$excerpt     = wp_strip_all_tags( get_the_excerpt( $post_id ) );
+			$description = function_exists( 'mb_substr' ) ? mb_substr( $excerpt, 0, 80, 'UTF-8' ) : substr( $excerpt, 0, 80 );
+			$url         = get_permalink( $post_id );
+
+			if ( has_post_thumbnail( $post_id ) ) {
+				$img = wp_get_attachment_image_src( get_post_thumbnail_id( $post_id ), 'full' );
+				if ( ! empty( $img[0] ) ) {
+					$image = $img[0];
+					$card  = 'summary_large_image';
+				}
+			}
+
+			// 文章(post)额外输出发布 / 修改时间与作者
+			if ( is_singular( 'post' ) ) {
+				$author_id = (int) get_post_field( 'post_author', $post_id );
+				$article   = array(
+					'published_time' => get_the_date( 'c', $post_id ),
+					'modified_time'  => get_the_modified_date( 'c', $post_id ),
+					'author'         => get_the_author_meta( 'display_name', $author_id ),
+				);
+			}
+		}
+	} elseif ( is_home() || is_front_page() ) {
+		$title = $site_name . ( $site_desc ? ' - ' . $site_desc : '' );
+		$url   = home_url( '/' );
+	} elseif ( is_author() ) {
+		$author = get_queried_object();
+		$type   = 'profile';
+		$title  = ( $author && ! empty( $author->display_name ) ) ? $author->display_name . ' - ' . $site_name : $site_name;
+		$url    = get_author_posts_url( get_queried_object_id() );
+	} elseif ( is_archive() ) {
+		$title = wp_strip_all_tags( get_the_archive_title() );
+	}
+
+	if ( '' === $description ) {
+		$description = $site_desc ? $site_desc : $title;
+	}
+	if ( '' === $title ) {
+		$title = function_exists( 'wp_get_document_title' ) ? wp_get_document_title() : $site_name;
+	}
+
+	// og:image 兜底链:站点图标 → 自定义 logo → 默认缩略图
+	if ( ! $image ) {
+		$image = get_site_icon_url( 512 );
+	}
+	if ( ! $image ) {
+		$logo_id = get_theme_mod( 'custom_logo' );
+		if ( $logo_id ) {
+			$logo = wp_get_attachment_image_src( (int) $logo_id, 'full' );
+			if ( ! empty( $logo[0] ) ) {
+				$image = $logo[0];
+			}
+		}
+	}
+	if ( ! $image ) {
+		$image = get_theme_file_uri( 'assets/img/default-thumb.png' );
+	}
+
+	// 当前页 URL 兜底(归档 / 分页等)
+	if ( ! $url ) {
+		global $wp;
+		$url = home_url( $wp->request );
+	}
+
+	$lines = array(
+		array( 'p' => 'og:title',       'c' => $title ),
+		array( 'p' => 'og:description', 'c' => $description ),
+		array( 'p' => 'og:type',        'c' => $type ),
+		array( 'p' => 'og:url',         'c' => $url ),
+		array( 'p' => 'og:site_name',   'c' => $site_name ),
+		array( 'p' => 'og:locale',      'c' => get_locale() ),
+		array( 'p' => 'og:image',       'c' => $image ),
+	);
+	foreach ( $article as $k => $v ) {
+		$lines[] = array( 'p' => 'og:article:' . $k, 'c' => $v );
+	}
+	$lines[] = array( 'n' => 'twitter:card',        'c' => $card );
+	$lines[] = array( 'n' => 'twitter:title',       'c' => $title );
+	$lines[] = array( 'n' => 'twitter:description', 'c' => $description );
+	$lines[] = array( 'n' => 'twitter:image',       'c' => $image );
+
+	echo "\n<!-- OneDong Open Graph / Twitter Card · v6.0.58 -->\n";
+	foreach ( $lines as $m ) {
+		if ( isset( $m['c'] ) && '' === $m['c'] ) {
+			continue;
+		}
+		if ( isset( $m['p'] ) ) {
+			echo '<meta property="' . esc_attr( $m['p'] ) . '" content="' . esc_attr( $m['c'] ) . '" />' . "\n";
+		} else {
+			echo '<meta name="' . esc_attr( $m['n'] ) . '" content="' . esc_attr( $m['c'] ) . '" />' . "\n";
+		}
+	}
+}
+add_action( 'wp_head', 'onedong_og_meta', 5 );
 
 /**
  * 输出文章元信息(日期 / 作者 / 分类 / 评论数)。

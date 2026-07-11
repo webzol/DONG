@@ -85,7 +85,22 @@
 	if ( trigger ) {
 		trigger.addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			open();
+			// 优先系统原生分享面板(移动端 HTTPS);失败 / 不支持回落海报浮层(微信内置浏览器等)· v6.0.58
+			var shareData = {
+				title: ( window.onedongPostShare && onedongPostShare.title ) || document.title,
+				text:  ( window.onedongPostShare && onedongPostShare.title ) || document.title,
+				url:   ( window.onedongPostShare && onedongPostShare.url )   || location.href
+			};
+			if ( navigator.share ) {
+				navigator.share( shareData ).catch( function ( err ) {
+					if ( err && 'AbortError' === err.name ) {
+						return;  // 用户主动取消,静默不弹海报
+					}
+					open();  // 其他异常 → 海报降级
+				} );
+			} else {
+				open();  // 不支持(桌面 / 微信 webview / 非 HTTPS)→ 海报
+			}
 		} );
 	}
 
