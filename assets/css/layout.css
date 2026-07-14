@@ -1935,3 +1935,66 @@ html.js [data-reveal].is-revealed {
   .post-card__grid--2, .post-card__grid--4 { max-width: 200px; }
   .post-card__grid--3, .post-card__grid--9 { max-width: 240px; }
 }
+
+/* —— 评论图形验证码 —— v6.0.62 —— */
+.comment-form-captcha {
+  margin: 0 0 1rem;
+}
+.comment-form-captcha > label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.comment-form-captcha__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.comment-form-captcha__img {
+  width: 150px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  background: var(--card-bg);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.comment-form-captcha__refresh {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.comment-form-captcha__refresh:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+/* 输入框复用全局 input[type="text"] 样式,这里只补 flex 占位 */
+.comment-form-captcha__code {
+  flex: 1 1 120px;
+  min-width: 0;
+  letter-spacing: 0.15em;
+}
+/* 错误提示(tokens.css 无 --danger,用字面红 + 深色覆盖) */
+.captcha-error {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-small);
+  background: color-mix(in oklch, #e5484d 12%, transparent);
+  color: #e5484d;
+  font-size: 0.85rem;
+}
+:root[data-theme="dark"] .captcha-error {
+  color: #ff6b6b;
+  background: color-mix(in oklch, #ff6b6b 14%, transparent);
+}
+@media (max-width: 480px) {
+  .comment-form-captcha__img { width: 120px; height: 38px; }
+}

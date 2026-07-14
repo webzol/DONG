@@ -1821,3 +1821,40 @@
 - **iOS radial+fixed 风险同 v6.0.60**:暗色同样,iPhone 务必实测;异常加 `@media(max-width:768px){ body{ background-attachment: scroll } }`。
 - **切深浅色柔光硬切**:浅/暗柔光色值差异大,切换瞬间硬切(非平滑),影响小,未处理。
 - **无本地 PHP**:仅 CSS 改动,无 PHP 逻辑风险。
+
+## v6.0.62(2026-07-14)· 评论图形验证码(GD 自包含)
+
+### 背景
+- 评论表单此前无任何验证码,垃圾评论可随意提交。TD 需求:评论时需输入验证码。
+- 约束:**自托管主题、TD 自管部署**,不引入插件 / 第三方 API key(reCAPTCHA/Turnstile 需 key,后续可另加)。
+
+### 改动
+- **新增 `inc/captcha.php`**(自包含模块):
+  - 图片端点 `admin-post.php?action=onedong_captcha`(挂 `admin_action_onedong_captcha`,登录/未登录都触发),GD 生成 150×42 扰乱 PNG(去歧义 4 位字符、每字旋转 ±22°、干扰点 + 线)。
+  - 状态:**cookie + transient**(不用 PHP session,很多主机禁用)。每次取图 `random_bytes` 生成 token,答案 `wp_hash` 后存 transient(`onedong_captcha_` . wp_hash(token),TTL 10min),token 写 `HttpOnly / SameSite=Lax / Secure(is_ssl)` cookie(30min)。**单次有效**:校验后无论成败即删 transient。
+  - 表单注入:过滤 `comment_form_submit_field` 把验证码字段 **prepend** 到提交按钮前。
+  - 校验:挂 `pre_comment_on_post`(action,优先级 20,在 flood/duplicate 检查之前),失败 → 暂存草稿 `{comment,author,email,url}` + `wp_safe_redirect` 回 `?captcha_error=1&ce_token=…#respond` + `exit`。
+  - 失败回填:`comment_form_field_comment`(正文回填 textarea)、`comment_form_default_fields`(昵称/邮箱/网址回填 input,先去既有空 value 再注入)、`comment_form_top`(红色错误提示 `role="alert"`)。**草稿 transient 用请求内静态缓存**,否则先执行的 fields 回填删掉 transient后,后执行的 textarea 回填拿不到正文。
+  - **优雅降级**:顶部 GD 检测,缺 GD(`imagecreatetruecolor/imagepng/imagerotate` 等)直接 `return`,不注册任何钩子,评论照常。
+  - **登录用户默认免验证**(Customizer `onedong_captcha_skip_logged`),渲染与校验都用 `onedong_captcha_active()` 统一判断,两条路径一致。
+  - 限流:每 IP+UA(沿用 `onedong_bump_view_count` 的 md5 fingerprint)60s 内最多 15 次取图,超出返回「稍候重试」占位图。
+  - Customizer 新增「评论」section:`onedong_comment_captcha`(默认开)/ `onedong_captcha_skip_logged`(默认开),复用现成 `onedong_sanitize_checkbox`。
+- **`functions.php`**:加 `require_once inc/captcha.php`(沿用 inc 模块模式)。
+- **`assets/css/layout.css`**:追加 `.comment-form-captcha*` + `.captcha-error`,用 design tokens;错误色用字面红 `#e5484d`(深色 `#ff6b6b`),tokens.css 无 `--danger` 故不加 token。
+- **`assets/js/captcha.js`**(新,渐进增强):点「换一张」给 img src 追加随机 `v=` 换图(绕 CDN 缓存);无 JS 时图片仍可见、可提交。
+- **版本**:6.0.61 → 6.0.62(`style.css` + `functions.php` `ONEDONG_VERSION`)。
+
+### 坑 / 注记
+- **hook 选型三坑**(Plan agent 校验后修正):
+  1. `admin-post.php` 用 `admin_action_{action}` 单钩子(对登录/未登录都触发),**不要**和 `wp_ajax_*` 混用(后者走 `admin-ajax.php`,URL 配错会静默 404 / `die(0)`)。
+  2. 表单字段位置:`comment_form_submit_field`(prepend)才能贴在提交按钮上方;`comment_form_field_comment` 对未登录用户会把验证码塞中间。
+  3. 校验用 `pre_comment_on_post`(action)而非 `preprocess_comment`(filter),前者适合 `redirect+exit` 且在防灌水检查之前。
+- **SameSite=Lax 可行**:图片 GET 与表单 POST 均为**同站**请求,Lax 对同站请求不限方法,cookie 正常携带。Httponly 防 XSS 读 token。
+- **comment-reply.js 是移动表单非复制**:线程回复时 DOM 中始终只有一个验证码字段 / 图片,token 不失效,无需特殊处理。
+- **GD 无内置大字体**:用 `imagestring` font5(位图)+ 旋转 + 干扰,够个人博客用;若要更清晰,后续可放 TTF 到 `assets/fonts/` 并改用 `imagettftext`。
+- **无本地 PHP**:未跑 `php -l`;TD 部署后建议线上 `php -l inc/captcha.php`,并实测登录 / 未登录、换图、错码保留正文、关闭开关降级、GD 缺失降级、嵌套回复。
+
+### 后续可选(scope 外)
+- reCAPTCHA / Turnstile(需 API key)。
+- 音频 / 算术兜底(无障碍;当前靠登录用户免验证缓解)。
+- 更强字体:引入 TTF 提升可读性。
