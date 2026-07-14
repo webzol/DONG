@@ -110,7 +110,10 @@
 
   --page-bg: #0f0f11;        /* gray-8 */
   --page-bg-2: #0a0b16;      /* 暗色渐变终点:略深带蓝 · v6.0.54 */
-  --page-bg-image: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);  /* 暗色保留原线性渐变(暖黄柔光在暗底刺眼,不套浅色柔光)· v6.0.60 */
+  --page-bg-image:                                                         /* 暗色柔光层:同浅色位置/半径,色相保留(暖+蓝)但透明度大幅降低 → 暗底上的微光氛围,不刺眼 · v6.0.61 */
+    radial-gradient(circle 380px at 6% 22%, rgba(255, 190, 110, 0.12) 0%, rgba(255, 190, 110, 0) 72%),
+    radial-gradient(circle 260px at 94% 8%, rgba(255, 180, 95, 0.12) 0%, rgba(255, 180, 95, 0) 75%),
+    radial-gradient(circle 420px at 58% 76%, rgba(99, 140, 255, 0.15) 0%, rgba(99, 140, 255, 0) 78%);
   --card-bg: #202022;        /* gray-7 */
   --text: #F7F8FA;           /* gray-1 */
   --text-muted: #C9CDD4;     /* gray-4 */

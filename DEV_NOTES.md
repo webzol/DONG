@@ -1805,3 +1805,19 @@
 - **颜色易调**:`--page-bg-image` 里的三个 radial-gradient 色值 / 半径 / 位置都可调;改 `--page-bg` 调底色。
 - **切深浅色硬切**:`body` 的 `transition` 只作用于 `background-color`,不作用于 `background-image`(radial 柔光),切深浅色时柔光层硬切(同 v6.0.54 线性渐变的老问题),影响小,未处理。
 - **无本地 PHP**:本次仅 CSS + 字符串改,无 PHP 逻辑风险。
+
+## v6.0.61(2026-07-14)· 暗色模式补柔光背景
+
+### 背景
+- v6.0.60 只给浅色套了暖黄+蓝柔光,暗色保留原线性渐变(担心暖黄在暗底刺眼)。
+- TD 反馈:**暗色也需要**柔光氛围。
+
+### 改动
+- **`assets/css/tokens.css` 暗色 `:root[data-theme=dark]` `--page-bg-image`**:`linear-gradient(180deg, --page-bg, --page-bg-2)` → 与浅色**同位置/同半径**的三圆 radial-gradient,但**色相保留(暖+蓝)、透明度大幅降低**:暖光 `rgba(255,190,110,.12)` / `rgba(255,180,95,.12)`,蓝光 `rgba(99,140,255,.15)`。暗底 `#0f0f11` 上呈微光氛围,不刺眼。
+- **`style.css` / `functions.php` `ONEDONG_VERSION`**:6.0.60 → 6.0.61。
+
+### 坑 / 注记
+- **暗色柔光透明度是起点值**(0.12 / 0.15):太淡调高、太亮刺眼调低,只改 `--page-bg-image` 的 alpha。蓝光透明度略高于暖光(暗色模式蓝光视觉更柔和 + 呼应主题色 `--primary:#4d6bff`)。
+- **iOS radial+fixed 风险同 v6.0.60**:暗色同样,iPhone 务必实测;异常加 `@media(max-width:768px){ body{ background-attachment: scroll } }`。
+- **切深浅色柔光硬切**:浅/暗柔光色值差异大,切换瞬间硬切(非平滑),影响小,未处理。
+- **无本地 PHP**:仅 CSS 改动,无 PHP 逻辑风险。
