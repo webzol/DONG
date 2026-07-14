@@ -165,7 +165,7 @@
 	display: grid;
 	gap: 1rem;
 	grid-template-columns: repeat(4, minmax(0, 1fr));   /* PC 固定 4 列(v6.0.41) */
-	align-items: stretch;        /* v6.0.42:卡片默认等高(同行高度一致);hover 展开描述时整行随之变高 */
+	align-items: start;          /* v6.0.59:取消等高联动 → hover 仅当前卡展开,同行其他卡不再跟随变高;默认底缘整齐改由 .resource-card min-height 保证 */
 }
 
 /* —— 单卡片(对齐 .post-card:--radius-large / --shadow / --line;hover 标题变 primary)—— */
@@ -175,6 +175,7 @@
 	background: var(--card-bg);
 	border: 1px solid var(--line);
 	border-radius: var(--res-card-radius, var(--radius-large));
+	min-height: 180px;           /* v6.0.59:start 模式(取消 stretch)后,以此保证同行卡片底缘整齐;hover 展开描述超过此值时仅当前卡变高,相邻卡不动 */
 	box-shadow: var(--shadow);
 	overflow: hidden;
 	cursor: pointer;
@@ -357,6 +358,22 @@
 
 	.resources-main {
 		padding: 1.5rem 1rem 3rem;
+	}
+
+	/* 分类筛选:单行横向滑动(无换行、无右边参差)。滚动区 = 内容栏宽(1rem 内边距之间),
+	   故首 chip 仍与下方卡片左缘共线;桌面端 >768px 保持 flex-wrap 多行不变。 */
+	.resource-filters {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;  /* iOS 顺滑滑动 */
+		scrollbar-width: none;              /* 隐藏滚动条:Firefox */
+	}
+	.resource-filters::-webkit-scrollbar {
+		display: none;                      /* 隐藏滚动条:iOS Safari / Chrome Android */
+	}
+	.resource-filter {
+		flex: 0 0 auto;                     /* 不收缩,保留各自内容宽度 → 可横向溢出滚动 */
+		white-space: nowrap;
 	}
 
 	.resource-grid {

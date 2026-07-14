@@ -722,7 +722,9 @@ function onedong_render_resource_card() {
 	$cats   = get_the_terms( $id, 'onedong_resource_cat' );
 	$cat    = ( $cats && ! is_wp_error( $cats ) ) ? $cats[0] : null;
 	$cat_id = $cat ? (int) $cat->term_id : 0;
-	$desc   = wp_trim_words( wp_strip_all_tags( get_the_content() ), 30 );
+	// 完整描述进 DOM(去 shortcode / HTML / 折行)· 卡片 CSS 默认 2 行省略号截断,hover 展开显示全文。
+	// 不再用 wp_trim_words 截 30 词 —— 那会把英文/混排描述砍到刚好 2 行,导致 hover「没有折叠文字可展开」。
+	$desc   = wp_strip_all_tags( strip_shortcodes( get_the_content() ), true );
 	?>
 	<article class="resource-card" data-cat="<?php echo esc_attr( $cat_id ); ?>" data-name="<?php echo esc_attr( strtolower( get_the_title() ) ); ?>">
 		<a class="resource-card__link" href="<?php echo esc_url( $url ? $url : '#' ); ?>" target="_blank" rel="noopener noreferrer nofollow">

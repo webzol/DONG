@@ -1765,3 +1765,23 @@
 - **注入式菜单项的通病**:凡经 `wp_nav_menu_items` 注入的导航项都拿不到 WP 原生 current-* 类,激活态都得自己判断条件补类。后续若再注入别的入口,照此处理。
 - 图标预览(`E:\X\onedong\icon-preview.png`,Pillow 渲染浅/深两格)已核对:浅色 `#3858F6`、深色 `#4d6bff`,网格居中无变形。**该 PNG 是临时预览,不入仓库**(见下 Git)。
 - **无本地 PHP**:开发机无 php,`php -l` 仍跑不了;本次改动均为字符串字面量替换,语法风险低,部署后实测。
+
+## v6.0.59(2026-07-14)· 资源卡 hover 只展开当前卡(去整行联动)+ 完整描述进 DOM
+
+### 背景(TD 反馈)
+- TD 要求:鼠标移到资源卡上,**只展开当前这张卡的完整介绍,同行其他卡不要跟着变化**。
+- 原状(v6.0.34 起就有 hover 展开):CSS 默认描述 2 行 `-webkit-line-clamp` 截断,hover 取消截断 + `max-height:40em` 展开;但 `.resource-grid` 用了 `align-items: stretch`(v6.0.42 加,本意为卡片等高)→ **hover 一张卡撑高描述,grid 把整行 4 张卡一起拉高跳动**,旁边卡的描述没展开却被撑高、留白变大。
+
+### 改动
+1. **`assets/css/resources.css` `.resource-grid`**:`align-items: stretch` → `start`。取消等高联动 → hover 仅当前卡变高,同行其他卡纹丝不动。
+2. **`assets/css/resources.css` `.resource-card`**:新增 `min-height: 180px`。`start` 模式下卡片不再被 stretch 拉齐,以此保底让同行卡片底缘仍整齐(图标 44 + 标题 ≤2 行 + 描述 2 行 + CTA + padding 的自然高度 ≈ 180)。
+3. **`inc/resources.php` `onedong_render_resource_card()`**:描述由 `wp_trim_words(…, 30)` 改为 `wp_strip_all_tags(strip_shortcodes(get_the_content()))` —— **完整描述进 DOM**。旧 `trim_words` 把英文/混排描述砍到刚好 2 行,导致 hover「没有折叠文字可展开」;改后 DOM 里是全文,CSS 的截断/展开才有意义。
+4. **`style.css` / `functions.php` `ONEDONG_VERSION`**:6.0.58 → 6.0.59。
+5. (顺带 TD 之前未提交的)移动端 `@media(max-width:768px)` 分类筛选 `.resource-filters` 改单行横向滑动(无换行、隐藏滚动条),首 chip 与卡片左缘共线。
+
+### 坑 / 注记
+- **stretch vs start 的权衡**:`stretch` 默认等高最整齐,但 hover 必然整行联动;`start` 让 hover 单卡独立,代价是默认不再自动等高 → 用 `min-height: 180px` 补偿。若觉得默认偏空/偏挤,调 180 这个值即可。
+- **min-height 是估算值**:按 rem 16px 基准 + 现有 padding/行高估算;实际字体渲染会偏差,**部署后实测再定最终值**。
+- **hover 展开会向下覆盖相邻卡**:当前卡变高 + `z-index:2` 浮起,展开的描述会压住下方一行卡的上沿(带阴影提示层次)。属预期,若觉得遮挡过多可给描述加 `max-height` 上限或卡片 `translateY` 上移。
+- **`@media(hover:hover)`**:触屏(`hover:none`)不展开,点击直接跳转;`prefers-reduced-motion` 下光边静止、描述无过渡(既有逻辑,未动)。
+- **无本地 PHP**:仍跑不了 `php -l`;本次 PHP 改动为单行函数替换,语法风险低,部署后实测。
