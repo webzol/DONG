@@ -20,8 +20,12 @@
   --radius-max: 999px;
 
   /* —— 浅色调色板(suxing :root)—— */
-  --page-bg: #F7F8FA;       /* gray-1 / bg-body */
-  --page-bg-2: #E8EDF5;     /* 页面渐变终点:略沉带蓝(suxing 灰+蓝基调内自设计,suxing 无渐变背景)· v6.0.54 */
+  --page-bg: #F9FAFF;       /* 底色:柔光背景基色(用户自定义,原 #F7F8FA)· v6.0.60 */
+  --page-bg-2: #E8EDF5;     /* 保留:暗色线性渐变终点 / 浅色兜底 · v6.0.54 */
+  --page-bg-image:                                                          /* 浅色柔光层:暖黄 + 蓝三圆 radial-gradient(用户自定义)· v6.0.60 */
+    radial-gradient(circle 380px at 6% 22%, #FFE9B4 0%, rgba(255, 233, 180, 0) 72%),
+    radial-gradient(circle 260px at 94% 8%, #FFE6A8 0%, rgba(255, 230, 168, 0) 75%),
+    radial-gradient(circle 420px at 58% 76%, #94BFFF 0%, rgba(148, 191, 255, 0) 78%);
   --card-bg: #ffffff;       /* card-bg */
   --text: #1D2129;          /* gray-8 / color-body */
   --text-muted: #4E5969;    /* gray-6 / color-muted */
@@ -106,6 +110,7 @@
 
   --page-bg: #0f0f11;        /* gray-8 */
   --page-bg-2: #0a0b16;      /* 暗色渐变终点:略深带蓝 · v6.0.54 */
+  --page-bg-image: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2) 100%);  /* 暗色保留原线性渐变(暖黄柔光在暗底刺眼,不套浅色柔光)· v6.0.60 */
   --card-bg: #202022;        /* gray-7 */
   --text: #F7F8FA;           /* gray-1 */
   --text-muted: #C9CDD4;     /* gray-4 */

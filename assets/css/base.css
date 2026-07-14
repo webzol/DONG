@@ -13,7 +13,10 @@ html { min-height: 100%; font-size: 16px; }
 body {
   min-height: 100%;
   margin: 0;
-  background: linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-2, var(--page-bg)) 100%) fixed;   /* 极淡蓝灰渐变背景,钉视口防长页拉伸(suxing 灰+蓝基调自设计,suxing 无渐变背景)· v6.0.54 */
+  background-color: var(--page-bg);        /* 底色:浅 #F9FAFF / 暗 #0f0f11 · v6.0.60 */
+  background-image: var(--page-bg-image);  /* 柔光层:浅 = 暖黄+蓝 radial-gradient;暗 = 原线性渐变(走 --page-bg-image 变量自动切换)· v6.0.60 */
+  background-repeat: no-repeat;            /* radial 柔光圆不重复平铺 · v6.0.60 */
+  background-attachment: fixed;            /* 钉视口防长页拉伸(v6.0.54 起如此;iOS radial+fixed 需实测,异常则小屏改 scroll) */
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 1rem;

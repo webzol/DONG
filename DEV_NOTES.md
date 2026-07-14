@@ -1785,3 +1785,23 @@
 - **hover 展开会向下覆盖相邻卡**:当前卡变高 + `z-index:2` 浮起,展开的描述会压住下方一行卡的上沿(带阴影提示层次)。属预期,若觉得遮挡过多可给描述加 `max-height` 上限或卡片 `translateY` 上移。
 - **`@media(hover:hover)`**:触屏(`hover:none`)不展开,点击直接跳转;`prefers-reduced-motion` 下光边静止、描述无过渡(既有逻辑,未动)。
 - **无本地 PHP**:仍跑不了 `php -l`;本次 PHP 改动为单行函数替换,语法风险低,部署后实测。
+
+## v6.0.60(2026-07-14)· 自定义柔光背景(浅色:暖黄+蓝 radial-gradient)
+
+### 背景
+- TD 给定一段 body 背景 CSS,要求换成:浅蓝白底 `#F9FAFF` + 三个柔光圆 radial-gradient(左上暖黄 / 右上暖黄 / 中下蓝),`no-repeat` + `fixed`。
+- 原状(base.css body):`linear-gradient(180deg, --page-bg, --page-bg-2) fixed`(极淡蓝灰线性渐变,v6.0.54)。
+
+### 改动
+1. **`assets/css/tokens.css` 浅色 `:root`**:`--page-bg` 底色 `#F7F8FA` → `#F9FAFF`(用户基色);新增 `--page-bg-image` = TD 给的三个 radial-gradient(暖黄 `#FFE9B4`/`#FFE6A8` + 蓝 `#94BFFF`)。
+2. **`assets/css/tokens.css` 暗色 `:root[data-theme=dark]`**:新增 `--page-bg-image: linear-gradient(180deg, --page-bg, --page-bg-2)` —— **暗色保留原线性渐变**(暖黄柔光在暗底刺眼,不套浅色柔光)。
+3. **`assets/css/base.css` body**:`background: linear-gradient(...) fixed` 一行 → 拆成 `background-color: var(--page-bg)` + `background-image: var(--page-bg-image)` + `background-repeat: no-repeat` + `background-attachment: fixed`。浅/暗由变量自动切换。
+4. **`style.css` / `functions.php` `ONEDONG_VERSION`**:6.0.59 → 6.0.60。
+
+### 坑 / 注记
+- **暗色不套浅色柔光**:TD 只给了浅色背景。暖黄(#FFE9B4)在暗色 `#0f0f11` 上极刺眼、违和,故暗色保留原线性渐变。若 TD 要暗色也有效果,需另配暗色版柔光(降亮度 + 改色相),告诉我再做。
+- **`background-attachment: fixed` + radial-gradient 在 iOS Safari**:iOS 历史对 `fixed` 背景渲染有坑(渐变可能不显示 / 位置错乱),radial 比 linear 更易触发。原 linear+fixed 已用(v6.0.54 注记过);本次 radial+fixed **务必 iOS 实测**。异常降级:`@media(max-width:768px){ body{ background-attachment: scroll; } }`。
+- **柔光位置固定(fixed)**:三个圆按视口百分比定位(6%/22%、94%/8%、58%/76%),钉在视口不动 → 长页面滚动时柔光不随内容走,营造氛围。若想柔光随滚动,改 `scroll`。
+- **颜色易调**:`--page-bg-image` 里的三个 radial-gradient 色值 / 半径 / 位置都可调;改 `--page-bg` 调底色。
+- **切深浅色硬切**:`body` 的 `transition` 只作用于 `background-color`,不作用于 `background-image`(radial 柔光),切深浅色时柔光层硬切(同 v6.0.54 线性渐变的老问题),影响小,未处理。
+- **无本地 PHP**:本次仅 CSS + 字符串改,无 PHP 逻辑风险。
