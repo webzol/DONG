@@ -1908,3 +1908,21 @@
 - **--page-bg-image:none**:zhipu 还原纯色页面(去 v6.0.60 暖黄+蓝柔光),这是智谱"纯白"质感关键。
 - Customizer 改皮肤后**整页 refresh** 预览(data-skin 在 <html>,需整页刷新生效)。
 - **无本地 PHP**:未跑 `php -l`;TD 部署后线上 `php -l functions.php header.php` + 后台切 zhipu 实测 + 深浅色独立切 + 切回 onedong 还原。
+
+## v6.0.65(2026-07-17)· 资源页移动端 Banner 真正缩小
+
+### 背景
+- TD 反馈:资源页(/resources/)移动端「Banner 没缩小」,占过多垂直空间。
+- 根因:移动端原规则 `min-height: calc(var(--res-h, 280px) * 0.6)`,而 `--res-h` = **后台可设的桌面 Banner 高度**(banner_height,默认 280、最高 600)。后台设大高度(如 400/500)时 `×0.6` 在手机仍达 240/300px,缩不够;标题 clamp 下限 1.6rem 也偏大。
+
+### 改动(`assets/css/resources.css` @media max-width:768px 的 .resource-banner 块)
+- **min-height 脱离 --res-h**:改 `clamp(130px, 38vw, 190px)`——按视口宽收缩(375px≈142px、430px≈163px),有上下限,后台设再大也不影响移动端。
+- **padding** `1.5rem 1rem → 1.2rem 1rem`;**gap** `1.75rem → .8rem`。
+- **标题字号** 移动端覆盖 `clamp(1.25rem, 5vw, 1.6rem)`;**副标题** `.9rem`。
+- **玻璃卡** `.resource-banner__inner--card` 移动端 `padding 1rem 1.2rem` + `max-width:100%`(原 720px 限宽 + 2.5rem padding 在小屏内容区过窄)。
+- 版本 6.0.64 → 6.0.65(`style.css` + `ONEDONG_VERSION`,刷 resources.css 缓存)。
+
+### 坑 / 注记
+- 移动端 Banner 高度从此**与后台 banner_height 脱钩**(后台设的是桌面高度)——有意为之,移动端应自适应视口,不该被桌面大高度拖高。
+- 卡片网格 / 分类横滑等其它移动端规则本期未动(已适配:网格单列、filters `overflow-x:auto`)。
+- 仅改 CSS 无需 `php -l`;TD 部署 + 刷 CDN 后手机端实测 Banner 高度。

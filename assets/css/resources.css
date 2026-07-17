@@ -376,9 +376,13 @@
 
 @media (max-width: 768px) {
 	.resource-banner {
-		min-height: calc(var(--res-h, 280px) * 0.6);
-		padding: 1.5rem 1rem;
+		min-height: clamp(130px, 38vw, 190px);   /* v6.0.65:不再 --res-h*0.6(后台设大高度时移动端仍偏高);改按视口宽收缩,小屏更矮、有上限 */
+		padding: 1.2rem 1rem;
+		gap: .8rem;
 	}
+	.resource-banner__title { font-size: clamp(1.25rem, 5vw, 1.6rem); }      /* v6.0.65:移动端标题再收(原下限 1.6rem 偏大) */
+	.resource-banner__subtitle { font-size: .9rem; }
+	.resource-banner__inner--card { padding: 1rem 1.2rem; max-width: 100%; } /* v6.0.65:玻璃卡移动端撑满、内边距收 */
 
 	.resources-main {
 		padding: 1.5rem 1rem 3rem;
