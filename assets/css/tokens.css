@@ -11,6 +11,7 @@
 
   /* —— 主色(suxing blue,固定)—— */
   --primary: #3858F6;
+  --primary-rgb: 56, 88, 246;   /* 补全:供 layout.css rgba(var(--primary-rgb),…) 半透明层(此前未定义致失效)· v6.0.64 */
   --primary-strong: #2b47d1;
 
   /* —— 圆角(对齐 suxing border-radius:xs4/sm6/md12/lg24/max999)—— */
@@ -106,6 +107,7 @@
   color-scheme: dark;
 
   --primary: #4d6bff;        /* 暗底提亮,保证对比 */
+  --primary-rgb: 77, 107, 255;
   --primary-strong: #6b87ff;
 
   --page-bg: #0f0f11;        /* gray-8 */
@@ -161,4 +163,92 @@
   --code-token-heading: #7fc2ff;
   --code-token-error: #ff6b6b;
   --code-token-matching: #d0d0d4;
+}
+
+/* ============================================================
+   皮肤:智谱清言(bigmodel.cn 风格)· v6.0.64
+   后台「外观→自定义→皮肤 / 配色」选定 → header.php 在 <html> 直出 data-skin="zhipu"。
+   仅覆盖颜色 / 圆角 / 阴影令牌,布局 / 组件 / 字体不变(令牌级换肤)。
+   与 data-theme 正交:zhipu 皮肤下深浅色(日 / 月)照常独立。
+   特异性::root[data-skin="zhipu"](0,2,0)胜 :root;[data-skin="zhipu"][data-theme="dark"](0,3,0)总胜。
+   ============================================================ */
+:root[data-skin="zhipu"] {
+  /* —— 主色(智谱蓝)—— */
+  --primary: #0066ff;
+  --primary-strong: #0052cc;   /* hover */
+  --primary-rgb: 0, 102, 255;
+
+  /* —— 圆角(智谱 4/8/12;--radius-max 保 999 不变,护头像 / 药丸)—— */
+  --radius-small: 4px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+
+  /* —— 浅色:纯白页面 + #111/#444/#999 文字层级 —— */
+  --page-bg: #ffffff;
+  --page-bg-2: #f7f8fa;        /* 侧边色作次级 */
+  --page-bg-image: none;       /* 去 v6.0.60 柔光,还原智谱纯色 */
+  --card-bg: #ffffff;
+  --text: #111111;
+  --text-muted: #444444;
+  --text-faint: #999999;
+  --line: #e5e7eb;
+  --line-strong: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);   /* 智谱轻阴影 */
+  --window-bg: #f7f8fa;
+  --btn-bg: #f7f8fa;
+  --btn-hover: #e5e7eb;
+  --btn-active: #d1d5db;
+  --table-head: #f7f8fa;
+  --table-row: #f7f8fa;
+  --inline-code-bg: #f0f4ff;
+  --inline-code-color: #0066ff;
+  --selection-bg: rgba(0, 102, 255, 0.18);
+  --link-active: rgba(0, 102, 255, 0.08);
+
+  /* —— 提示色(智谱工具色:绿 / 紫 / 黄 / 橙;--note 跟随主色)—— */
+  --note: #0066ff;
+  --tip: #36cfc9;
+  --important: #9747ff;
+  --warning: #ffc53d;
+  --caution: #ff7d34;
+
+  /* —— 代码块底走中性灰(token 高亮保持 Slate Paper 不变)—— */
+  --code-bg: #f7f8fa;
+  --code-topbar-bg: #ebedf0;
+  --code-text: #111111;
+  --code-selection: rgba(0, 102, 255, 0.18);
+}
+
+:root[data-skin="zhipu"][data-theme="dark"] {
+  /* 暗色:智谱 #1A1A1F 系;圆角 / 字体 / 提示色继承上方浅色块 */
+  --primary: #0066ff;
+  --primary-strong: #0052cc;
+  --primary-rgb: 0, 102, 255;
+
+  --page-bg: #1a1a1f;
+  --page-bg-2: #242429;
+  --page-bg-image: none;
+  --card-bg: #2a2a30;
+  --text: #f5f5f5;
+  --text-muted: #c8c8d0;
+  --text-faint: #777780;
+  --line: #333339;
+  --line-strong: #333339;
+  --shadow: none;             /* 沿用 OneDong 暗色无阴影策略,避与 layout.css [data-theme=dark] 去 box-shadow 冲突 */
+  --window-bg: #242429;
+  --titlebar-bg: rgba(26, 26, 31, 0.72);
+  --btn-bg: #333339;
+  --btn-hover: #3f3f47;
+  --btn-active: #333339;
+  --table-head: #333339;
+  --table-row: #242429;
+  --inline-code-bg: #333339;
+  --inline-code-color: #f5f5f5;
+  --selection-bg: rgba(0, 102, 255, 0.32);
+  --link-active: rgba(0, 102, 255, 0.18);
+
+  --code-bg: #242429;
+  --code-topbar-bg: #333339;
+  --code-text: #f5f5f5;
+  --code-selection: rgba(0, 102, 255, 0.28);
 }

@@ -1879,3 +1879,32 @@
 - **`overflow:hidden` 不裁角标**:角标 absolute 在 `<article>` 边界内,不被裁。
 - **颜色不随暗色模式变**:4 色为固定饱和色配白字,浅/暗模式均清晰;蓝用 `var(--primary)` 会随暗色令牌自动提亮。
 - **无本地 PHP**:未跑 `php -l`;TD 部署后建议线上 `php -l inc/resources.php` + 后台编辑资源填标签 / 选色 + 前台 `/resources/` 实测角标显示与点击跳转。
+
+## v6.0.64(2026-07-17)· 智谱清言皮肤(令牌级换肤,后台切换)
+
+### 背景
+- TD 需求:给 OneDong 新增第二套皮肤(智谱清言 bigmodel.cn 风格),保留原 OneDong 皮肤,可切换。用 ui-ux-pro-max skill 流程(双 Explore agent 摸清令牌 / 切换机制 → plan agent 验证)。
+- 规范(用户给定):主色 #0066FF / hover #0052CC;工具色 绿 #36CFC9 橙 #FF7D34 紫 #9747FF 黄 #FFC53D;浅色 页面#FFF 侧边#F7F8FA 边框#E5E7EB 标题#111 正文#444 提示#999;深色 页面#1A1A1F 侧边#242429 卡片#2A2A30 边框#333339 标题#F5F5F5 正文#C8C8D0 提示#777780;圆角 4/8/12;阴影 轻 `0 1px 3px rgba(0,0,0,.06)`。
+- 拍板(TD):切换入口 = **后台「外观→自定义→皮肤/配色」设默认皮肤**(站点级,所有访客同一套,前端不加切换按钮)。
+
+### 架构:正交 `data-skin` 维度
+- 新增 `<html data-skin="zhipu">`(默认无 = OneDong 原样)。`data-skin` 与 `data-theme`(light/dark)**正交**,zhipu 皮肤下日 / 月深浅切换照常。
+- 皮肤**服务端 PHP 决定**:header.php 在 `<html>` 直出 `data-skin`(读 `onedong_theme_skin` theme_mod)。首帧即正确 → **无前端 JS、无 anti-flash 扩展、无闪烁**。
+- 令牌级换肤:tokens.css 末尾追加覆盖块,只改颜色 / 圆角 / 阴影变量,布局 / 组件 / 字体不动。
+- CSS 特异性:`:root[data-skin="zhipu"]`(0,2,0)胜 `:root`;`:root[data-skin="zhipu"][data-theme="dark"]`(0,3,0)总胜暗色。
+
+### 改动
+- **`functions.php`**:Customizer 新 section「皮肤 / 配色」(priority 28)+ setting `onedong_theme_skin`(radio `onedong`/`zhipu`,默认 `onedong`)+ `onedong_sanitize_skin` 白名单(仿 `onedong_sanitize_avatar_source`)。`ONEDONG_VERSION` 6.0.63 → 6.0.64。
+- **`header.php`**:`<html>` 标签加 `data-skin="<?php echo esc_attr( get_theme_mod('onedong_theme_skin','onedong') ); ?>"`(仅此一处 PHP 改)。
+- **`assets/css/tokens.css`**:
+  - 末尾追加 `:root[data-skin="zhipu"]`(浅)+ `:root[data-skin="zhipu"][data-theme="dark"]`(深)两块,覆盖核心变量(--primary #0066ff / --page-bg #fff 去 v6.0.60 柔光 / --text #111 / --line #e5e7eb / --radius 4/8/12 / --shadow 轻阴影 / 提示色映射智谱工具色 / --note 跟随主色)。
+  - `--radius-max` **不覆盖**(保 999,护头像 / 药丸圆形);代码 token 高亮 `--code-token-*` **不覆盖**(保持 Slate Paper)。
+  - **顺带修复**:`--primary-rgb` 此前未定义,但 layout.css 5 处 `rgba(var(--primary-rgb),…)`(分类贴片 / 卡片淡底)依赖它 → 渲染失效。本次在 `:root` 补 `56,88,246`、暗色补 `77,107,255`、zhipu 补 `0,102,255`,两套皮肤半透明层均生效。
+- **`style.css`**:Version 6.0.63 → 6.0.64(刷 tokens.css 缓存)。
+
+### 坑 / 注记
+- **--text=#111 vs 智谱正文#444**:OneDong 正文 / 标题共用 --text,无法分别映射智谱 标题#111 / 正文#444。取 --text=#111(标题色,深而清晰)、--text-muted=#444、--text-faint=#999。OneDong 正文本就偏深(#1D2129→#111 几乎无差),层级清晰。
+- **暗色 --shadow:none**:智谱深色规范未定阴影,沿用 OneDong 暗色无阴影策略,避免与 layout.css 5 处 `[data-theme=dark]` 去 box-shadow 冲突。
+- **--page-bg-image:none**:zhipu 还原纯色页面(去 v6.0.60 暖黄+蓝柔光),这是智谱"纯白"质感关键。
+- Customizer 改皮肤后**整页 refresh** 预览(data-skin 在 <html>,需整页刷新生效)。
+- **无本地 PHP**:未跑 `php -l`;TD 部署后线上 `php -l functions.php header.php` + 后台切 zhipu 实测 + 深浅色独立切 + 切回 onedong 还原。

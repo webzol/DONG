@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.63-ProMax' );
+define( 'ONEDONG_VERSION', '6.0.64-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -949,6 +949,17 @@ function onedong_sanitize_order( $value ) {
 }
 
 /**
+ * 皮肤风格净化:白名单 onedong / zhipu,非法落默认 onedong。
+ *
+ * @param string $value 输入值。
+ * @return string
+ */
+function onedong_sanitize_skin( $value ) {
+	$allowed = array( 'onedong', 'zhipu' );
+	return in_array( $value, $allowed, true ) ? $value : 'onedong';
+}
+
+/**
  * Customizer:文章卡 / 侧栏作者卡 显示项(v2.0:已移除主色色相滑块,主色固定 suxing blue)。
  *
  * @param WP_Customize_Manager $wp_customize Customizer 实例。
@@ -1644,6 +1655,35 @@ function onedong_customize_register( $wp_customize ) {
 				'min'  => 2,
 				'max'  => 8,
 				'step' => 1,
+			),
+		)
+	);
+	// —— 皮肤 / 配色:整站令牌级换肤(默认 OneDong;可切智谱清言风格)· v6.0.64
+	$wp_customize->add_section(
+		'onedong_skin',
+		array(
+			'title'       => __( '皮肤 / 配色', 'onedong' ),
+			'description' => __( '整站设计风格。默认「OneDong」(suxing 蓝);「智谱清言」换为主色 #0066FF、纯白页面、4/8/12 圆角、轻阴影。深浅色(日 / 月)在两套皮肤下都独立可用。', 'onedong' ),
+			'priority'    => 28,
+		)
+	);
+	$wp_customize->add_setting(
+		'onedong_theme_skin',
+		array(
+			'default'           => 'onedong',
+			'sanitize_callback' => 'onedong_sanitize_skin',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'onedong_theme_skin',
+		array(
+			'label'   => __( '皮肤风格', 'onedong' ),
+			'section' => 'onedong_skin',
+			'type'    => 'radio',
+			'choices' => array(
+				'onedong' => __( 'OneDong 默认(suxing 蓝)', 'onedong' ),
+				'zhipu'   => __( '智谱清言(#0066FF)', 'onedong' ),
 			),
 		)
 	);
