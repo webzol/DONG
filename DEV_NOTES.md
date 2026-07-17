@@ -1926,3 +1926,21 @@
 - 移动端 Banner 高度从此**与后台 banner_height 脱钩**(后台设的是桌面高度)——有意为之,移动端应自适应视口,不该被桌面大高度拖高。
 - 卡片网格 / 分类横滑等其它移动端规则本期未动(已适配:网格单列、filters `overflow-x:auto`)。
 - 仅改 CSS 无需 `php -l`;TD 部署 + 刷 CDN 后手机端实测 Banner 高度。
+
+## v6.0.66(2026-07-17)· 资源页移动端横向溢出修复(.site-main 根因)
+
+### 背景
+- TD 反馈:/resources/ 手机端 Banner 蓝块溢出屏幕、整页横向滚动条(截图 + analyze_image 确认:仅 Banner 区横向溢出,分类栏 / 卡片正常)。线上已是 6.0.65(data-skin=onedong、clamp 新规都在)。
+- 排查(curl 线上 banner 标签 + 读 layout.css):**根因在 `.site-main`(layout.css:197),不在 banner**。
+- 机制:`body{display:flex;flex-direction:column}` + `.site-main{flex:1 0 auto;max-width:var(--site-width);margin:0 auto}` **缺 width**。flex 列里 cross-axis 的 `margin:auto` 会让 flex item 不 stretch 到容器,而跟随内容宽度。资源页 banner 的 `max-width:calc(var(--site-width)-clamp*)` ≈ 1248px 成了内容期望宽 → 把 `.site-main` 撑到 1248px,手机(375 视口)溢出。桌面(≥1280)因 `max-width:1280` 生效而正常,故长期未暴露。
+- 其他页(home/archive)不溢出:三栏 grid 窄屏降列、内容不主动撑开 .site-main。
+
+### 改动(`assets/css/layout.css` `.site-main`)
+- 加 `width: 100%` —— 显式撑满视口(移动端),桌面由 `max-width:var(--site-width)` 居中限宽(行为不变)。1 行,全局,无副作用。修完后 banner / .resources-main 的 max-width 在窄屏被父级(width:100%=视口)正确约束,不再溢出。
+- 分类栏移动端横滑(`.resource-filters` `overflow-x:auto` + `flex:0 0 auto`,v6.0.x 既有)、卡片单列(既有)、banner 高度 clamp(v6.0.65)均已具备,本期未动。
+- 版本 6.0.65 → 6.0.66。
+
+### 坑 / 注记
+- **不加 `overflow-x:hidden` 兜底**:根因(.site-main 缺 width)已除;给 body 加 `overflow-x:hidden` 会建立 scroll container 使 sticky header 失效,故直修根因、不用兜底掩盖。
+- 改 `.site-main` 是全局选择器,已验证桌面行为不变(width:100% 受 max-width 1280 限 = 1280 居中,与原 flex+margin:auto 效果一致)。
+- 仅改 CSS;TD 部署 + 刷 CDN 后手机端 /resources/ 实测无横向滚动。

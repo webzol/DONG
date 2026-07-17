@@ -196,6 +196,7 @@ body {
 }
 .site-main {
   flex: 1 0 auto;     /* 占满 header 与 footer 之间的剩余空间 */
+  width: 100%;        /* v6.0.66:显式撑满。body 是 flex column,仅靠 margin:0 auto 会让 flex item 不拉伸而跟随内容宽度;资源页 banner 的 max-width:calc(var(--site-width)-*) 在窄屏成为内容期望宽,把 .site-main 撑出视口 → 横向溢出。width:100% 强制跟随视口(桌面再由 max-width 居中限宽) */
   max-width: var(--site-width);
   margin: 0 auto;
   padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
