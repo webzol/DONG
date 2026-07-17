@@ -1858,3 +1858,24 @@
 - reCAPTCHA / Turnstile(需 API key)。
 - 音频 / 算术兜底(无障碍;当前靠登录用户免验证缓解)。
 - 更强字体:引入 TTF 提升可读性。
+
+## v6.0.63(2026-07-17)· 资源卡右上角角标(自定义文字 + 预设色)
+
+### 背景
+- TD 需求:资源卡片右上角加一个标签,标签文字可自定义。
+- 拍板(TD):① 标签**每条资源单独配置**(后台编辑资源时各自填,非全局统一);② 外观**后台可选预设颜色**(蓝/红/橙/绿)。
+
+### 改动(`inc/resources.php` + `assets/css/resources.css` + `assets/css/resource-admin.css`)
+- **后台 meta box**(`onedong_resource_meta_box_cb`):「排序权重」下方新增「卡片标签(右上角角标,可选)」区块 —— 标签文字 input(`_onedong_resource_badge`,留空不显示)+ 颜色 4 选 1 radio 色块(`_onedong_resource_badge_color`:blue/red/orange/green,默认 blue)。
+- **保存**(`onedong_resource_save`):badge 走 `sanitize_text_field`;color 白名单校验(非法落 blue)。
+- **前台渲染**(`onedong_render_resource_card`):badge 非空时在 `<article>` 内、`<a class="resource-card__link">` **之前**输出 `<span class="resource-card__badge resource-card__badge--{color}">文字</span>`。
+- **CSS**:
+  - `resources.css` `.resource-card__badge`:absolute 右上角(`top/right .6rem`)+ `z-index:2`(浮于光边 `::before` 0 与内容链接 1 之上)+ **`pointer-events:none`**(点击穿透到下层铺满的 `__link`,整卡含角标区域均可点跳转)+ 药丸圆角 + 轻阴影;4 色变体(蓝 `var(--primary)` / 红 `#ff3b5c` 复用点赞色 / 橙 `#ff9500` / 绿 `#22c55e` 复用在线色)。
+  - `resource-admin.css` `.res-badge-color*`:radio 配色块,选中时色块加蓝色双环描边(`box-shadow` 2px+4px)。
+- **版本**:6.0.62 → 6.0.63(`style.css` + `functions.php` `ONEDONG_VERSION`,刷 resources.css / resource-admin.css URL 缓存)。
+
+### 坑 / 注记
+- **角标 vs 整卡可点**:资源卡是 stretched-link 式整卡 `<a>`。角标若放 `<a>` 内会成链接一部分(可点但位置受 `<a>` padding 限制偏内);放 `<article>` 内、`<a>` 外 + `pointer-events:none` 可贴卡片右上角边缘且点击穿透保整卡可点 —— 选后者(思路同 v2.1.0 文章卡分类贴片)。
+- **`overflow:hidden` 不裁角标**:角标 absolute 在 `<article>` 边界内,不被裁。
+- **颜色不随暗色模式变**:4 色为固定饱和色配白字,浅/暗模式均清晰;蓝用 `var(--primary)` 会随暗色令牌自动提亮。
+- **无本地 PHP**:未跑 `php -l`;TD 部署后建议线上 `php -l inc/resources.php` + 后台编辑资源填标签 / 选色 + 前台 `/resources/` 实测角标显示与点击跳转。

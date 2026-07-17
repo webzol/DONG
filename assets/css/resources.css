@@ -224,6 +224,30 @@
 	text-decoration: none;
 }
 
+/* —— 右上角角标(可选):后台每条资源自定义文字 + 预设色(蓝/红/橙/绿);文字留空则不渲染 —— */
+.resource-card__badge {
+	position: absolute;
+	top: .6rem;
+	right: .6rem;
+	z-index: 2;                    /* 浮于光边 ::before(0)与内容链接(1)之上 */
+	pointer-events: none;          /* 点击穿透到下层铺满的 __link,整卡(含角标区域)均可点跳转 */
+	padding: .22rem .6rem;
+	font-size: .72rem;
+	font-weight: 600;
+	line-height: 1.5;
+	letter-spacing: .02em;
+	color: #fff;
+	background: var(--primary);
+	border-radius: var(--radius-max);
+	white-space: nowrap;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+.resource-card__badge--blue   { background: var(--primary); }
+.resource-card__badge--red    { background: #ff3b5c; }      /* 复用点赞红 */
+.resource-card__badge--orange { background: #ff9500; }
+.resource-card__badge--green  { background: #22c55e; }      /* 复用在线绿 */
+
 /* 卡片内所有链接 hover 去下划线(覆盖全局 a:hover 的 0,1,1 特异性) */
 .resource-card a:hover,
 .resource-card a:focus {

@@ -134,6 +134,9 @@ function onedong_resource_meta_box_cb( $post ) {
 	$cur_cats = get_the_terms( $post->ID, 'onedong_resource_cat' );
 	$cur_cat  = ( $cur_cats && ! is_wp_error( $cur_cats ) ) ? (int) $cur_cats[0]->term_id : 0;
 	$cats     = get_terms( array( 'taxonomy' => 'onedong_resource_cat', 'hide_empty' => false ) );
+	$badge       = get_post_meta( $post->ID, '_onedong_resource_badge', true );
+	$badge_color = get_post_meta( $post->ID, '_onedong_resource_badge_color', true );
+	$badge_color = in_array( $badge_color, array( 'blue', 'red', 'orange', 'green' ), true ) ? $badge_color : 'blue';
 	?>
 	<p><label><strong><?php esc_html_e( '资源网址', 'onedong' ); ?></strong></label>
 		<input type="url" name="onedong_resource_url" value="<?php echo esc_attr( $url ); ?>" class="widefat" required placeholder="https://"></p>
@@ -149,6 +152,26 @@ function onedong_resource_meta_box_cb( $post ) {
 	<p><label><strong><?php esc_html_e( '排序权重', 'onedong' ); ?></strong>
 			<input type="number" name="onedong_resource_order" value="<?php echo esc_attr( $order ); ?>"></label>
 		<span class="description"><?php esc_html_e( '数字越大越靠前。', 'onedong' ); ?></span></p>
+
+	<h4 style="margin:1.2em 0 .4em;"><?php esc_html_e( '卡片标签(右上角角标,可选)', 'onedong' ); ?></h4>
+	<p><label><strong><?php esc_html_e( '标签文字', 'onedong' ); ?></strong></label>
+		<input type="text" name="onedong_resource_badge" value="<?php echo esc_attr( $badge ); ?>" class="widefat" placeholder="<?php esc_attr_e( '如:推荐 / 官方 / Hot(留空则不显示)', 'onedong' ); ?>"></p>
+	<div class="res-badge-color">
+		<span class="res-badge-color__label"><?php esc_html_e( '标签颜色', 'onedong' ); ?></span>
+		<?php
+		foreach ( array(
+			'blue'   => __( '蓝', 'onedong' ),
+			'red'    => __( '红', 'onedong' ),
+			'orange' => __( '橙', 'onedong' ),
+			'green'  => __( '绿', 'onedong' ),
+		) as $bk => $blabel ) :
+			?>
+			<label class="res-badge-color__opt">
+				<input type="radio" name="onedong_resource_badge_color" value="<?php echo esc_attr( $bk ); ?>" <?php checked( $badge_color, $bk ); ?>>
+				<span class="res-badge-color__chip res-badge-color__chip--<?php echo esc_attr( $bk ); ?>"><?php echo esc_html( $blabel ); ?></span>
+			</label>
+		<?php endforeach; ?>
+	</div>
 
 	<p><label><input type="checkbox" name="onedong_resource_enabled" value="1" <?php checked( $enabled !== '0' ); ?>>
 			<?php esc_html_e( '启用(取消则前台隐藏)', 'onedong' ); ?></label></p>
@@ -199,6 +222,15 @@ function onedong_resource_save( $post_id ) {
 	update_post_meta( $post_id, '_onedong_resource_order', isset( $_POST['onedong_resource_order'] ) ? (int) $_POST['onedong_resource_order'] : 0 );
 	// 启停
 	update_post_meta( $post_id, '_onedong_resource_enabled', isset( $_POST['onedong_resource_enabled'] ) ? '1' : '0' );
+	// 卡片标签(右上角角标):文字 + 颜色预设
+	if ( isset( $_POST['onedong_resource_badge'] ) ) {
+		update_post_meta( $post_id, '_onedong_resource_badge', sanitize_text_field( wp_unslash( $_POST['onedong_resource_badge'] ) ) );
+	}
+	$badge_color = isset( $_POST['onedong_resource_badge_color'] ) ? sanitize_text_field( wp_unslash( $_POST['onedong_resource_badge_color'] ) ) : 'blue';
+	if ( ! in_array( $badge_color, array( 'blue', 'red', 'orange', 'green' ), true ) ) {
+		$badge_color = 'blue';
+	}
+	update_post_meta( $post_id, '_onedong_resource_badge_color', $badge_color );
 	// 图标模式
 	$mode = isset( $_POST['onedong_resource_icon_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['onedong_resource_icon_mode'] ) ) : 'default';
 	if ( ! in_array( $mode, array( 'default', 'upload', 'remote' ), true ) ) {
@@ -722,11 +754,18 @@ function onedong_render_resource_card() {
 	$cats   = get_the_terms( $id, 'onedong_resource_cat' );
 	$cat    = ( $cats && ! is_wp_error( $cats ) ) ? $cats[0] : null;
 	$cat_id = $cat ? (int) $cat->term_id : 0;
+	// 右上角角标(可选):文字 + 颜色(蓝/红/橙/绿),文字留空则不渲染。
+	$badge       = get_post_meta( $id, '_onedong_resource_badge', true );
+	$badge_color = get_post_meta( $id, '_onedong_resource_badge_color', true );
+	$badge_color = in_array( $badge_color, array( 'blue', 'red', 'orange', 'green' ), true ) ? $badge_color : 'blue';
 	// 完整描述进 DOM(去 shortcode / HTML / 折行)· 卡片 CSS 默认 2 行省略号截断,hover 展开显示全文。
 	// 不再用 wp_trim_words 截 30 词 —— 那会把英文/混排描述砍到刚好 2 行,导致 hover「没有折叠文字可展开」。
 	$desc   = wp_strip_all_tags( strip_shortcodes( get_the_content() ), true );
 	?>
 	<article class="resource-card" data-cat="<?php echo esc_attr( $cat_id ); ?>" data-name="<?php echo esc_attr( strtolower( get_the_title() ) ); ?>">
+		<?php if ( $badge ) : ?>
+			<span class="resource-card__badge resource-card__badge--<?php echo esc_attr( $badge_color ); ?>"><?php echo esc_html( $badge ); ?></span>
+		<?php endif; ?>
 		<a class="resource-card__link" href="<?php echo esc_url( $url ? $url : '#' ); ?>" target="_blank" rel="noopener noreferrer nofollow">
 			<div class="resource-card__head">
 				<?php echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput — 已转义 ?>

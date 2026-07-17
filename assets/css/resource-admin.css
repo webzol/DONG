@@ -39,6 +39,43 @@
 	vertical-align: middle;
 }
 
+/* 资源编辑:卡片标签颜色单选(色块预览 + 选中描边) */
+.res-badge-color {
+	margin: .4em 0 1em;
+}
+.res-badge-color__label {
+	font-weight: 600;
+	display: block;
+	margin-bottom: .4em;
+}
+.res-badge-color__opt {
+	display: inline-flex;
+	align-items: center;
+	margin-right: .8em;
+	cursor: pointer;
+}
+.res-badge-color__opt input[type="radio"] {
+	margin: 0 .35em 0 0;
+}
+.res-badge-color__chip {
+	display: inline-block;
+	padding: .15rem .65rem;
+	font-size: .8rem;
+	font-weight: 600;
+	line-height: 1.5;
+	color: #fff;
+	border-radius: 999px;
+	box-shadow: 0 0 0 2px transparent;
+	transition: box-shadow .15s ease;
+}
+.res-badge-color__opt input[type="radio"]:checked + .res-badge-color__chip {
+	box-shadow: 0 0 0 2px #2271b1, 0 0 0 4px rgba(34, 113, 177, 0.25);
+}
+.res-badge-color__chip--blue   { background: #3858F6; }
+.res-badge-color__chip--red    { background: #ff3b5c; }
+.res-badge-color__chip--orange { background: #ff9500; }
+.res-badge-color__chip--green  { background: #22c55e; }
+
 /* 页面设置:Banner 背景图片预览 */
 .res-banner-image-preview {
 	display: inline-block;
