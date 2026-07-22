@@ -118,4 +118,6 @@
 
 <div class="nav-overlay" aria-hidden="true"></div>
 
+<?php onedong_announcement_bar(); // 全站顶部公告条 — v6.0.67 ?>
+
 <main id="main" class="site-main">

@@ -1,0 +1,189 @@
+/* 全站顶部公告条 —— 仅用设计 token,深浅色 / data-skin 换肤自动跟随。 v6.0.67 */
+
+.site-announcement {
+	margin: 1rem 0 0;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.site-announcement__inner {
+	max-width: var(--site-width);
+	margin: 0 auto;
+	padding: 0 clamp(1rem, 4vw, 2rem); /* 与 header/内容同款边缘对齐原语 */
+}
+
+.site-announcement__card {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.7rem 1rem;
+	background: var(--card-bg);
+	border: 1px solid var(--line-strong);
+	border-left: 3px solid var(--primary);
+	border-radius: var(--radius-large);
+	box-shadow: var(--shadow);
+	color: var(--text);
+}
+
+.site-announcement__icon {
+	display: flex;
+	flex: 0 0 auto;
+	color: var(--primary);
+}
+
+.site-announcement__icon .icon {
+	width: 18px;
+	height: 18px;
+}
+
+.site-announcement__body {
+	flex: 1 1 auto;
+	min-width: 0; /* 允许长文本换行,避免横向溢出 */
+	line-height: 1.5;
+}
+
+.site-announcement__title {
+	font-weight: 600;
+	margin-right: 0.4rem;
+}
+
+.site-announcement__text {
+	color: var(--text-muted);
+}
+
+.site-announcement__btn {
+	flex: 0 0 auto;
+	padding: 0.35rem 0.9rem;
+	border-radius: var(--radius-max);
+	background: var(--primary);
+	color: #fff;
+	font-size: 0.85rem;
+	line-height: 1.4;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background 0.15s ease;
+}
+
+.site-announcement__btn:hover {
+	background: var(--primary-strong);
+	color: #fff;
+}
+
+.site-announcement__close {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-max);
+	background: transparent;
+	color: var(--text-faint);
+	font-size: 1.35rem;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.site-announcement__close:hover {
+	background: var(--btn-hover);
+	color: var(--text);
+}
+
+/* —— tone 变体:info / primary 走主题色;warn / success 硬编码(token 无告警色) —— */
+.site-announcement[data-tone="warn"] .site-announcement__card {
+	border-left-color: #e6a23c;
+}
+.site-announcement[data-tone="warn"] .site-announcement__icon {
+	color: #e6a23c;
+}
+.site-announcement[data-tone="warn"] .site-announcement__btn {
+	background: #e6a23c;
+}
+.site-announcement[data-tone="warn"] .site-announcement__btn:hover {
+	background: #d38c1f;
+}
+
+.site-announcement[data-tone="success"] .site-announcement__card {
+	border-left-color: #3fb950;
+}
+.site-announcement[data-tone="success"] .site-announcement__icon {
+	color: #3fb950;
+}
+.site-announcement[data-tone="success"] .site-announcement__btn {
+	background: #3fb950;
+}
+.site-announcement[data-tone="success"] .site-announcement__btn:hover {
+	background: #2f9c40;
+}
+
+/* —— 关闭动画 / 隐藏 —— */
+.site-announcement.is-closing {
+	opacity: 0;
+	transform: translateY(-6px);
+	pointer-events: none;
+}
+.site-announcement.is-dismissed {
+	display: none;
+}
+
+/* —— 移动端自适应(768 主断点) —— */
+@media (max-width: 768px) {
+	.site-announcement {
+		margin-top: 0.75rem;
+	}
+	.site-announcement__inner {
+		padding: 0 0.75rem; /* 回落与 .site-main 一致的扁平内边距,避免 clamp 双重内边距横向溢出(v6.0.66 根因) */
+	}
+	.site-announcement__card {
+		position: relative;
+		flex-wrap: wrap;
+		gap: 0.4rem 0.6rem;
+		padding: 0.65rem 0.8rem;
+	}
+	/* 关闭键仅在可关闭时占位:绝对定位到右上,正文不被遮挡 */
+	.site-announcement[data-dismissible="1"] .site-announcement__card {
+		padding-right: 2.4rem;
+	}
+	.site-announcement__close {
+		position: absolute;
+		top: 0.35rem;
+		right: 0.35rem;
+	}
+	.site-announcement__icon {
+		align-self: flex-start;
+		margin-top: 0.15rem;
+	}
+	.site-announcement__btn {
+		order: 3;
+		flex: 1 1 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.55rem;
+		min-height: 2.5rem; /* ≥44px 触控目标 */
+	}
+}
+
+@media (max-width: 480px) {
+	.site-announcement__card {
+		padding: 0.6rem 0.7rem;
+	}
+	.site-announcement[data-dismissible="1"] .site-announcement__card {
+		padding-right: 2.2rem;
+	}
+	.site-announcement__title {
+		display: block; /* 标题独占一行,正文在下 */
+		margin-right: 0;
+		margin-bottom: 0.1rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-announcement,
+	.site-announcement__btn,
+	.site-announcement__close {
+		transition: none;
+	}
+}

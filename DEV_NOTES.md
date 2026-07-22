@@ -1944,3 +1944,32 @@
 - **不加 `overflow-x:hidden` 兜底**:根因(.site-main 缺 width)已除;给 body 加 `overflow-x:hidden` 会建立 scroll container 使 sticky header 失效,故直修根因、不用兜底掩盖。
 - 改 `.site-main` 是全局选择器,已验证桌面行为不变(width:100% 受 max-width 1280 限 = 1280 居中,与原 flex+margin:auto 效果一致)。
 - 仅改 CSS;TD 部署 + 刷 CDN 后手机端 /resources/ 实测无横向滚动。
+
+## v6.0.67(2026-07-22)· 新增全站顶部公告条(可关闭 + 记住内容哈希,移动端自适应)
+
+### 背景
+- TD 需求:新增「公告模块」,不改文章即可挂一条全站可见公告(活动 / 维护 / 置顶提醒)。走 plan 流程(Explore agent 摸清 token / 断点 / 参考模块 → AskUserQuestion 定三项 → 写计划)。
+- 拍板(TD 三问三答):位置 = **全站顶部公告条**(header 下方,每页显示);内容 = **单条**(标题 + 正文 + 可选按钮);行为 = **可关闭并记住**(localStorage,按内容哈希失效)。
+- 确认:DEV_NOTES 与全站零「公告 / 通知 / announcement」相关实现,属全新功能(greenfield)。
+
+### 架构
+- **模块自包含 `inc/announcement.php`**(仿 moments/resources/captcha):渲染 + Customizer 注册 + 按需 enqueue + sanitizer 全收一处,各自 add_action。functions.php 仅加 1 行 require,保持精简。
+- **配置走 Customizer**(非资源页 Settings-API 那种):新 section `onedong_announcement`(priority 30,夹在品牌 29 / 文章卡 31 之间),8 字段:enable / tone(info·primary·warn·success)/ title / text / btn_text / btn_url / btn_blank / dismissible。sanitize 复用 `onedong_sanitize_checkbox`,新增白名单 `onedong_announcement_sanitize_tone`(仿 `onedong_sanitize_avatar_source`)。
+- **渲染位置**:header.php 在 `.nav-overlay` 与 `<main>` 之间调 `onedong_announcement_bar()` —— 作 header/main 同级块,宽度自持,不受 `.site-main` flex 影响。
+- **只用设计 token**:深浅色 + `data-skin=zhipu` 换肤全自动,无需写暗色规则。`__inner` 用 `max-width:var(--site-width)+margin:0 auto+padding:0 clamp(1rem,4vw,2rem)` 与 header/内容边缘对齐。
+- **关闭记忆(内容哈希)**:PHP `substr(md5(title|text|btn_text|btn_url|tone),0,10)` 作 `data-key`;内联 IIFE(仿 header 汉堡/主题切换,零额外请求)—— anti-flash 预隐藏(localStorage 命中 key 即在绘制前 `display:none`)+ 点 × 写 key + 淡出移除。内容一改 key 变 → 已关闭失效,公告重现。
+
+### 改动
+- **新增 `inc/announcement.php`**:4 函数(`_sanitize_tone` / `_has_content` / `_customize` / `_bar`)+ `_assets` enqueue,3 个 add_action(customize_register / wp_enqueue_scripts + header 直调 bar)。
+- **新增 `assets/css/announcement.css`**:`.site-announcement*` 卡片(card-bg + line-strong 边框 + border-left 3px primary + radius-large + shadow);tone 变体(info/primary 走 `--primary`,warn `#e6a23c`、success `#3fb950` 硬编码,因 token 无告警色);`.is-closing` 淡出 + `.is-dismissed` display:none;移动端 `@media` 768 / 480。
+- **`functions.php`**:L20 后加 `require_once …/inc/announcement.php`;`ONEDONG_VERSION` 6.0.66 → 6.0.67。
+- **`header.php`**:插入 `<?php onedong_announcement_bar(); ?>`(1 行)。
+- **`style.css`**:Version 6.0.66 → 6.0.67(刷 announcement.css 缓存)。
+
+### 坑 / 注记
+- **移动端 `__inner` 必须回落 `padding:0 .75rem`**(不用 clamp)—— 与 `.site-main` 移动端扁平内边距一致,避免 clamp 双重内边距横向溢出(直接复用 v6.0.66 `.site-main` 溢出根因教训)。公告条虽在 `.site-main` 外,同样受视口宽约束,故主动对齐。
+- **关闭键移动端 absolute 右上 + `[data-dismissible="1"]` 才加 `padding-right`**:不可关闭时不留空位。桌面 flex 行内一排,移动端 flex-wrap 后正文 / 按钮各自换行满宽(按钮 `min-height:2.5rem` ≥44px 触控目标)。
+- **`onedong_icon()` 无喇叭 / 铃铛图标**(现有 23 个):公告图标改用 `info`(circle-i),关闭键用 `&times;` 字符,均无需新增 SVG。日后要喇叭往 functions.php `$paths` 加一条即可。
+- **enqueue 条件 = `enable && has_content()`**:开了开关但标题 / 正文全空则不渲染、不加载 CSS,零无效开销。
+- **本机写入分类器一度不可用**:开发中 Write/Edit/Bash/Cron 被安全分类器(auto 模式)临时挡下约数分钟(`claude-opus-4-8[1m] temporarily unavailable`),只读不受影响;恢复后一次性落地。非代码 / 环境问题。
+- **无本地 PHP**:未跑 `php -l`;TD 部署后建议线上 `php -l inc/announcement.php functions.php header.php` + 后台「外观→自定义→公告条」开启填字段 + 前台桌面 / 手机(≤768)/ 深色 / zhipu 皮肤 / 关闭刷新 / 改内容重现,逐项实测。
