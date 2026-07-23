@@ -1973,3 +1973,23 @@
 - **enqueue 条件 = `enable && has_content()`**:开了开关但标题 / 正文全空则不渲染、不加载 CSS,零无效开销。
 - **本机写入分类器一度不可用**:开发中 Write/Edit/Bash/Cron 被安全分类器(auto 模式)临时挡下约数分钟(`claude-opus-4-8[1m] temporarily unavailable`),只读不受影响;恢复后一次性落地。非代码 / 环境问题。
 - **无本地 PHP**:未跑 `php -l`;TD 部署后建议线上 `php -l inc/announcement.php functions.php header.php` + 后台「外观→自定义→公告条」开启填字段 + 前台桌面 / 手机(≤768)/ 深色 / zhipu 皮肤 / 关闭刷新 / 改内容重现,逐项实测。
+
+## v6.0.68(2026-07-23)· 公告条 UI 精致化
+
+### 背景
+- v6.0.67 公告条上线后,TD 要求优化展示 UI。用 AskUserQuestion 给三形态(精致卡片 / 通栏彩色横幅 / 极简内联)带 ASCII 预览让 TD 选,确认方向 **精致卡片**——保留现有卡片形态做打磨,不改横幅 / 内联。
+
+### 改动
+- **图标随语气切换**(`inc/announcement.php`):原写死 `onedong_icon('info')`。加 tone→icon 映射数组(info/primary→info,warn→alert,success→check-circle),渲染前算出 `$icon` 再传入模板。
+- **新增两个图标**(`functions.php` `onedong_get_icon` 的 `$paths`):`alert`(Feather alert-triangle 三角警示)、`check-circle`(Feather check-circle 圆形对勾),线性 stroke 风格与既有 23 个图标一致。
+- **tone 变体收敛为单变量**(`announcement.css`):原 warn/success 逐属性(边框 / 图标 / 按钮 / hover)各覆盖一遍 ≈26 行,重构为 `--ann-accent` + `--ann-accent-strong` 两个强调色变量;tone 块只覆盖这两个(默认 = `--primary` / `--primary-strong`,warn `#e6a23c` / `#d38c1f`,success `#3fb950` / `#2f9c40`),卡片 / 图标 / 边框 / 按钮全部引用 `var(--ann-accent)`,新增视觉自动跟随,tone 块从 ~26 行降到 6 行。
+- **图标柔和色底圆**:图标外套 2rem 圆,底色 `color-mix(in srgb, var(--ann-accent) 14%, transparent)`。
+- **卡片极淡 tone 着色**:卡片背景 `color-mix(… 5%, var(--card-bg))`、边框 `color-mix(… 20%, var(--line-strong))`,深浅色 / `data-skin` 换肤自适应。
+- **进入动画**:新增 `@keyframes onedong-announce-in`(-8px 滑入 + 淡入,0.4s cubic-bezier),仅 `prefers-reduced-motion: no-preference` 下播放。
+- 版本 6.0.67-ProMax → 6.0.68-ProMax(`functions.php` + `style.css` 同步)。
+
+### 坑 / 注记
+- **进入动画 fill-mode 用 `backwards` 不用 `both`**:`both` 在动画结束后锁定 `to` 态(opacity:1 / transform:0),会压制关闭时 `.is-closing` 的 opacity / transform 过渡 → 关闭动画失效。`backwards` 仅在动画前套 `from` 态(防未动画元素闪现),结束后交还普通样式,与关闭过渡互不干扰。
+- **color-mix 均留回退声明**:卡片背景先 `var(--card-bg)`、图标底圆先 `var(--btn-hover)`、边框先 `var(--line-strong)`,再由 `color-mix` 覆盖,老浏览器优雅退化(项目 layout.css / base.css 已用 color-mix,目标浏览器支持)。
+- **warn / success 无 `-rgb` / `-strong` token**:tone 着色未走 `rgba(var(--primary-rgb),…)` 老惯例(仅 primary 有 rgb 分量),统一 color-mix + 硬编码 accent,四语气一致。
+- **无本地 PHP**:未跑 `php -l`;已静态核验 `$icon` 先定义后引用、函数体缩进对齐。待 TD 线上验证:后台开启公告条,前台核对四语气图标(info=i 圈 / warn=三角 / success=对勾圈)、桌面 / 手机(≤768)/ 深色 / zhipu 皮肤 / 进入动画 / 关闭刷新记忆。

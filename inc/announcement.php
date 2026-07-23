@@ -239,13 +239,22 @@ function onedong_announcement_bar() {
 	$dismissible = (bool) get_theme_mod( 'onedong_announcement_dismissible', 1 );
 	$has_btn     = ( '' !== $btn_text && '' !== $btn_url );
 
+	// 图标随语气切换:info/primary 用信息圈,warn 用三角警示,success 用对勾圈。
+	$icon_map = array(
+		'info'    => 'info',
+		'primary' => 'info',
+		'warn'    => 'alert',
+		'success' => 'check-circle',
+	);
+	$icon = isset( $icon_map[ $tone ] ) ? $icon_map[ $tone ] : 'info';
+
 	// 内容指纹:任一字段变化 → key 变 → 已关闭状态失效,公告重新出现。
 	$key = substr( md5( $title . '|' . $text . '|' . $btn_text . '|' . $btn_url . '|' . $tone ), 0, 10 );
 	?>
 	<section class="site-announcement" role="region" aria-label="<?php esc_attr_e( '站点公告', 'onedong' ); ?>" data-tone="<?php echo esc_attr( $tone ); ?>" data-key="<?php echo esc_attr( $key ); ?>"<?php echo $dismissible ? ' data-dismissible="1"' : ''; ?>>
 		<div class="site-announcement__inner">
 			<div class="site-announcement__card">
-				<span class="site-announcement__icon" aria-hidden="true"><?php onedong_icon( 'info' ); ?></span>
+				<span class="site-announcement__icon" aria-hidden="true"><?php onedong_icon( $icon ); ?></span>
 				<div class="site-announcement__body">
 					<?php if ( '' !== $title ) : ?>
 						<strong class="site-announcement__title"><?php echo esc_html( $title ); ?></strong>

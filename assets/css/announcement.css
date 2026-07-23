@@ -1,8 +1,21 @@
-/* 全站顶部公告条 —— 仅用设计 token,深浅色 / data-skin 换肤自动跟随。 v6.0.67 */
+/* 全站顶部公告条 —— 仅用设计 token,深浅色 / data-skin 换肤自动跟随。 v6.0.68 */
 
 .site-announcement {
+	/* tone 强调色:warn / success 只覆盖这两个变量,卡片 / 图标 / 按钮 / 边框自动跟随 */
+	--ann-accent: var(--primary);
+	--ann-accent-strong: var(--primary-strong);
 	margin: 1rem 0 0;
 	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* —— tone 变体:只换强调色,其余属性全部引用 var(--ann-accent) —— */
+.site-announcement[data-tone="warn"] {
+	--ann-accent: #e6a23c;
+	--ann-accent-strong: #d38c1f;
+}
+.site-announcement[data-tone="success"] {
+	--ann-accent: #3fb950;
+	--ann-accent-strong: #2f9c40;
 }
 
 .site-announcement__inner {
@@ -14,11 +27,13 @@
 .site-announcement__card {
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
-	padding: 0.7rem 1rem;
-	background: var(--card-bg);
-	border: 1px solid var(--line-strong);
-	border-left: 3px solid var(--primary);
+	gap: 0.85rem;
+	padding: 0.8rem 1rem;
+	background: var(--card-bg); /* 回退:不支持 color-mix 时的底色 */
+	background: color-mix(in srgb, var(--ann-accent) 5%, var(--card-bg)); /* 极淡 tone 着色,深浅色自适应 */
+	border: 1px solid var(--line-strong); /* 回退 */
+	border: 1px solid color-mix(in srgb, var(--ann-accent) 20%, var(--line-strong));
+	border-left: 3px solid var(--ann-accent);
 	border-radius: var(--radius-large);
 	box-shadow: var(--shadow);
 	color: var(--text);
@@ -27,7 +42,14 @@
 .site-announcement__icon {
 	display: flex;
 	flex: 0 0 auto;
-	color: var(--primary);
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: var(--btn-hover); /* 回退 */
+	background: color-mix(in srgb, var(--ann-accent) 14%, transparent); /* 柔和色底圆 */
+	color: var(--ann-accent);
 }
 
 .site-announcement__icon .icon {
@@ -52,20 +74,22 @@
 
 .site-announcement__btn {
 	flex: 0 0 auto;
-	padding: 0.35rem 0.9rem;
+	padding: 0.4rem 0.95rem;
 	border-radius: var(--radius-max);
-	background: var(--primary);
+	background: var(--ann-accent);
 	color: #fff;
 	font-size: 0.85rem;
+	font-weight: 500;
 	line-height: 1.4;
 	text-decoration: none;
 	white-space: nowrap;
-	transition: background 0.15s ease;
+	transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .site-announcement__btn:hover {
-	background: var(--primary-strong);
+	background: var(--ann-accent-strong);
 	color: #fff;
+	transform: translateY(-1px);
 }
 
 .site-announcement__close {
@@ -91,31 +115,17 @@
 	color: var(--text);
 }
 
-/* —— tone 变体:info / primary 走主题色;warn / success 硬编码(token 无告警色) —— */
-.site-announcement[data-tone="warn"] .site-announcement__card {
-	border-left-color: #e6a23c;
+/* —— 进入动画:首次渲染轻微滑入淡入。用 backwards(而非 both)填充:
+      动画前套用 from 态避免未动画元素闪现,动画后不锁定 to 态,
+      以免压制关闭时 .is-closing 的 opacity / transform 过渡。 —— */
+@keyframes onedong-announce-in {
+	from { opacity: 0; transform: translateY(-8px); }
+	to   { opacity: 1; transform: translateY(0); }
 }
-.site-announcement[data-tone="warn"] .site-announcement__icon {
-	color: #e6a23c;
-}
-.site-announcement[data-tone="warn"] .site-announcement__btn {
-	background: #e6a23c;
-}
-.site-announcement[data-tone="warn"] .site-announcement__btn:hover {
-	background: #d38c1f;
-}
-
-.site-announcement[data-tone="success"] .site-announcement__card {
-	border-left-color: #3fb950;
-}
-.site-announcement[data-tone="success"] .site-announcement__icon {
-	color: #3fb950;
-}
-.site-announcement[data-tone="success"] .site-announcement__btn {
-	background: #3fb950;
-}
-.site-announcement[data-tone="success"] .site-announcement__btn:hover {
-	background: #2f9c40;
+@media (prefers-reduced-motion: no-preference) {
+	.site-announcement:not(.is-dismissed) {
+		animation: onedong-announce-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+	}
 }
 
 /* —— 关闭动画 / 隐藏 —— */
@@ -139,8 +149,8 @@
 	.site-announcement__card {
 		position: relative;
 		flex-wrap: wrap;
-		gap: 0.4rem 0.6rem;
-		padding: 0.65rem 0.8rem;
+		gap: 0.5rem 0.7rem;
+		padding: 0.7rem 0.85rem;
 	}
 	/* 关闭键仅在可关闭时占位:绝对定位到右上,正文不被遮挡 */
 	.site-announcement[data-dismissible="1"] .site-announcement__card {
@@ -148,12 +158,11 @@
 	}
 	.site-announcement__close {
 		position: absolute;
-		top: 0.35rem;
-		right: 0.35rem;
+		top: 0.4rem;
+		right: 0.4rem;
 	}
 	.site-announcement__icon {
 		align-self: flex-start;
-		margin-top: 0.15rem;
 	}
 	.site-announcement__btn {
 		order: 3;
@@ -168,7 +177,7 @@
 
 @media (max-width: 480px) {
 	.site-announcement__card {
-		padding: 0.6rem 0.7rem;
+		padding: 0.65rem 0.75rem;
 	}
 	.site-announcement[data-dismissible="1"] .site-announcement__card {
 		padding-right: 2.2rem;
