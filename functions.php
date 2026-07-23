@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.0.68-ProMax' );
+define( 'ONEDONG_VERSION', '6.1.0-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -19,6 +19,7 @@ require_once ONEDONG_DIR . '/inc/moments.php'; // 朋友圈(onedong_moment)— v
 require_once ONEDONG_DIR . '/inc/resources.php'; // 资源导航(onedong_resource)— v1.0.0
 require_once ONEDONG_DIR . '/inc/captcha.php'; // 评论图形验证码(GD 图片)— v6.0.62
 require_once ONEDONG_DIR . '/inc/announcement.php'; // 全站顶部公告条 — v6.0.67
+require_once ONEDONG_DIR . '/inc/cloud-storage.php'; // 云存储 Offload(OSS/COS/七牛/又拍/OBS/S3)— v6.1.0
 
 /**
  * 主题初始化:注册主题支持与菜单位置

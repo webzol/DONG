@@ -1993,3 +1993,35 @@
 - **color-mix 均留回退声明**:卡片背景先 `var(--card-bg)`、图标底圆先 `var(--btn-hover)`、边框先 `var(--line-strong)`,再由 `color-mix` 覆盖,老浏览器优雅退化(项目 layout.css / base.css 已用 color-mix,目标浏览器支持)。
 - **warn / success 无 `-rgb` / `-strong` token**:tone 着色未走 `rgba(var(--primary-rgb),…)` 老惯例(仅 primary 有 rgb 分量),统一 color-mix + 硬编码 accent,四语气一致。
 - **无本地 PHP**:未跑 `php -l`;已静态核验 `$icon` 先定义后引用、函数体缩进对齐。待 TD 线上验证:后台开启公告条,前台核对四语气图标(info=i 圈 / warn=三角 / success=对勾圈)、桌面 / 手机(≤768)/ 深色 / zhipu 皮肤 / 进入动画 / 关闭刷新记忆。
+
+## v6.1.0(2026-07-23)· 云存储 Offload(阶段 1)
+
+### 背景
+- TD 要新增云存储配置项:阿里 OSS / 腾讯 COS + 常见云(七牛 / 又拍 / 华为 OBS / AWS S3·MinIO),完整 offload(上传自动推云 + URL 替换 + 删除同步)。
+- AskUserQuestion 定:深度=完整 offload;厂商=6 家全上。分两阶段:**阶段 1**(本次)= 框架 + 设置页(全 6 家字段)+ 阿里 OSS / 腾讯 COS 两家 driver 跑通;**阶段 2** 补七牛 / 又拍 / OBS / S3。
+
+### 架构(纯函数式,零 SDK / composer 依赖)
+- **driver = 函数命名约定** `onedong_cloud_{provider}_{op}($cfg, ...)`(op = upload / delete / public_url / test)。工厂 `onedong_cloud_dispatch($prov,$op,$args)` 分发,`function_exists` 判就绪。新增厂商 = 往 `inc/cloud-storage/` 丢一个 driver 文件 + 在 `onedong_cloud_providers()` 注册字段 schema。延续 captcha / resources 的函数式风格,不引 OOP。
+- **签名手写**(hash_hmac 内置函数)+ `wp_remote_request` PUT / DELETE:
+  - 阿里 OSS = V1 header 签名(hmac-sha1);不加 x-oss-* 头、Content-MD5 留空,`StringToSign = VERB\n\n{Content-Type}\n{Date}\n/{bucket}/{key}`,`Authorization: OSS {AK}:{base64(hmac-sha1)}`。
+  - 腾讯 COS = q-sign-algorithm=sha1;`SignKey=hmac-sha1(SecretKey,KeyTime)`,`StringToSign=sha1\n{KeyTime}\n{SHA1(HttpString)}\n`,只签 host 头。
+- **配置** = 单 option `onedong_cloud_settings`(嵌套 `providers[id][field]`)。通用:enable / provider(一次启用一家)/ keep_local / path_prefix / replace_content;每家:AK / SK / bucket / region|endpoint / domain(+ s3 path_style)。
+
+### 文件
+- `inc/cloud-storage.php`(主:providers schema + opts + 工厂 + offload hooks + URL 替换 + 设置页 + AJAX + enqueue)
+- `inc/cloud-storage/driver-oss.php`、`driver-cos.php`
+- `assets/js/cloud-storage-admin.js`(provider tab 切换 + 连接测试 AJAX)
+- `functions.php` +1 require;`ONEDONG_VERSION` 6.0.68 → 6.1.0-ProMax;`style.css` 同步。
+
+### offload 挂钩
+- `wp_generate_attachment_metadata`(prio 20):原图 + 各缩略尺寸推云,存 meta `_onedong_cloud_provider` / `_onedong_cloud_key`;非图片附件只推原文件。`keep_local=0` 时上传成功后删本地。
+- `delete_attachment`:删云端原图 + 各尺寸。
+- URL 替换三处:`wp_get_attachment_url`(full)、`wp_get_attachment_image_src`(各尺寸 src)、`wp_calculate_image_srcset`(响应式);另 `the_content`(prio 20)可选替换正文历史 uploads URL。
+
+### 坑 / 注记
+- **无本地 PHP 无法验签名**:签名错一字节即 403 SignatureDoesNotMatch。→ 每家设置页内置「测试连接」按钮(AJAX 用表单当前值传一个极小 txt 到云,无需先保存),线上逐家点验;预期迭代 1-2 轮。
+- **URL 覆盖必须 3 个 filter**:只 filter `wp_get_attachment_url` 覆盖不到缩略图 src——`image_downsize` 直接用 baseurl 拼各尺寸 URL,不走 attachment_url;故必须再加 `wp_get_attachment_image_src` + `wp_calculate_image_srcset`。
+- **密钥安全**:password 字段 value="" 不回显;sanitize 留空则保留旧值(免每次重填);仅 manage_options 可见,不输出前端。
+- **大文件内存**:`file_get_contents` 整读入 body,主题图片一般小可接受;超大附件后续可加流式 / 分片。
+- **provider 就绪标记**:未实现 driver 的(七牛 / 又拍 / OBS / S3)UI 标「即将支持」+ 测试按钮禁用;driver 文件按 `file_exists` 守卫 require,阶段 2 丢文件即自动生效,无需改主文件。
+- **待 TD 线上验证**:后台「云存储」→ 填阿里 OSS / 腾讯 COS → 点「测试连接」(应返回可访问 URL)→ 开启 + 选服务商 → 媒体库传图 → 前端看 URL 是否为云端 / CDN(含缩略图 srcset)→ 删除附件看云端是否清理。建议先 `php -l inc/cloud-storage.php inc/cloud-storage/driver-oss.php inc/cloud-storage/driver-cos.php`。
