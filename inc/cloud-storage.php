@@ -362,6 +362,52 @@ add_filter( 'the_content', 'onedong_cloud_filter_content', 20 );
 
 
 /* ============================================================
+ * 5b. 实时 WebP:让云端按需把 jpg/png 转 WebP(无需预生成本地边车)
+ *     各家图片处理参数不同;不支持的返回 '' → 调用方(onedong_webp_picture)自动退回原图。
+ * ============================================================ */
+/**
+ * 当前(或指定)provider 的「实时 WebP」URL 查询串;不支持则 ''。
+ *
+ * OSS  = 阿里云图片处理(x-oss-process=image/format,webp);
+ * COS / 七牛 = imageMogr2/format/webp(腾讯数据万象 / 七牛 dora 同语法);
+ * 又拍 / OBS / S3 暂不接(阶段 2 视情况补),返回 '' 时前端退回原图,不裂图。
+ *
+ * @param string|null $provider provider id;留空取当前启用。
+ * @return string 查询串(不含前导 ? / &),不支持则 ''。
+ */
+function onedong_cloud_webp_query( $provider = null ) {
+	$provider = $provider ? $provider : onedong_cloud_active_provider();
+	$map      = array(
+		'oss'   => 'x-oss-process=image/format,webp',
+		'cos'   => 'imageMogr2/format/webp',
+		'qiniu' => 'imageMogr2/format/webp',
+	);
+	$query = isset( $map[ $provider ] ) ? $map[ $provider ] : '';
+	return apply_filters( 'onedong_cloud_webp_query', $query, $provider );
+}
+
+/**
+ * 给云端图片 URL 附加实时 WebP 参数(仅 jpg/jpeg/png)。
+ * provider 不支持、或非受支持类型 → 返回 ''(调用方跳过 <source>)。
+ *
+ * @param string      $url      云端图片 URL。
+ * @param string|null $provider provider id;留空取当前启用。
+ * @return string WebP URL,或 ''。
+ */
+function onedong_cloud_webp_url( $url, $provider = null ) {
+	$query = onedong_cloud_webp_query( $provider );
+	if ( '' === $query ) {
+		return '';
+	}
+	$path = wp_parse_url( $url, PHP_URL_PATH );
+	if ( ! $path || ! preg_match( '/\.(jpe?g|png)$/i', $path ) ) {
+		return '';
+	}
+	return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . $query;
+}
+
+
+/* ============================================================
  * 6. 后台设置页:顶级菜单「云存储」
  * ============================================================ */
 function onedong_cloud_admin_menu() {

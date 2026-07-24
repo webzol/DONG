@@ -2025,3 +2025,26 @@
 - **大文件内存**:`file_get_contents` 整读入 body,主题图片一般小可接受;超大附件后续可加流式 / 分片。
 - **provider 就绪标记**:未实现 driver 的(七牛 / 又拍 / OBS / S3)UI 标「即将支持」+ 测试按钮禁用;driver 文件按 `file_exists` 守卫 require,阶段 2 丢文件即自动生效,无需改主文件。
 - **待 TD 线上验证**:后台「云存储」→ 填阿里 OSS / 腾讯 COS → 点「测试连接」(应返回可访问 URL)→ 开启 + 选服务商 → 媒体库传图 → 前端看 URL 是否为云端 / CDN(含缩略图 srcset)→ 删除附件看云端是否清理。建议先 `php -l inc/cloud-storage.php inc/cloud-storage/driver-oss.php inc/cloud-storage/driver-cos.php`。
+
+## v6.1.1(2026-07-24)· 云图 WebP 404 裂图修复
+
+### 现象
+- 图片迁到云 OSS(实为**腾讯云 COS**)后,后台能看、前端裂图。前端图片 URL 被拼成 `xxx-300x300.jpg.webp`,云端 404(`NoSuchKey`),而原图 `xxx-300x300.jpg` 正常 200。发生在 `/moments`(朋友圈)等所有走 `wp_get_attachment_image` 的位置。
+
+### 根因(两模块的挂钩顺序 + 边车未离线)
+- `onedong_make_webp` 挂 `wp_generate_attachment_metadata` **prio 10**:上传时在**本地**生成 `原名.jpg.webp` 边车(边车文件名不进附件 metadata 的 `sizes`),并置 meta `_onedong_has_webp=1`。
+- `onedong_cloud_offload_metadata` 挂同钩子 **prio 20**:只上传 metadata `sizes` 里登记的原图 + 各缩略尺寸 → **边车 `.jpg.webp` 从没被推上云**(`keep_local=0` 时本地原图还被删,边车沦为本地孤儿)。
+- 而 `onedong_webp_picture` 仍据 `_onedong_has_webp` 输出 `<picture><source srcset="云URL.jpg.webp" type="image/webp">`。浏览器支持 WebP → 选中该 `<source>` → 请求云端不存在的 `.jpg.webp` → **404**。关键:`<picture>` 一旦按 `type` 选中 `<source>`,**网络 404 不会回退到内层 `<img>`** → 直接裂图。("后台能看"是因为后台媒体库用原始 `.jpg`。)
+
+### 修复(云图改走 OSS 实时转换,彻底弃用边车)
+- 实测:`?x-oss-process=image/format,webp` 在该域名返回 `image/jpeg`(无效 → 非阿里云);`?imageMogr2/format/webp` 返回 **`image/webp` 200**(腾讯 COS 数据万象 / 七牛 dora 语法)。
+- `inc/cloud-storage.php` 新增 `onedong_cloud_webp_query($provider)`(OSS=`x-oss-process=image/format,webp`、COS/七牛=`imageMogr2/format/webp`、其余='')与 `onedong_cloud_webp_url($url)`(仅 jpg/png 追加参数)。带 `onedong_cloud_webp_query` filter,便于覆盖。
+- `functions.php` 重写 `onedong_webp_picture`:先用 `onedong_cloud_meta()` 判断该图是否已上云 —— **云图**用实时参数(无需边车,现存已上传图片无需重传即修复);**云图但 provider 不支持实时转** → 不输出 `<source>` 用原图(不裂图);**本地图**沿用 `.webp` 边车(仍受 `_onedong_has_webp` 把关)。
+- `onedong_make_webp` 顶部加守卫:云 offload 生效且支持实时转时,**跳过本地边车生成**(省 CPU;免 `keep_local=0` 留孤儿)。
+
+### 坑 / 注记
+- **`<picture>` 不对网络错误做回退**:`<source>` 一旦按 `type`/`media` 匹配选中,该 URL 404/超时只会裂图,不会退回 `<img src>`。所以边车方案要求 `.webp` **必须真实存在**;实时转换方案则天然 200,规避此陷阱。
+- **旧版 srcset 拼接 bug 一并修**:原 `foreach($parts as $p) $webp_parts[]=$p.'.webp'` 会把 `.webp` 拼到 `"url 300w"` 的**描述符之后** → `url 300w.webp`(非法 srcset)。现在按 `/^(\S+)(\s+\S.*)$/` 拆出 URL 与描述符,只对 URL 变换。站点 logo 的多尺寸 `<source>` 此前即因此失效(靠退回 `<img>` 侥幸不裂)。
+- **OSS 参数含逗号**:`image/format,webp` 的逗号在 `srcset`(逗号分隔候选)里会被误拆成两个候选 → 写入 srcset 前统一 `str_replace(',', '%2C', …)`。COS 的 `imageMogr2/format/webp` 无逗号,不受影响(当前生效的正是 COS)。
+- **判定用 `onedong_cloud_meta($id)` 而非解析 host**:直接读附件的 `_onedong_cloud_provider`/`_onedong_cloud_key` meta,比字符串比对域名可靠,且天然知道属于哪家 → 取对应转换参数。
+- **无本地 PHP**:未跑 `php -l`;已静态核验括号闭合、`function_exists` 守卫(两模块互不硬依赖,禁用云存储也不报错)、变量先定义后用。**待 TD 线上验证**:`/moments` 图片正常显示;DevTools Network 里缩略图请求应为 `…jpg?imageMogr2/format/webp` 且 200 `image/webp`;`<img>` 原图仍为干净 `.jpg`;桌面 / 手机 / 深色下点开大图(lightbox `data-full`)正常。

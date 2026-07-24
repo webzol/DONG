@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.1.0-ProMax' );
+define( 'ONEDONG_VERSION', '6.1.1-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -112,11 +112,19 @@ remove_action( 'wp_head', 'wp_generator' );
 remove_action( 'wp_head', 'wp_shortlink_wp_head' );
 
 /**
- * WebP:上传时自动转换 + 前端 picture 优先 · v2.5.15
+ * WebP:上传时自动转换 + 前端 picture 优先 · v2.5.16
  * 依赖 PHP GD 的 imagewebp;不支持则自动跳过(降级原图,无副作用)。
+ * 云 offload 生效且服务商支持实时 WebP 时,跳过本地边车生成 —— 前端改走云端实时转换
+ * (见 onedong_webp_picture)。否则本地 .jpg.webp 边车不在附件 metadata 的 sizes 里,
+ * 既不会被 offload 到云端,又被前端 <source> 指向 → 云端 404 裂图(本次修复的根因)。
  */
 add_filter( 'wp_generate_attachment_metadata', 'onedong_make_webp', 10, 2 );
 function onedong_make_webp( $metadata, $attachment_id ) {
+	// 云端能实时转 WebP 就不必在本地造边车(省 CPU;keep_local=0 时也不留孤儿 .webp)。
+	if ( function_exists( 'onedong_cloud_is_active' ) && onedong_cloud_is_active()
+		&& function_exists( 'onedong_cloud_webp_query' ) && '' !== onedong_cloud_webp_query() ) {
+		return $metadata;
+	}
 	if ( ! function_exists( 'imagewebp' ) && ! class_exists( 'Imagick' ) ) {
 		return $metadata;
 	}
@@ -208,9 +216,21 @@ function onedong_webp_picture( $html, $attachment_id ) {
 	if ( empty( $html ) || false !== strpos( $html, '<picture' ) ) {
 		return $html;
 	}
-	if ( ! get_post_meta( $attachment_id, '_onedong_has_webp', true ) ) {
+
+	// 该图是否已 offload 到云。云图与本地图走不同的 WebP 策略。
+	$offloaded  = function_exists( 'onedong_cloud_meta' ) && onedong_cloud_meta( $attachment_id );
+	$cloud_webp = $offloaded && function_exists( 'onedong_cloud_webp_query' ) && '' !== onedong_cloud_webp_query();
+
+	if ( $offloaded ) {
+		// 云图但服务商不支持实时 WebP → 不输出 <source>,直接用原图(避免指向不存在的 .webp)。
+		if ( ! $cloud_webp ) {
+			return $html;
+		}
+	} elseif ( ! get_post_meta( $attachment_id, '_onedong_has_webp', true ) ) {
+		// 本地图必须先生成过 .webp 边车,否则 <source> 会 404。
 		return $html;
 	}
+
 	$srcset = '';
 	$src    = '';
 	$sizes  = '';
@@ -222,21 +242,57 @@ function onedong_webp_picture( $html, $attachment_id ) {
 	if ( preg_match( '/\ssizes="([^"]+)"/i', $html, $m ) ) {
 		$sizes = $m[1];
 	}
+
 	$webp_source = '';
 	if ( $srcset ) {
+		// 每个候选是「URL[ 描述符]」(300w / 2x)。只对 URL 做 WebP 变换,描述符原样保留。
+		// 旧版直接 $p . '.webp' 会把 .webp 拼到 "url 300w" 的描述符之后 → srcset 失效,一并修正。
 		$parts      = array_map( 'trim', explode( ',', $srcset ) );
 		$webp_parts = array();
 		foreach ( $parts as $p ) {
-			$webp_parts[] = $p . '.webp';
+			if ( '' === $p ) {
+				continue;
+			}
+			$u    = $p;
+			$desc = '';
+			if ( preg_match( '/^(\S+)(\s+\S.*)$/', $p, $mm ) ) {
+				$u    = $mm[1];
+				$desc = $mm[2];
+			}
+			$wu = onedong_webp_variant_url( $u, $cloud_webp );
+			if ( '' !== $wu ) {
+				// WebP 参数可能含逗号(如 OSS image/format,webp);srcset 以逗号分隔候选,须转义。
+				$webp_parts[] = str_replace( ',', '%2C', $wu ) . $desc;
+			}
 		}
-		$webp_source = '<source srcset="' . esc_attr( implode( ', ', $webp_parts ) ) . '" type="image/webp"' . ( $sizes ? ' sizes="' . esc_attr( $sizes ) . '"' : '' ) . '>';
+		if ( $webp_parts ) {
+			$webp_source = '<source srcset="' . esc_attr( implode( ', ', $webp_parts ) ) . '" type="image/webp"' . ( $sizes ? ' sizes="' . esc_attr( $sizes ) . '"' : '' ) . '>';
+		}
 	} elseif ( $src ) {
-		$webp_source = '<source srcset="' . esc_attr( $src ) . '.webp" type="image/webp">';
+		$wu = onedong_webp_variant_url( $src, $cloud_webp );
+		if ( '' !== $wu ) {
+			$webp_source = '<source srcset="' . esc_attr( str_replace( ',', '%2C', $wu ) ) . '" type="image/webp">';
+		}
 	}
+
 	if ( ! $webp_source ) {
 		return $html;
 	}
 	return '<picture>' . $webp_source . $html . '</picture>';
+}
+
+/**
+ * 单个图片 URL → 其 WebP 变体 URL。
+ * - 云图($cloud_webp = true):附加 provider 的实时转换参数(onedong_cloud_webp_url)。
+ * - 本地图:追加 .webp 边车。
+ * 非 jpg/jpeg/png(gif/svg/已是 webp)返回 '',调用方跳过。
+ */
+function onedong_webp_variant_url( $url, $cloud_webp ) {
+	if ( $cloud_webp ) {
+		return function_exists( 'onedong_cloud_webp_url' ) ? onedong_cloud_webp_url( $url ) : '';
+	}
+	$path = wp_parse_url( $url, PHP_URL_PATH );
+	return ( $path && preg_match( '/\.(jpe?g|png)$/i', $path ) ) ? $url . '.webp' : '';
 }
 
 /**
