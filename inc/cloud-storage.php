@@ -190,6 +190,21 @@ function onedong_cloud_key_sibling( $base_key, $filename ) {
 	return ( '.' === $dir || '' === $dir ) ? $filename : $dir . '/' . $filename;
 }
 
+/**
+ * 从图片 URL 取出未编码的文件名(用于重建对象键)。
+ *
+ * 传入的 URL 可能是本地的(文件名为原始 UTF-8),也可能已被本模块换成云端的
+ * (文件名已 rawurlencode 过)。两种都得还原成原始名,否则 public_url 再编码
+ * 一次就成了 %25E5 这类双重编码 → 云端 404。
+ * WP 的 sanitize_file_name() 会剥掉 '%',文件名不含字面量百分号,故 rawurldecode 无副作用。
+ *
+ * @param string $url 图片 URL(本地或云端)。
+ * @return string 原始文件名。
+ */
+function onedong_cloud_fname_from_url( $url ) {
+	return rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) );
+}
+
 function onedong_cloud_upload_file( $local, $key, $mime ) {
 	return onedong_cloud_dispatch( onedong_cloud_active_provider(), 'upload', array( $local, $key, $mime ) );
 }
@@ -315,7 +330,7 @@ function onedong_cloud_filter_image_src( $image, $attachment_id ) {
 	if ( ! $m ) {
 		return $image;
 	}
-	$fname = basename( wp_parse_url( $image[0], PHP_URL_PATH ) );
+	$fname = onedong_cloud_fname_from_url( $image[0] );
 	$cloud = onedong_cloud_dispatch( $m[0], 'public_url', array( onedong_cloud_key_sibling( $m[1], $fname ) ) );
 	if ( ! is_wp_error( $cloud ) ) {
 		$image[0] = $cloud;
@@ -334,7 +349,7 @@ function onedong_cloud_filter_srcset( $sources, $size_array, $image_src, $image_
 		return $sources;
 	}
 	foreach ( $sources as $w => $src ) {
-		$fname = basename( wp_parse_url( $src['url'], PHP_URL_PATH ) );
+		$fname = onedong_cloud_fname_from_url( $src['url'] );
 		$cloud = onedong_cloud_dispatch( $m[0], 'public_url', array( onedong_cloud_key_sibling( $m[1], $fname ) ) );
 		if ( ! is_wp_error( $cloud ) ) {
 			$sources[ $w ]['url'] = $cloud;

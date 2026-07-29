@@ -2048,3 +2048,32 @@
 - **OSS 参数含逗号**:`image/format,webp` 的逗号在 `srcset`(逗号分隔候选)里会被误拆成两个候选 → 写入 srcset 前统一 `str_replace(',', '%2C', …)`。COS 的 `imageMogr2/format/webp` 无逗号,不受影响(当前生效的正是 COS)。
 - **判定用 `onedong_cloud_meta($id)` 而非解析 host**:直接读附件的 `_onedong_cloud_provider`/`_onedong_cloud_key` meta,比字符串比对域名可靠,且天然知道属于哪家 → 取对应转换参数。
 - **无本地 PHP**:未跑 `php -l`;已静态核验括号闭合、`function_exists` 守卫(两模块互不硬依赖,禁用云存储也不报错)、变量先定义后用。**待 TD 线上验证**:`/moments` 图片正常显示;DevTools Network 里缩略图请求应为 `…jpg?imageMogr2/format/webp` 且 200 `image/webp`;`<img>` 原图仍为干净 `.jpg`;桌面 / 手机 / 深色下点开大图(lightbox `data-full`)正常。
+
+## v6.1.2(2026-07-29)· 云图 lightbox 打不开:data-full 双重 URL 编码
+
+### 现象
+- `/moments` 点击图片,lightbox 弹出但**一片空白**,大图不显示。列表里的缩略图本身正常。
+- 只影响**启用云存储之后上传**的图;之前的老图(仍在本地 `wp-content/uploads/`)点开正常 —— 所以表现为"有的能开、有的开了没东西"。
+- 抓线上页面核对:24 个 `data-full` 里 6 个指向 `img.dingxudong.com`,这 6 个**全部**双重编码;24 个 `src` **零**双重编码(所以缩略图没裂)。
+
+### 根因(URL 被 rawurlencode 两次)
+- 中文文件名「微信图片_….jpg」正确编码是 `%E5%BE%AE…`,坏掉的是 `%25E5%25BE%25AE…`(`%` 自己又被编码成 `%25`)。实测坏 URL `404`,单次编码 URL `200 image/jpeg`。
+- `onedong_cloud_filter_image_src()` 里 `$fname = basename( wp_parse_url( $image[0], PHP_URL_PATH ) )`,**假定 `$image[0]` 是本地 URL(文件名为原始 UTF-8)**。但 `image_downsize()` 内部第一步就调 `wp_get_attachment_url()`,那个已被 `onedong_cloud_filter_url` 换成**云端 URL(文件名已 rawurlencode)**。于是取到的 `$fname` 是编码态,再进 driver 的 `public_url` 又编码一次 → 双重编码。
+- **为什么只有 `data-full` 坏、`src` 不坏** —— 取决于该尺寸有没有实际的中间文件:
+  - 有中间尺寸(如 `onedong-moment-thumb` 300x300):`image_downsize` 会 `str_replace( $img_url_basename, $intermediate['file'], $img_url )`,把 basename 换成 metadata 里的**原始**文件名 → 下游取到原始名 → 编码 1 次 ✓
+  - 无该尺寸、回退 full/scaled(`data-full` 用的 `large` 正是走这条):直接返回云端 URL,basename 保持**编码态** → 编码 2 次 ✗
+- 这是 v6.1.0 引入云存储时就埋下的,与 v6.1.1 的 WebP 改动无关 —— v6.1.1 的验证清单里写了"点开大图正常",但当时线上云端图还少,没撞上。
+
+### 修复
+- `inc/cloud-storage.php` 新增 `onedong_cloud_fname_from_url( $url )` = `rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) )`。**幂等**:不管传进来的是本地 URL(原始名)还是云端 URL(编码名),一律还原成原始名,再由 driver 的 `public_url` 恰好编码一次。
+- 两处调用点改用它:`onedong_cloud_filter_image_src()`、`onedong_cloud_filter_srcset()`。
+- 版本 6.1.1-ProMax → 6.1.2-ProMax(`functions.php` + `style.css` 同步)。
+
+### 坑 / 注记
+- **`rawurldecode` 在这里无副作用**:WP 的 `sanitize_file_name()` 会把 `%` 和 `+` 从上传文件名里剥掉,故文件名不含字面量百分号,不存在"把合法 `%` 误解码"的风险。
+- **`basename()` 必须先于 `rawurldecode()`**:顺序反了会先把 `%2F` 解成真 `/`,`basename` 就从错误的位置切。现在 `basename` 作用在纯 ASCII 的编码串上,反而更安全。
+- **srcset 那处是预防性修复**:`wp_calculate_image_srcset` 的候选 URL 由 upload baseurl + metadata 原始文件名拼成,当前是原始态、没暴露问题;但它和 `filter_image_src` 是同一个假定,一并改掉,免得以后 WP 改实现、或别处把云端 URL 传进来时复发。
+- **单图 moment 之前也埋着同一颗雷**:单图用 `large` 尺寸,若该图已上云,`src` 本身就会双编码 → 缩略图直接裂,不止 lightbox。线上现有 3 个单图 moment 恰好都是老的本地图,所以一直没暴露;本次一并修好。
+- **分享卡片同样受影响**:`assets/js/moments.js` 的 `openCard()` 首图取的也是 `data-full`,云端图的分享海报此前拿到的是 404 URL,html2canvas 画不出首图。同一处修复覆盖,无需改 JS。
+- **无本地 PHP**:未跑 `php -l`;静态核对了括号闭合、新函数定义在两处调用点之前(同文件靠前位置)、`wp_parse_url` / `rawurldecode` 均为现成可用函数、无新增依赖。
+- **待 TD 线上验证**:① `/moments` 点开云端那几张图(`img.dingxudong.com`)能正常显示大图;② DevTools Network 里 lightbox 请求的 URL 形如 `…/%E5%BE%AE…-scaled.jpg` 且 200,**整条 URL 不含 `%25`**;③ 顺手点一下分享卡片,看首图有没有画出来;④ 老的本地图点开应保持原样正常(别回归)。
