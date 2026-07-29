@@ -184,6 +184,65 @@ function onedong_moment_time_format() {
 	}
 }
 
+/**
+ * 点赞昵称的确定性伪随机种子 → [0, 2^32)。
+ * 与 onedong_like_names 配套;独立成函数便于复用、避免闭包捕获。
+ *
+ * @param int    $post_id 文章 ID(种子主源)。
+ * @param int    $i       第几个昵称(0 起)。
+ * @param int    $r       去重重试轮次。
+ * @param string $salt    区分姓 / 名 / 风格等不同维度的盐。
+ * @return int
+ */
+function onedong_like_roll( $post_id, $i, $r, $salt ) {
+	return abs( crc32( $post_id . '|' . $i . '|' . $r . '|' . $salt ) );
+}
+
+/**
+ * 按 post ID 确定性生成「点赞者」昵称(装饰用:点赞匿名、只存数量,无真实身份)。
+ * 同一篇文章每次渲染结果一致(crc32 种子);点赞数变化时只在尾部增减、不重排
+ * ——故用户多赞一次,表现为「多一个昵称」而非整列洗牌,贴近真实。
+ *
+ * @param int $post_id 文章 ID(作种子)。
+ * @param int $count   昵称数量。
+ * @return string[] 昵称数组(已去重)。
+ */
+function onedong_like_names( $post_id, $count ) {
+	$count = max( 0, (int) $count );
+	if ( $count <= 0 ) {
+		return array();
+	}
+	$surnames = array( '王','李','张','刘','陈','杨','黄','赵','周','吴','徐','孙','马','朱','胡','郭','林','何','高','罗','郑','梁','谢','宋','唐','许','韩','冯','邓','曹','彭','萧','蔡','卢','苏','蒋','丁','魏','叶','沈','吕' );
+	$given    = array( '伟','芳','娜','敏','静','强','磊','洋','艳','勇','军','杰','娟','涛','明','超','秀','欣','宇','轩','晨','佳','婷','鑫','哲','文','健','峰','鹏','辉','平','刚','红','玲','霞','波','宁','贵','华','斌','燕','凯','成','翔','飞','莉','丹','倩','璐','诚','悦' );
+	$prefix   = array( '小','阿','大' );
+	$ns = count( $surnames );
+	$ng = count( $given );
+	$np = count( $prefix );
+	$out  = array();
+	$used = array();
+	for ( $i = 0; $i < $count; $i++ ) {
+		$name = '';
+		for ( $r = 0; $r < 8; $r++ ) { // 碰撞最多重选 8 轮,仍撞就接受(极罕)
+			if ( onedong_like_roll( $post_id, $i, $r, 'style' ) % 10 < 7 ) {
+				// 全名:姓 + 1~2 个名
+				$name = $surnames[ onedong_like_roll( $post_id, $i, $r, 's' ) % $ns ] . $given[ onedong_like_roll( $post_id, $i, $r, 'g1' ) % $ng ];
+				if ( ! ( onedong_like_roll( $post_id, $i, $r, 'g2b' ) % 2 ) ) {
+					$name .= $given[ onedong_like_roll( $post_id, $i, $r, 'g2' ) % $ng ];
+				}
+			} else {
+				// 昵称风:前缀 + 名
+				$name = $prefix[ onedong_like_roll( $post_id, $i, $r, 'p' ) % $np ] . $given[ onedong_like_roll( $post_id, $i, $r, 'g1' ) % $ng ];
+			}
+			if ( ! in_array( $name, $used, true ) ) {
+				break;
+			}
+		}
+		$used[] = $name;
+		$out[]  = $name;
+	}
+	return $out;
+}
+
 function onedong_render_moment() {
 	$ids      = get_post_meta( get_the_ID(), '_onedong_moment_images', true );
 	$location = get_post_meta( get_the_ID(), '_onedong_moment_location', true );
@@ -228,6 +287,18 @@ function onedong_render_moment() {
 						}
 					endforeach;
 					?>
+				</div>
+			<?php endif; ?>
+
+			<?php
+			$like_count = (int) onedong_get_likes();
+			if ( $like_count > 0 ) :
+				$like_max = 6;
+				$names    = onedong_like_names( get_the_ID(), min( $like_count, $like_max ) );
+				?>
+				<div class="moment__likes">
+					<svg class="moment__like-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+					<span class="moment__like-names"><?php echo esc_html( implode( '、', $names ) ); ?></span><?php if ( $like_count > $like_max ) : ?><span class="moment__like-fold"> 等<?php echo (int) $like_count; ?>人赞过</span><?php endif; ?>
 				</div>
 			<?php endif; ?>
 

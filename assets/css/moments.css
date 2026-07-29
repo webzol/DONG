@@ -156,6 +156,25 @@
 
 .moments-empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
 
+/* —— 点赞展示(微信风:❤ + 昵称)· v6.1.4 —— */
+.moment__likes {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.32rem;
+	margin: 0.55rem 0 0;
+	font-size: 0.85rem;
+	line-height: 1.55;
+	color: var(--primary);
+}
+.moment__like-icon {
+	width: 0.95rem;
+	height: 0.95rem;
+	flex: 0 0 auto;
+	margin-top: 0.12rem;
+	fill: currentColor;
+}
+.moment__like-fold { color: var(--text-muted); }
+
 /* —— Lightbox(全屏看大图 + 左右切换)—— */
 .moment-lightbox {
 	position: fixed;

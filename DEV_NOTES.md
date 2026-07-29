@@ -2099,3 +2099,31 @@
 
 ### 待 TD 线上验证
 ① 多图 moment:悬停一张再点 → 几乎秒开(已缓存);冷点开也先见模糊缩略图、再渐显清晰,不空白;② 左右翻页跟手(邻居已预热);③ 单图 moment 行为不变(本就秒开、无模糊闪动);④ DevTools Network:`mouseenter`/`pointerdown` 时应看到对应 `large`(云图为 `…jpg?imageMogr2/format/webp`)请求先于 click 发出。
+
+## v6.1.4(2026-07-29)· 朋友圈点赞展示(微信风,昵称按文章确定性随机)
+
+### 背景
+- 点赞本是匿名的:REST `onedong/v1/like` 只把 `_onedong_likes` +1,前端 localStorage 标记防刷,后端**只存数量、不存点赞者**。
+- 需求:加一行微信朋友圈式的点赞展示(`❤ 昵称1、昵称2…`),昵称**随机展示**。
+
+### 决策(已与 TD 确认)
+- 昵称**随机生成**(无真实身份可取)、**数量 = 实际点赞数**(`onedong_get_likes()`);0 赞不显示。
+- 赞很多时折叠:最多展示 6 个,余下用「等N人赞过」收口(`$like_max=6`)。
+- **按文章固定**:同一篇每次渲染昵称一致 —— 用 post ID 作种子,不随刷新跳动。
+
+### 实现(SSR,纯 PHP + CSS,未动点赞 JS/REST)
+- `inc/moments.php` 新增 `onedong_like_roll($post_id,$i,$r,$salt)` = `abs(crc32(...))`(确定性伪随机种子)与 `onedong_like_names($post_id,$count)`:姓 + 1~2 个名(70%)、前缀+名(30%)两种风格,去重;`name[i]` 只依赖 `i` 不依赖 `count` → 点赞数变化时**尾部增减、不重排**(多赞一人 = 多一个昵称,贴近真实)。
+- `onedong_render_moment()` 在图片块与 `.moment__foot` 之间输出 `.moment__likes`:❤(复用点赞心形 path)+ `.moment__like-names`(顿号分隔)+ 可选 `.moment__like-fold`。
+- `assets/css/moments.css`:心形与昵称用 `--primary`(蓝,与定位链接同色协调),「等N人赞过」用 `--text-muted`。
+- 版本 6.1.3-ProMax → 6.1.4-ProMax;moments.css 随版本 cache-bust。
+
+### 坑 / 注记
+- **别用 `static $arr` 只判 `$surnames`**:那样 `$given/$prefix` 在第二次调用(循环里下一条 moment)时未初始化。改成每次定义(数组小、每条 moment 一次,可忽略)。
+- **顶层函数优于闭包**:最初想用闭包 `$roll`,需 `use` 捕获 6 个变量易漏;改成顶层 `onedong_like_roll` 干净。
+- **颜色取舍**:微信签名色是 `#576B95`;此处用 `--primary`(#3858F6)以与卡片内定位链接统一,形态(心形+顿号昵称+「等N人赞过」)对齐微信。要换微信原蓝改 `.moment__likes` 的 color 一行即可。
+- **折叠阈值 6**:博客 feed 一行装得下 6 个短中文名;TD 觉得多/少直接改 `$like_max`。
+- **点赞交互不联动**:用户点 •• 里的赞,前端只把数字徽标 +1,这行昵称是 SSR、**当次不新增昵称**,刷新后才反映 +1(昵称是装饰)。若要即时新增一个昵称,需在 moments.js 点赞成功回调里前端拼随机名插入——本次未做。
+- **无本地 PHP**:未跑 lint;静态核对括号/分号、`onedong_like_names` 定义在 `onedong_render_moment` 调用之前、`crc32`/`abs`/`in_array` 均为内建。
+
+### 待 TD 线上验证
+① 有赞的 moment 文末出现 `❤ 昵称…` 蓝;0 赞的不出现;② 同一条多次刷新昵称不变(按文章固定);③ 赞 >6 时尾部「等N人赞过」muted;④ 点赞后数字徽标 +1,刷新后昵称行多一个名;⑤ 浅/暗模式下心形与昵称颜色可读。
