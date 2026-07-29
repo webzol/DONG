@@ -2077,3 +2077,25 @@
 - **分享卡片同样受影响**:`assets/js/moments.js` 的 `openCard()` 首图取的也是 `data-full`,云端图的分享海报此前拿到的是 404 URL,html2canvas 画不出首图。同一处修复覆盖,无需改 JS。
 - **无本地 PHP**:未跑 `php -l`;静态核对了括号闭合、新函数定义在两处调用点之前(同文件靠前位置)、`wp_parse_url` / `rawurldecode` 均为现成可用函数、无新增依赖。
 - **待 TD 线上验证**:① `/moments` 点开云端那几张图(`img.dingxudong.com`)能正常显示大图;② DevTools Network 里 lightbox 请求的 URL 形如 `…/%E5%BE%AE…-scaled.jpg` 且 200,**整条 URL 不含 `%25`**;③ 顺手点一下分享卡片,看首图有没有画出来;④ 老的本地图点开应保持原样正常(别回归)。
+
+## v6.1.3(2026-07-29)· 朋友圈 lightbox 提速(悬停预热 + 缩略图占位 blur-up)
+
+### 背景 / 现象
+- `/moments` 点图弹 lightbox,全图(`data-full` = `large` 尺寸)要等**点击瞬间**才开始从云(COS)拉,冷缓存下有可感延迟(白屏 → 啪一下出图)。
+- 关键不对称:**单图 moment** 的 `src` 与 `data-full` 同为 `large`(moments.php `$size=(1===$count)?'large':'onedong-moment-thumb'`),全图早随页面加载 → 单图本就秒开;**多图 grid 才中招**——`src` 是小缩略图(已缓存),`data-full` 的 `large` 点击前没下载。所以本次优化主要利好 grid。
+
+### 改动(纯前端 JS + CSS,未碰云存储 URL 逻辑)
+1. **预热进 HTTP 缓存**:`warm(url)` 用 `new Image()` 拉取并 dedupe。触发点——每张 `.moment__img` 的 `mouseenter`(桌面悬停)、`pointerdown`(移动按下,早于 click);打开后再 `warmNeighbors()` 预热上一/下一张,左右翻也快。点击时全图通常已命中缓存 → 秒开。
+2. **缩略图占位 blur-up**:`paint()` 先把已缓存的小缩略图塞进 lightbox `<img>`,加 `.is-loading`(`filter:blur(14px)` 模糊放大掩盖马赛克);全图 `onload` 后切换 `src` 并去模糊(`transition .25s` 渐显)。`pending` 令牌防止快速切图时旧全图回调覆盖新画面。
+3. CSS:`.moment-lightbox__img` 加 `transition: filter/opacity`;新增 `.is-loading` 模糊态。
+
+### 坑 / 注记
+- **`thumb !== full` 守卫**:单图 moment 两者相同,直接载全图、不走模糊占位,避免无意义闪动。
+- **命中缓存不闪**:`im.complete && im.naturalWidth` 兜底——部分浏览器对已缓存图不触发 `onload`,直接同步就位;即便 `onload` 也触发,`pending` 守卫使重复赋值幂等。
+- **占位图取 `el.src`**:`.moment__img` 落在 `<img>` 上(`wp_get_attachment_image` 把 class 放 `<img>`,`<picture>` 亦然),`el.src` 即当前渲染源(云图含 `imageMogr2/format/webp` query),天然是已缓存缩略图,无需额外取尺寸。
+- **版本升即 cache-bust**:`moments.{js,css}` 注册用 `$ver = ONEDONG_VERSION`,6.1.2→6.1.3 自动破缓存,无需清插件/CDN 缓存。
+- **未做的可选项(先不上,避免回归)**:云图 `imageMogr2` 加 `/quality/85` + `/interlace/1` 进一步瘦身 + 渐进式 JPEG——需改刚修好的 `onedong_cloud_webp_query()`,且只利好云端冷缓存;预热已覆盖热路径,体感够了。要再压一档可后续单独迭代。
+- **校验**:`node --check moments.js` 过;静态核对闭包/大括号、`pending` 令牌、`pointerdown`+`mouseenter` 双触发但 warm 去重。
+
+### 待 TD 线上验证
+① 多图 moment:悬停一张再点 → 几乎秒开(已缓存);冷点开也先见模糊缩略图、再渐显清晰,不空白;② 左右翻页跟手(邻居已预热);③ 单图 moment 行为不变(本就秒开、无模糊闪动);④ DevTools Network:`mouseenter`/`pointerdown` 时应看到对应 `large`(云图为 `…jpg?imageMogr2/format/webp`)请求先于 click 发出。

@@ -172,7 +172,9 @@
 	max-height: 90vh;
 	object-fit: contain;
 	display: block;
+	transition: filter .25s ease, opacity .25s ease;
 }
+.moment-lightbox__img.is-loading { filter: blur(14px); opacity: .9; } /* 缩略图占位:全图到位渐显 */
 .moment-lightbox__close,
 .moment-lightbox__nav {
 	position: absolute;

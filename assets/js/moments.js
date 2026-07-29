@@ -1,6 +1,7 @@
 /**
- * OneDong · 朋友圈:图片 lightbox + 「••」操作(赞 / 分享卡片)· v2.5.5
+ * OneDong · 朋友圈:图片 lightbox + 「••」操作(赞 / 分享卡片)· v2.6.0
  *
+ * v2.6.0:lightbox 提速 —— 悬停 / 按下预热全图进缓存 + 缩略图占位 blur-up(全图到位渐显)。
  * 分享卡片:点分享 → 弹海报(第一张图 / 无图用默认缩略图 + 作者头像 + 文字 + 二维码),可保存为图片。
  * 依赖(仅朋友圈页条件加载):qrcodejs(window.QRCode)、html2canvas(window.html2canvas)。
  */
@@ -18,31 +19,80 @@
 			'<button class="moment-lightbox__nav moment-lightbox__next" aria-label="下一张">›</button>';
 		document.body.appendChild( box );
 		var bImg = box.querySelector( '.moment-lightbox__img' );
-		var cur = [];
-		var idx = 0;
-		function show( list, i ) {
+		var cur = [], thumbs = [], idx = 0;
+		var pending = null; // 切图时的令牌:阻止旧全图回调覆盖新画面
+
+		// 把全图预热进 HTTP 缓存(悬停 / 按下时调用),点击时往往已命中 → 秒开
+		var warmed = {};
+		function warm( url ) {
+			if ( ! url || warmed[ url ] ) { return; }
+			warmed[ url ] = true;
+			var im = new Image();
+			im.decoding = 'async';
+			im.src = url;
+		}
+
+		// 画当前图:先用已缓存的缩略图占位(模糊放大),全图到位再切换;命中缓存则直接就位
+		function paint() {
+			var full = cur[ idx ];
+			var thumb = thumbs[ idx ];
+			pending = full;
+			if ( thumb && thumb !== full ) {
+				bImg.classList.add( 'is-loading' );
+				bImg.src = thumb;
+			} else {
+				bImg.classList.remove( 'is-loading' );
+				bImg.src = full;
+			}
+			warm( full );
+			var im = new Image();
+			im.onload = im.onerror = function () {
+				if ( pending !== full ) { return; }
+				bImg.src = full;
+				bImg.classList.remove( 'is-loading' );
+			};
+			im.src = full;
+			if ( im.complete && im.naturalWidth && pending === full ) { // 命中缓存:onload 可能不触发
+				bImg.src = full;
+				bImg.classList.remove( 'is-loading' );
+			}
+		}
+
+		function warmNeighbors() {
+			if ( cur.length < 2 ) { return; }
+			warm( cur[ ( idx + 1 ) % cur.length ] );
+			warm( cur[ ( idx - 1 + cur.length ) % cur.length ] );
+		}
+		function show( list, thumbList, i ) {
 			if ( ! list.length ) { return; }
 			cur = list;
+			thumbs = thumbList;
 			idx = i;
-			bImg.src = cur[ idx ];
+			paint();
 			box.classList.add( 'is-open' );
+			warmNeighbors();
 		}
-		function close() { box.classList.remove( 'is-open' ); }
+		function close() { box.classList.remove( 'is-open' ); bImg.classList.remove( 'is-loading' ); }
 		function step( d ) {
 			if ( ! cur.length ) { return; }
 			idx = ( idx + d + cur.length ) % cur.length;
-			bImg.src = cur[ idx ];
+			paint();
+			warmNeighbors();
 		}
 		Array.prototype.forEach.call( imgs, function ( img ) {
+			// 悬停(桌面)/ 按下(移动)即预热,点击时通常已进缓存
+			var full = function () { return img.getAttribute( 'data-full' ) || img.src; };
+			img.addEventListener( 'mouseenter', function () { warm( full() ); } );
+			img.addEventListener( 'pointerdown', function () { warm( full() ); } );
 			img.addEventListener( 'click', function () {
 				var group = img.closest( '.moment__imgs' );
 				var items = group ? group.querySelectorAll( '.moment__img' ) : [ img ];
-				var list = [];
+				var list = [], tlist = [];
 				Array.prototype.forEach.call( items, function ( el ) {
 					var u = el.getAttribute( 'data-full' ) || el.src;
-					if ( u ) { list.push( u ); }
+					if ( u ) { list.push( u ); tlist.push( el.src ); }
 				} );
-				show( list, Array.prototype.indexOf.call( items, img ) );
+				show( list, tlist, Array.prototype.indexOf.call( items, img ) );
 			} );
 		} );
 		box.querySelector( '.moment-lightbox__close' ).addEventListener( 'click', close );
