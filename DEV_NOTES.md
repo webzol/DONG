@@ -2232,3 +2232,21 @@ v6.1.8 修好 404 后,TD 反馈 `/moments-topic/茶室` 页面**样式乱**。�
 
 ### 待 TD 线上验证
 ① 话题归档页样式正常(三栏 + 封面 + moment 卡片 + 话题标题块);② 图片 lightbox / 点赞 / 分享卡片在话题页也能用。
+
+## v6.2.0(2026-07-30)· 话题归档页头精致化(TD 反馈)
+
+### 背景
+v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + 返回链接)的**展示风格**再精致化。
+
+### 改动
+- `assets/css/moments.css`:重写 `.moments-topic-head*`:
+  - 标题 `#茶室`:`#` 用 `--text-faint` 弱化、名字 `--primary`,baseline 对齐;字号 1.4→1.5rem。
+  - 动态数 → **药丸 badge**:浅蓝底 `rgba(var(--primary-rgb),0.09)` + primary 字 + `--radius-max`。
+  - 返回「← 全部朋友圈」→ **药丸按钮**:`--btn-bg` 底、hover `--btn-hover`,`margin-left:auto` 推右侧。
+  - 描述行行高 / 留白微调。
+- `taxonomy-onedong_moment_topic.php`:标题 `#` 单独包 `.moments-topic-head__hash` span 便于弱化着色。
+- **修 bug**:此前分隔线误用 `var(--border, …)` —— token 里无 `--border`(只有 `--line`),一直走回退灰值、暗色不协调;改回 `var(--line)`。
+- 版本 6.1.9→6.2.0-ProMax。全 token 化,浅 / 暗 + zhipu 皮肤自动适配。
+
+### 待 TD 线上验证
+① 话题页头视觉:`#茶室` 标题 + 蓝底药丸动态数 + 右侧药丸返回按钮;② 浅 / 暗模式都协调。

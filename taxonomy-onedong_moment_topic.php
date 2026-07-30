@@ -57,7 +57,7 @@ get_header();
 		<div class="moments-feed">
 			<?php if ( $term && ! is_wp_error( $term ) ) : ?>
 				<div class="moments-topic-head">
-					<h1 class="moments-topic-head__title">#<?php echo esc_html( $term->name ); ?></h1>
+					<h1 class="moments-topic-head__title"><span class="moments-topic-head__hash">#</span><?php echo esc_html( $term->name ); ?></h1>
 					<div class="moments-topic-head__meta">
 						<?php if ( isset( $term->count ) && $term->count ) : ?>
 							<span class="moments-topic-head__count"><?php echo esc_html( sprintf( _n( '%d 条动态', '%d 条动态', $term->count, 'onedong' ), $term->count ) ); ?></span>

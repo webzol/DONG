@@ -172,30 +172,64 @@
 }
 .moment__topic:hover { opacity: 0.7; }
 
-/* —— 话题归档页标题块(/moments/topic/xxx)· v6.1.7 —— */
+/* —— 话题归档页头(/moments-topic/xxx)· v6.1.7 / v6.2.0 精致化 —— */
 .moments-topic-head {
-	margin: 0 0 1.25rem;
-	padding-bottom: 1rem;
-	border-bottom: 1px solid var(--border, rgba(125, 125, 125, 0.18));
+	padding: 0.55rem 0 1.1rem;
+	border-bottom: 1px solid var(--line);
 }
 .moments-topic-head__title {
-	margin: 0;
-	font-size: 1.4rem;
+	display: flex;
+	align-items: baseline;
+	gap: 0.12rem;
+	margin: 0 0 0.6rem;
+	font-size: 1.5rem;
 	font-weight: 700;
+	line-height: 1.3;
 	color: var(--primary);
+}
+.moments-topic-head__hash {
+	color: var(--text-faint);
+	font-weight: 600;
 }
 .moments-topic-head__meta {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 0.4rem 0.9rem;
-	margin-top: 0.4rem;
-	font-size: 0.85rem;
+	gap: 0.5rem;
 }
-.moments-topic-head__count { color: var(--text-muted); }
-.moments-topic-head__back { color: var(--primary); text-decoration: none; }
-.moments-topic-head__back:hover { text-decoration: underline; }
-.moments-topic-head__desc { margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.9rem; }
+.moments-topic-head__count {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.16rem 0.62rem;
+	border-radius: var(--radius-max);
+	background: rgba(var(--primary-rgb), 0.09);
+	color: var(--primary);
+	font-size: 0.78rem;
+	font-weight: 500;
+}
+.moments-topic-head__back {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.2rem;
+	margin-left: auto;
+	padding: 0.22rem 0.7rem;
+	border-radius: var(--radius-max);
+	background: var(--btn-bg);
+	color: var(--text-muted);
+	font-size: 0.78rem;
+	text-decoration: none;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+.moments-topic-head__back:hover {
+	background: var(--btn-hover);
+	color: var(--text);
+}
+.moments-topic-head__desc {
+	margin: 0.6rem 0 0;
+	color: var(--text-muted);
+	font-size: 0.88rem;
+	line-height: 1.6;
+}
 
 /* —— 点赞展示(微信风:空心 ♡ + 昵称,排在日期行下方)· v6.1.4 / v6.1.5 —— */
 .moment__likes {
