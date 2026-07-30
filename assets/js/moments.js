@@ -260,9 +260,34 @@
 					if ( data && data.success ) {
 						likeBtn.classList.add( 'is-liked' );
 						var num = likeBtn.querySelector( '.moment__pop-num' );
-						if ( num ) { num.textContent = ( parseInt( num.textContent, 10 ) || 0 ) + 1; }
+						if ( num ) {
+							// 优先用后端权威计数,回退客户端 +1
+							num.textContent = ( 'number' === typeof data.likes ) ? data.likes : ( ( parseInt( num.textContent, 10 ) || 0 ) + 1 );
+						}
 						flyHeart( likeBtn );
 						try { localStorage.setItem( key, '1' ); } catch ( err ) {}
+						// 实时刷新点赞昵称行(v6.1.6):用后端按新计数重渲染的 HTML 替换 / 新建 .moment__likes
+						if ( data.names_html ) {
+							var m = likeBtn.closest( '.moment' );
+							if ( m ) {
+								var old = m.querySelector( '.moment__likes' );
+								if ( old ) {
+									// 已有昵称行:整块替换(新计数 → 尾部增名 / 折叠更新)
+									var tmp = document.createElement( 'div' );
+									tmp.innerHTML = data.names_html;
+									var fresh = tmp.firstElementChild;
+									if ( fresh ) { fresh.classList.add( 'is-fresh' ); old.parentNode.replaceChild( fresh, old ); }
+								} else {
+									// 首赞:此前无该行,插到日期 / 操作行下方(.moment__main 内、foot 之后)
+									var foot = m.querySelector( '.moment__foot' );
+									if ( foot ) {
+										foot.insertAdjacentHTML( 'afterend', data.names_html );
+										var n = m.querySelector( '.moment__likes' );
+										if ( n ) { n.classList.add( 'is-fresh' ); }
+									}
+								}
+							}
+						}
 					}
 				} ).catch( function () {} ).finally( function () {
 					likeBtn.classList.remove( 'is-busy' );

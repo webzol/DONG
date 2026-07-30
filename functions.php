@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.1.5-ProMax' );
+define( 'ONEDONG_VERSION', '6.1.6-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -623,7 +623,19 @@ function onedong_handle_like( WP_REST_Request $request ) {
 	$post_id = (int) $request['post_id'];
 	$likes   = onedong_get_likes( $post_id ) + 1;
 	update_post_meta( $post_id, '_onedong_likes', $likes );
-	return rest_ensure_response( array( 'success' => true, 'likes' => $likes ) );
+
+	// 仅朋友圈 moment 回传重新生成的点赞行 HTML,供前端点赞后实时刷新昵称(v6.1.6)。
+	// 普通文章卡点赞无昵称行,跳过生成。
+	$names_html = '';
+	if ( 'onedong_moment' === get_post_type( $post_id ) && function_exists( 'onedong_render_moment_likes' ) ) {
+		$names_html = onedong_render_moment_likes( $post_id );
+	}
+
+	return rest_ensure_response( array(
+		'success'    => true,
+		'likes'      => $likes,
+		'names_html' => $names_html,
+	) );
 }
 
 /**

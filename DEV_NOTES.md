@@ -2147,3 +2147,27 @@ TD 在 https://dingxudong.com/moments 看过 v6.1.4 实际效果后提两点:①
 
 ### 待 TD 线上验证
 ① 昵称行在日期/•• 那行的**下方**;② 爱心是**空心描边**、与 •• 弹层里的赞图标同款;③ 0 赞不出现该行;④ 赞 >6 仍出「等N人赞过」muted;⑤ 浅/暗模式下描边心形都看得清(不糊)。
+
+## v6.1.6(2026-07-30)· 点赞后实时刷新昵称行(TD 反馈)
+
+### 背景
+v6.1.5 的点赞昵称行只在**页面加载时**按 `_onedong_likes` 计数渲染;用户当场点赞后,数字徽标 +1 但昵称行不动 —— 要刷新页面才多出一个名。TD 要点赞当下昵称就进列。
+
+### 关键认知:昵称是「确定性伪随机」装饰,非真实身份
+- 真实数据只有 `_onedong_likes` 整数;`onedong_like_names($post_id,$count)` 用 crc32 种子按计数摇出姓+名(`inc/moments.php`),同篇每次结果一致、计数 +1 只在尾部增一个名(不洗牌)。
+- 故「实时刷新昵称」= **按新计数重新生成昵称行并替换 DOM**。名字逻辑在 PHP、前端无名字库 → **必须后端在 like 响应里回传重渲染的 HTML**,前端替换。
+
+### 改动
+- `inc/moments.php`:把原内联在 `onedong_render_moment()` 里的 `.moment__likes` 渲染**抽成 `onedong_render_moment_likes($post_id,$like_max=6)`**(`ob_start`/`ob_get_clean` 返回整块 HTML,计数 0 返回空串)。模板改为一行 `echo onedong_render_moment_likes( get_the_ID() )`。**模板与 REST 共用同一函数 = 单一真相源**,杜绝前后端漂移。
+- `functions.php`:`onedong_handle_like` 在 +1 后,**仅 `onedong_moment` 类型**调用该函数生成 `names_html` 一并回传(`function_exists` 防御)。普通文章卡点赞 `names_html=''` 跳过,响应不变。
+- `assets/js/moments.js`:点赞成功回调里 —— ① 数字徽标改用后端权威 `data.likes`(原客户端 +1);② 若有 `data.names_html`:已有 `.moment__likes` 则 `replaceChild` 整块替换,**首赞(原无该行)则 `foot.insertAdjacentHTML('afterend')` 插到 foot 下方**;新行加 `is-fresh`。
+- `assets/css/moments.css`:`.moment__likes.is-fresh` → 0.4s 淡入 + 上移 `@keyframes onedong-likes-in`,带 `prefers-reduced-motion` 守卫。
+- 版本 6.1.5→6.1.6-ProMax(`functions.php` + `style.css`),随 `$ver` cache-bust moments.css/js。
+
+### 坑 / 注记
+- **moments 页点赞按钮不是 `likes.js` 的 `.post-card__like`**:是 `moments.js` 绑的 `.moment__pop-btn--like`(在 `.moment__actions` 弹层里)。差点改错文件 —— 先 grep 确认按钮 class 与处理器归属再动手。
+- **首赞分支必须单独处理**:`.moment__likes` 在计数 0 时模板根本不渲染(无 DOM),不能只 `replace`,得 `insertAdjacentHTML` 新建;插入锚点选 `.moment__foot` 的 `afterend`(与模板里 likes 是 foot 兄弟节点一致)。
+- **`is-fresh` 无需手动清除**:用户单浏览器只能赞一次(localStorage `is-liked` 守卫),且每次替换都是新元素;整页刷新时服务端渲染不带 `is-fresh` → 动画只在「当场点赞」触发,不在加载时闪。
+
+### 待 TD 线上验证
+① 点赞后**不刷新页面**,昵称行当场多出一个名(或首赞时整行淡入出现);② 数字徽标与昵称行计数一致;③ 赞过 6 个时尾部出「等N人赞过」并随赞数增长;④ 普通文章列表卡点赞不受影响(无昵称行、行为如旧);⑤ 浅/暗模式 + 移动端都正常。

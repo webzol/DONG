@@ -178,6 +178,16 @@
 }
 .moment__like-fold { color: var(--text-muted); }
 
+/* v6.1.6:点赞成功后昵称行实时刷新的入场动画 */
+.moment__likes.is-fresh { animation: onedong-likes-in 0.4s ease; }
+@keyframes onedong-likes-in {
+	from { opacity: 0; transform: translateY( 4px ); }
+	to   { opacity: 1; transform: translateY( 0 ); }
+}
+@media ( prefers-reduced-motion: reduce ) {
+	.moment__likes.is-fresh { animation: none; }
+}
+
 /* —— Lightbox(全屏看大图 + 左右切换)—— */
 .moment-lightbox {
 	position: fixed;

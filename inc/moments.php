@@ -243,6 +243,31 @@ function onedong_like_names( $post_id, $count ) {
 	return $out;
 }
 
+/**
+ * 渲染「点赞展示行」HTML(微信朋友圈式:空心 ♡ + 昵称 + 「等N人赞过」折叠)· v6.1.6
+ * 单一真相源:模板渲染与点赞 REST 成功回包共用本函数 → 前端点赞后实时刷新昵称与后端一致。
+ * 昵称由 onedong_like_names() 按计数确定性生成(装饰性社交证明)。
+ *
+ * @param int $post_id   文章 ID。
+ * @param int $like_max  直显昵称上限,超出转「等N人赞过」。默认 6。
+ * @return string 计数 > 0 返回整块 .moment__likes HTML;否则空串。
+ */
+function onedong_render_moment_likes( $post_id, $like_max = 6 ) {
+	$like_count = (int) onedong_get_likes( $post_id );
+	if ( $like_count <= 0 ) {
+		return '';
+	}
+	$names = onedong_like_names( $post_id, min( $like_count, $like_max ) );
+	ob_start();
+	?>
+	<div class="moment__likes">
+		<svg class="moment__like-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+		<span class="moment__like-names"><?php echo esc_html( implode( '、', $names ) ); ?></span><?php if ( $like_count > $like_max ) : ?><span class="moment__like-fold"> 等<?php echo (int) $like_count; ?>人赞过</span><?php endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
 function onedong_render_moment() {
 	$ids      = get_post_meta( get_the_ID(), '_onedong_moment_images', true );
 	$location = get_post_meta( get_the_ID(), '_onedong_moment_location', true );
@@ -318,17 +343,9 @@ function onedong_render_moment() {
 			</div>
 
 			<?php
-			// 点赞展示行:排在日期/操作行「下方」(微信朋友圈式)· v6.1.5
-			$like_count = (int) onedong_get_likes();
-			if ( $like_count > 0 ) :
-				$like_max = 6;
-				$names    = onedong_like_names( get_the_ID(), min( $like_count, $like_max ) );
-				?>
-				<div class="moment__likes">
-					<svg class="moment__like-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-					<span class="moment__like-names"><?php echo esc_html( implode( '、', $names ) ); ?></span><?php if ( $like_count > $like_max ) : ?><span class="moment__like-fold"> 等<?php echo (int) $like_count; ?>人赞过</span><?php endif; ?>
-				</div>
-			<?php endif; ?>
+			// 点赞展示行:排在日期/操作行「下方」(微信朋友圈式)· v6.1.5 / v6.1.6 实时刷新(模板与 REST 共用同一函数)
+			echo onedong_render_moment_likes( get_the_ID() ); // 计数 0 时返回空串 → 不输出该行
+			?>
 		</div>
 	</article>
 	<?php
