@@ -156,12 +156,12 @@
 
 .moments-empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
 
-/* —— 点赞展示(微信风:❤ + 昵称)· v6.1.4 —— */
+/* —— 点赞展示(微信风:空心 ♡ + 昵称,排在日期行下方)· v6.1.4 / v6.1.5 —— */
 .moment__likes {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.32rem;
-	margin: 0.55rem 0 0;
+	margin: 0.35rem 0 0;
 	font-size: 0.85rem;
 	line-height: 1.55;
 	color: var(--primary);
@@ -170,8 +170,11 @@
 	width: 0.95rem;
 	height: 0.95rem;
 	flex: 0 0 auto;
-	margin-top: 0.12rem;
-	fill: currentColor;
+	margin-top: 0.16rem;
+	fill: none;                     /* v6.1.5:实心 → 空心 */
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linejoin: round;
 }
 .moment__like-fold { color: var(--text-muted); }
 

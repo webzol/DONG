@@ -2127,3 +2127,22 @@
 
 ### 待 TD 线上验证
 ① 有赞的 moment 文末出现 `❤ 昵称…` 蓝;0 赞的不出现;② 同一条多次刷新昵称不变(按文章固定);③ 赞 >6 时尾部「等N人赞过」muted;④ 点赞后数字徽标 +1,刷新后昵称行多一个名;⑤ 浅/暗模式下心形与昵称颜色可读。
+
+## v6.1.5(2026-07-30)· 点赞行位置修正 + 爱心改空心(TD 线上反馈)
+
+### 背景
+TD 在 https://dingxudong.com/moments 看过 v6.1.4 实际效果后提两点:① 昵称行应在**日期下方**(v6.1.4 放在了图片块与日期行之间);② 昵称前的爱心要**空心**(v6.1.4 是实心 `fill="currentColor"`)。
+
+### 改动
+- `inc/moments.php`:`.moment__likes` 整块从 `.moment__foot` **之前**搬到**之后**(仍在 `.moment__main` 内、与 foot 同级)。foot 是 `flex-wrap` 行(时间/定位/••),点赞行作为其后继块元素自然落到下一行 = 日期下方。PHP 逻辑一字未改(`$like_count` / `$like_max` / `onedong_like_names` 原样搬移)。
+- 心形 path:`fill="currentColor"` → `fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"`,与 •• 弹层里的赞图标同款描边。
+- `assets/css/moments.css`:`.moment__like-icon` 改 `fill:none` + `stroke:currentColor` + `stroke-width:2` + `stroke-linejoin:round`;`margin-top` 0.12→0.16rem(描边心形视觉重心略低,与首个昵称基线对齐);`.moment__likes` `margin-top` 0.55→0.35rem(此前要与图片块拉开,现在紧跟日期行,收紧更贴近微信)。
+- 6.1.4-ProMax → 6.1.5-ProMax(functions.php + style.css 双处);moments.css/js 随 `$ver` cache-bust。
+
+### 坑 / 注记
+- **CSS 继承 vs 内联呈现属性**:`.moment__like-icon` 选中的是 `<svg>`,`fill` 靠继承传给 `<path>`;而 path 自带的 `fill` 是**直接作用在 path 上的呈现属性**,继承值干不过它 —— 所以 CSS 和 path 属性两处都要改,否则会出现「改了 CSS 却没生效」的错觉。
+- **昵称行不能塞进 `.moment__foot`**:foot 是 flex 行,塞进去会变成第 4 个 flex item 去和 •• 抢同一行;必须做 foot 的**兄弟节点**。
+- **打包踩坑(与本功能无关但必须记)**:用 .NET Framework 的 `[System.IO.Compression.ZipFile]::CreateFromDirectory` 打 zip,条目路径会写成**反斜杠**(`onedong\assets\...`),Linux/WP 解压后得到一堆怪文件名、主题直接废。正确姿势:手动 `ZipArchive` + `ZipFileExtensions::CreateEntryFromFile`,相对路径 `.Replace('\','/')`。另:PowerShell 里 `-replace '\\','/'` 会被安全守卫误判成 `Remove-Item '\\'` 而整段拦下,用 `.Replace()` 绕开。已存在的 `onedong-v6.1.2.zip` 经体检是正斜杠(0 条反斜杠),**线上那份未受影响**。
+
+### 待 TD 线上验证
+① 昵称行在日期/•• 那行的**下方**;② 爱心是**空心描边**、与 •• 弹层里的赞图标同款;③ 0 赞不出现该行;④ 赞 >6 仍出「等N人赞过」muted;⑤ 浅/暗模式下描边心形都看得清(不糊)。
