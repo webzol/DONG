@@ -2217,3 +2217,18 @@ CPT `onedong_moment` 的 rewrite slug = `moments`,而话题 taxonomy 的 rewrite
 
 ### 待 TD 线上验证
 ① 上传后点话题,跳 `/moments-topic/茶室` 能正常列出该话题动态(不再 404);② 若中文话题仍 404,在后台「话题」把"茶室"的**别名(slug)**手改成 `chashi` 再点——若能开,则是中文 slug 问题,反馈我做自动转拼音。
+
+## v6.1.9(2026-07-30)· 修话题归档页样式乱(CSS/JS 未入队)
+
+### 现象
+v6.1.8 修好 404 后,TD 反馈 `/moments-topic/茶室` 页面**样式乱**。同时确认:**中文 slug 正常工作**(没落到第二坑,无需转拼音)。
+
+### 根因
+`functions.php` 入队 moments.css / moments.js 的条件只含 `is_post_type_archive('onedong_moment') || is_singular('onedong_moment') || is_author()`,**不含话题归档 `is_tax('onedong_moment_topic')`** → 话题页 moments.css(布局 / 话题 chip / 归档标题)+ moments.js(lightbox / 点赞 / 分享卡片)全没加载,布局散。
+
+### 修复
+- `functions.php`:入队条件加 `|| is_tax( 'onedong_moment_topic' )`,话题归档页一并加载 moments.css + moments.js + qrcode + html2canvas + `onedongMomentShare` localize。
+- 版本 6.1.8→6.1.9-ProMax。
+
+### 待 TD 线上验证
+① 话题归档页样式正常(三栏 + 封面 + moment 卡片 + 话题标题块);② 图片 lightbox / 点赞 / 分享卡片在话题页也能用。

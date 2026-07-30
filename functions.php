@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.1.8-ProMax' );
+define( 'ONEDONG_VERSION', '6.1.9-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -379,8 +379,8 @@ function onedong_scripts() {
 		);
 	}
 
-	// 朋友圈(列表 / 详情):九宫格样式 + 图片 lightbox — v2.5.0
-	if ( is_post_type_archive( 'onedong_moment' ) || is_singular( 'onedong_moment' ) || is_author() ) {
+	// 朋友圈(列表 / 详情 / 话题归档):九宫格样式 + 图片 lightbox — v2.5.0 / v6.1.9 补话题归档
+	if ( is_post_type_archive( 'onedong_moment' ) || is_singular( 'onedong_moment' ) || is_tax( 'onedong_moment_topic' ) || is_author() ) {
 		wp_enqueue_style( 'onedong-moments', ONEDONG_URI . '/assets/css/moments.css', array( 'onedong-layout' ), $ver );
 		wp_enqueue_script( 'onedong-moments', ONEDONG_URI . '/assets/js/moments.js', array(), $ver, true );
 		// 分享卡片:二维码(qrcodejs)+ 转图片(html2canvas),CDN;v2.5.5
