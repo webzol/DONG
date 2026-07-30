@@ -222,7 +222,8 @@
 }
 .moments-topic-head__back:hover {
 	background: var(--btn-hover);
-	color: var(--text);
+	color: var(--primary);
+	text-decoration: none;
 }
 .moments-topic-head__desc {
 	margin: 0.6rem 0 0;

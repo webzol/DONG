@@ -2250,3 +2250,9 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 
 ### 待 TD 线上验证
 ① 话题页头视觉:`#茶室` 标题 + 蓝底药丸动态数 + 右侧药丸返回按钮;② 浅 / 暗模式都协调。
+
+## v6.2.1(2026-07-30)· 话题页返回按钮 hover 微调(TD 反馈)
+- TD 反馈:返回「← 全部朋友圈」hover 出现**下划线**,且要**激活色**。
+- 根因:base.css 全局 `a:hover` 有下划线(Apple 风),而 `.moments-topic-head__back:hover` 未显式 `text-decoration` → 全局下划线生效。
+- 修:`moments.css` 的 `.moments-topic-head__back:hover` 显式 `text-decoration: none`(去下划线)+ `color` 由 `--text`(深灰)改为 `--primary`(蓝,激活色);背景仍 `--btn-hover`。
+- 版本 6.2.0→6.2.1-ProMax。
