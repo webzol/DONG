@@ -53,6 +53,49 @@ add_action( 'after_switch_theme', 'flush_rewrite_rules' );
 
 
 /* ============================================================
+ * 1b. 注册「话题」分类法(扁平标签式;关联 onedong_moment)· v6.1.7
+ * 后台发布时用原生标签框自由输入多个话题;前端做成可点 chip,
+ * 点击走原生 term 归档页(/moments/topic/{slug})聚合同话题内容。
+ * ============================================================ */
+function onedong_register_moment_topic_taxonomy() {
+	register_taxonomy(
+		'onedong_moment_topic',
+		array( 'onedong_moment' ),
+		array(
+			'labels'            => array(
+				'name'                       => __( '话题', 'onedong' ),
+				'singular_name'              => __( '话题', 'onedong' ),
+				'search_items'               => __( '搜索话题', 'onedong' ),
+				'popular_items'              => __( '热门话题', 'onedong' ),
+				'all_items'                  => __( '所有话题', 'onedong' ),
+				'edit_item'                  => __( '编辑话题', 'onedong' ),
+				'update_item'                => __( '更新话题', 'onedong' ),
+				'add_new_item'               => __( '添加新话题', 'onedong' ),
+				'new_item_name'              => __( '新话题名称', 'onedong' ),
+				'separate_items_with_commas' => __( '多个话题用空格或逗号分隔', 'onedong' ),
+				'add_or_remove_items'        => __( '添加或移除话题', 'onedong' ),
+				'choose_from_most_used'      => __( '从常用话题中选择', 'onedong' ),
+				'not_found'                  => __( '暂无话题', 'onedong' ),
+				'menu_name'                  => __( '话题', 'onedong' ),
+			),
+			'public'            => true,
+			'hierarchical'      => false,                 // 扁平标签式
+			'show_admin_column' => true,
+			'show_in_rest'      => false,                 // 经典编辑器
+			'meta_box_cb'       => 'post_tags_meta_box',  // 原生标签框 → 后台自由输入,零额外后台代码
+			'rewrite'           => array( 'slug' => 'moments/topic', 'with_front' => false ),
+		)
+	);
+	// 首次加载刷一次固定链接,否则 /moments/topic/xxx 会 404。
+	if ( ! get_option( 'onedong_moment_topic_flushed' ) ) {
+		flush_rewrite_rules();
+		update_option( 'onedong_moment_topic_flushed', 1 );
+	}
+}
+add_action( 'init', 'onedong_register_moment_topic_taxonomy' );
+
+
+/* ============================================================
  * 2. 后台发布:meta box(图片 + 实况 + 定位)
  * ============================================================ */
 function onedong_moment_add_meta_box() {
@@ -290,6 +333,20 @@ function onedong_render_moment() {
 			<?php if ( get_the_content() ) : ?>
 				<div class="moment__content"><?php the_content(); ?></div>
 			<?php endif; ?>
+
+			<?php
+			// 话题标签(正文下方一行 chip,可点跳话题归档页)· v6.1.7
+			$moment_topics = get_the_terms( get_the_ID(), 'onedong_moment_topic' );
+			if ( $moment_topics && ! is_wp_error( $moment_topics ) ) :
+				?>
+				<div class="moment__topics">
+					<?php foreach ( $moment_topics as $mt ) : ?>
+						<a class="moment__topic" href="<?php echo esc_url( get_term_link( $mt ) ); ?>">#<?php echo esc_html( $mt->name ); ?></a>
+					<?php endforeach; ?>
+				</div>
+				<?php
+			endif;
+			?>
 
 			<?php if ( $count > 0 ) : ?>
 				<div class="moment__imgs moment__imgs--<?php echo ( 1 === $count ) ? 'single' : 'grid'; ?>">

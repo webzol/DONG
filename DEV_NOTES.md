@@ -2171,3 +2171,30 @@ v6.1.5 的点赞昵称行只在**页面加载时**按 `_onedong_likes` 计数渲
 
 ### 待 TD 线上验证
 ① 点赞后**不刷新页面**,昵称行当场多出一个名(或首赞时整行淡入出现);② 数字徽标与昵称行计数一致;③ 赞过 6 个时尾部出「等N人赞过」并随赞数增长;④ 普通文章列表卡点赞不受影响(无昵称行、行为如旧);⑤ 浅/暗模式 + 移动端都正常。
+
+## v6.1.7(2026-07-30)· 朋友圈话题:发布打标 + 点击聚合(TD 需求)
+
+### 背景
+TD 要:发布朋友圈时可给内容打**话题**,前端点击话题能**聚合展示该话题下所有朋友圈**。
+
+### 决策(TD 拍板)
+- 录入:**自由输入多话题(标签式)** —— WP 原生 tag 框,后台零额外代码。
+- 展示:**独立一行话题标签**(正文下方 chip)。
+- 点击:**跳话题归档页** `/moments/topic/{slug}`(非原地 AJAX)。
+
+### 方案:注册话题 taxonomy(最 WP-native)
+为什么不存 post_meta:话题要「点击看同类」,taxonomy 原生带 term 归档 + 计数 + 后台管理,零手写筛选;post_meta 得自己写 query 和路由。
+- `inc/moments.php`:新增 `onedong_register_moment_topic_taxonomy()` —— `register_taxonomy('onedong_moment_topic',['onedong_moment'])`,`hierarchical=false`(扁平标签)、`meta_box_cb='post_tags_meta_box'`(后台自动出标签框,**不改 meta box 保存逻辑**——taxonomy 由 WP 自存,`save_post_onedong_moment` 不碰它)、`rewrite slug='moments/topic'`、`show_admin_column=true`。注册后**首次加载 flush 固定链接**(新 option `onedong_moment_topic_flushed` 守卫,一次性),否则 term 链接 404。
+- 前端:`onedong_render_moment()` 正文 `.moment__content` 之后输出 `.moment__topics` → `get_the_terms` 遍历 `#话题` 链接(`get_term_link`)。无话题不输出。
+- 新建 `taxonomy-onedong_moment_topic.php`:复用 `/moments/` 三栏 + 封面 + feed,feed 顶部加 `.moments-topic-head`(话题名 + 动态数 +「← 全部朋友圈」返回 + 描述)。`have_posts()` 在 term 归档天然是该话题 moments。**不建此模板会回退 `archive.php`、失去三栏布局**。
+- `assets/css/moments.css`:话题 chip(`--primary` 文字链接风,与站点全局链接统一)+ 归档标题块。
+- 版本 6.1.6→6.1.7-ProMax(随 `$ver` cache-bust moments.css)。
+
+### 坑 / 注记
+- **必须 flush 一次**:新 taxonomy 上线,term 归档 `/moments/topic/xxx` 在 rewrite 规则生成前会 404。代码已加 option 守卫在 `init` 首次 flush。**若线上仍 404**:后台「设置→固定链接」点一次保存(手动 flush)即修。
+- **中文话题 slug**:WP `sanitize_title` 对中文 term 生成 URL 编码 slug(如 `%e6%97%85`),能访问但不美观——WP 中文站点通病。若在意可装拼音 slug 插件,功能不受影响。
+- **taxonomy 保存不经 `save_post`**:`meta_box_cb='post_tags_meta_box'` 用 WP 原生标签框,保存走 WP 自己的 `wp_set_post_terms`,**不要**在 `onedong_moment_save` 里处理话题(否则双重保存 / 冲突)。
+- 现有朋友圈无话题 → 不显示话题行,旧数据零影响。
+
+### 待 TD 线上验证
+① 后台编辑朋友圈,出现「话题」标签框,能自由输入多个话题(空格 / 逗号分隔)并保存;② 前端朋友圈正文下方出一行 `#话题` 蓝色可点链接;③ 点击跳 `/moments/topic/xxx` 列出该话题全部动态,顶部有话题名 + 动态数 +「← 全部朋友圈」;④ 朋友圈列表页「话题」列显示(`show_admin_column`);⑤ 若 term 链接 404,固定链接页保存一次。

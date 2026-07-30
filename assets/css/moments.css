@@ -156,6 +156,47 @@
 
 .moments-empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
 
+/* —— 话题标签(正文下方一行 chip,可点跳话题归档)· v6.1.7 —— */
+.moment__topics {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 0.5rem;
+	margin: 0.5rem 0 0;
+}
+.moment__topic {
+	color: var(--primary);
+	font-size: 0.85rem;
+	line-height: 1.4;
+	text-decoration: none;
+	transition: opacity 0.15s ease;
+}
+.moment__topic:hover { opacity: 0.7; }
+
+/* —— 话题归档页标题块(/moments/topic/xxx)· v6.1.7 —— */
+.moments-topic-head {
+	margin: 0 0 1.25rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--border, rgba(125, 125, 125, 0.18));
+}
+.moments-topic-head__title {
+	margin: 0;
+	font-size: 1.4rem;
+	font-weight: 700;
+	color: var(--primary);
+}
+.moments-topic-head__meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.4rem 0.9rem;
+	margin-top: 0.4rem;
+	font-size: 0.85rem;
+}
+.moments-topic-head__count { color: var(--text-muted); }
+.moments-topic-head__back { color: var(--primary); text-decoration: none; }
+.moments-topic-head__back:hover { text-decoration: underline; }
+.moments-topic-head__desc { margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.9rem; }
+
 /* —— 点赞展示(微信风:空心 ♡ + 昵称,排在日期行下方)· v6.1.4 / v6.1.5 —— */
 .moment__likes {
 	display: flex;
