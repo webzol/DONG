@@ -83,13 +83,15 @@ function onedong_register_moment_topic_taxonomy() {
 			'show_admin_column' => true,
 			'show_in_rest'      => false,                 // 经典编辑器
 			'meta_box_cb'       => 'post_tags_meta_box',  // 原生标签框 → 后台自由输入,零额外后台代码
-			'rewrite'           => array( 'slug' => 'moments/topic', 'with_front' => false ),
+			// slug 不能与 CPT 的 'moments' 共享前缀(如 'moments/topic'),
+			// 否则 rewrite 规则冲突、term 归档 404(v6.1.7 踩坑 → v6.1.8 改独立 slug)。
+			'rewrite'           => array( 'slug' => 'moments-topic', 'with_front' => false ),
 		)
 	);
-	// 首次加载刷一次固定链接,否则 /moments/topic/xxx 会 404。
-	if ( ! get_option( 'onedong_moment_topic_flushed' ) ) {
+	// 刷固定链接;slug 变化后用 v2 option 强制再刷一次,让新规则即时生效(免手动保存固定链接)。
+	if ( ! get_option( 'onedong_moment_topic_flushed_v2' ) ) {
 		flush_rewrite_rules();
-		update_option( 'onedong_moment_topic_flushed', 1 );
+		update_option( 'onedong_moment_topic_flushed_v2', 1 );
 	}
 }
 add_action( 'init', 'onedong_register_moment_topic_taxonomy' );

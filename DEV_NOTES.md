@@ -2198,3 +2198,22 @@ TD 要:发布朋友圈时可给内容打**话题**,前端点击话题能**聚合
 
 ### 待 TD 线上验证
 ① 后台编辑朋友圈,出现「话题」标签框,能自由输入多个话题(空格 / 逗号分隔)并保存;② 前端朋友圈正文下方出一行 `#话题` 蓝色可点链接;③ 点击跳 `/moments/topic/xxx` 列出该话题全部动态,顶部有话题名 + 动态数 +「← 全部朋友圈」;④ 朋友圈列表页「话题」列显示(`show_admin_column`);⑤ 若 term 链接 404,固定链接页保存一次。
+
+## v6.1.8(2026-07-30)· 修话题归档 404(rewrite slug 前缀冲突)
+
+### 现象
+v6.1.7 上线后,TD 点话题链接 `/moments/topic/茶室` 报 **404,手动保存固定链接(flush)也无救**。
+
+### 根因
+CPT `onedong_moment` 的 rewrite slug = `moments`,而话题 taxonomy 的 rewrite slug = `moments/topic` —— **两者共享 `moments` 前缀**。WP 已知冲突:CPT 与 taxonomy slug 不能共享前缀,rewrite 规则互相覆盖,term 归档必 404(flush 无用,因规则生成本身打架)。社区共识:"a custom post type slug and a custom taxonomy slug can't share the same prepending slug"。
+
+### 修复
+- `inc/moments.php`:话题 rewrite slug `moments/topic` → **`moments-topic`**(独立段,不与 `moments` 重叠;第一段精确匹配、不再被 CPT 规则吞)。URL 变 `/moments-topic/{slug}`。
+- flush option 版本化:`onedong_moment_topic_flushed` → `_v2`,代码上传后 init 首次自动重刷规则,**TD 无需再手动保存固定链接**。
+- 版本 6.1.7→6.1.8-ProMax。
+
+### 仍未决 / 备查
+- **中文话题 slug(URL 编码)**:TD 的"茶室"→ `%e8%8c%93%e5%ae%a4`。若修完前缀冲突后中文话题仍 404、而英文 slug 话题正常,则落到第二个已知坑——WP 对非拉丁(CJK)slug 的 URL 编码在某些服务器配置下匹配不上。届时方案:hook term 创建把非 ASCII slug 转拼音 / term-id,或装拼音 slug 插件。**先让 TD 测前缀修复**。
+
+### 待 TD 线上验证
+① 上传后点话题,跳 `/moments-topic/茶室` 能正常列出该话题动态(不再 404);② 若中文话题仍 404,在后台「话题」把"茶室"的**别名(slug)**手改成 `chashi` 再点——若能开,则是中文 slug 问题,反馈我做自动转拼音。
