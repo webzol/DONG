@@ -481,6 +481,9 @@ function onedong_cloud_settings_page_cb() {
 	<div class="wrap onedong-cloud-wrap">
 		<h1><?php esc_html_e( '云存储 · 媒体 Offload', 'onedong' ); ?></h1>
 		<p class="description"><?php esc_html_e( '开启后,媒体库上传的图片 / 附件会自动推送到所选对象存储,前端 URL 替换为云端 / CDN 域名;删除附件时同步清理云端。密钥仅存于本站数据库,不会输出到前端。', 'onedong' ); ?></p>
+
+		<?php onedong_cloud_render_stats(); // 数据统计仪表盘(只读,不随表单提交)— v6.3.0 ?>
+
 		<form method="post" action="options.php">
 			<?php settings_fields( 'onedong_cloud_group' ); ?>
 
@@ -631,18 +634,279 @@ add_action( 'wp_ajax_onedong_cloud_test', 'onedong_cloud_ajax_test' );
 
 
 /* ============================================================
+ * 7b. 数据统计:已 Offload 附件的总数 / 总大小 / 服务商分布 /
+ *     类型分布 / 最近列表 / 节省本地空间。transient 缓存 + AJAX 刷新。
+ * ============================================================ */
+
+/**
+ * mime 类型归类到展示分组。
+ *
+ * @param string $mime
+ * @return string
+ */
+function onedong_cloud_mime_group( $mime ) {
+	if ( 0 === strpos( $mime, 'image/' ) ) {
+		return 'image';
+	}
+	if ( 0 === strpos( $mime, 'video/' ) ) {
+		return 'video';
+	}
+	if ( 0 === strpos( $mime, 'audio/' ) ) {
+		return 'audio';
+	}
+	$doc = array( 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument', 'application/vnd.ms', 'application/rtf', 'text/' );
+	foreach ( $doc as $d ) {
+		if ( 0 === strpos( $mime, $d ) ) {
+			return 'document';
+		}
+	}
+	return 'other';
+}
+
+/**
+ * 类型分组 → 中文标签。
+ *
+ * @return array
+ */
+function onedong_cloud_type_labels() {
+	return array(
+		'image'    => __( '图片', 'onedong' ),
+		'video'    => __( '视频', 'onedong' ),
+		'audio'    => __( '音频', 'onedong' ),
+		'document' => __( '文档', 'onedong' ),
+		'other'    => __( '其他', 'onedong' ),
+	);
+}
+
+/**
+ * 统计已 Offload 附件。结果 transient 缓存 30 分钟;$force_refresh 跳过。
+ *
+ * 数据源:postmeta _onedong_cloud_provider(有值 = 已 Offload)。
+ * 文件大小取附件 metadata 的 filesize(WP 生成 metadata 时记录);老附件缺则记 0。
+ * 节省本地空间 = 本地文件已不存在(get_attached_file + file_exists)的 offload 附件大小之和。
+ *
+ * @param bool $force_refresh 跳过缓存重算。
+ * @return array
+ */
+function onedong_cloud_stats( $force_refresh = false ) {
+	$cache_key = 'onedong_cloud_stats';
+	$cached    = get_transient( $cache_key );
+	if ( false !== $cached && ! $force_refresh ) {
+		return $cached;
+	}
+
+	global $wpdb;
+	$ids   = $wpdb->get_col( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_onedong_cloud_provider'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$ids   = array_map( 'intval', $ids );
+	$total = count( $ids );
+
+	$by_provider = array();
+	$by_type     = array();
+	$total_size  = 0;
+	$saved_size  = 0;
+	$recent_pool = array();
+
+	if ( $ids ) {
+		$post_rows = $wpdb->get_results( "SELECT ID, post_mime_type, post_date, post_title FROM {$wpdb->posts} WHERE ID IN (" . implode( ',', $ids ) . ')' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$post_map  = array();
+		foreach ( $post_rows as $r ) {
+			$post_map[ (int) $r->ID ] = $r;
+		}
+
+		foreach ( $ids as $aid ) {
+			$p    = isset( $post_map[ $aid ] ) ? $post_map[ $aid ] : null;
+			$mime = $p ? $p->post_mime_type : '';
+			$prov = get_post_meta( $aid, '_onedong_cloud_provider', true );
+
+			$md   = wp_get_attachment_metadata( $aid );
+			$size = ( is_array( $md ) && ! empty( $md['filesize'] ) ) ? (int) $md['filesize'] : 0;
+			$total_size += $size;
+
+			$prov_key = $prov ? $prov : 'unknown';
+			if ( ! isset( $by_provider[ $prov_key ] ) ) {
+				$by_provider[ $prov_key ] = array( 'count' => 0, 'size' => 0 );
+			}
+			$by_provider[ $prov_key ]['count']++;
+			$by_provider[ $prov_key ]['size'] += $size;
+
+			$type = onedong_cloud_mime_group( $mime );
+			if ( ! isset( $by_type[ $type ] ) ) {
+				$by_type[ $type ] = array( 'count' => 0, 'size' => 0 );
+			}
+			$by_type[ $type ]['count']++;
+			$by_type[ $type ]['size'] += $size;
+
+			if ( $size > 0 ) {
+				$local = get_attached_file( $aid );
+				if ( $local && ! file_exists( $local ) ) {
+					$saved_size += $size;
+				}
+			}
+
+			if ( $p ) {
+				$recent_pool[] = array(
+					'id'    => $aid,
+					'title' => $p->post_title,
+					'date'  => $p->post_date,
+					'size'  => $size,
+				);
+			}
+		}
+
+		usort( $recent_pool, function ( $a, $b ) {
+			return strcmp( $b['date'], $a['date'] );
+		} );
+	}
+
+	$stats = array(
+		'total'       => $total,
+		'total_size'  => $total_size,
+		'saved_size'  => $saved_size,
+		'by_provider' => $by_provider,
+		'by_type'     => $by_type,
+		'recent'      => array_slice( $recent_pool, 0, 10 ),
+		'provider'    => onedong_cloud_active_provider(),
+		'is_active'   => onedong_cloud_is_active(),
+	);
+
+	set_transient( $cache_key, $stats, 30 * MINUTE_IN_SECONDS );
+	return $stats;
+}
+
+/**
+ * 渲染数据统计区块(KPI 卡片 + 分布进度条 + 最近列表)。直出 HTML。
+ */
+function onedong_cloud_render_stats() {
+	$s        = onedong_cloud_stats();
+	$prov_def = onedong_cloud_providers();
+	$type_lbl = onedong_cloud_type_labels();
+
+	$total_size_h = $s['total_size'] > 0 ? size_format( $s['total_size'], 1 ) : '—';
+	$saved_size_h = $s['saved_size'] > 0 ? size_format( $s['saved_size'], 1 ) : '—';
+	$cur_label    = '';
+	if ( $s['provider'] && isset( $prov_def[ $s['provider'] ] ) ) {
+		$cur_label = $prov_def[ $s['provider'] ]['label'];
+	}
+	?>
+	<div class="onedong-cloud-stats" id="onedong-cloud-stats">
+		<div class="onedong-cloud-stats__head">
+			<h2><?php esc_html_e( '数据统计', 'onedong' ); ?></h2>
+			<button type="button" class="button onedong-cloud-stats-refresh" data-nonce="<?php echo esc_attr( wp_create_nonce( 'onedong_cloud_stats' ) ); ?>">
+				<span class="dashicons dashicons-update" aria-hidden="true"></span> <?php esc_html_e( '刷新', 'onedong' ); ?>
+			</button>
+		</div>
+
+		<div class="onedong-cloud-kpis">
+			<div class="onedong-cloud-kpi">
+				<span class="onedong-cloud-kpi__num"><?php echo esc_html( number_format_i18n( $s['total'] ) ); ?></span>
+				<span class="onedong-cloud-kpi__label"><?php esc_html_e( '已 Offload 文件', 'onedong' ); ?></span>
+			</div>
+			<div class="onedong-cloud-kpi">
+				<span class="onedong-cloud-kpi__num"><?php echo esc_html( $total_size_h ); ?></span>
+				<span class="onedong-cloud-kpi__label"><?php esc_html_e( '总占用', 'onedong' ); ?></span>
+			</div>
+			<div class="onedong-cloud-kpi">
+				<span class="onedong-cloud-kpi__num"><?php echo esc_html( $cur_label ? $cur_label : '—' ); ?></span>
+				<span class="onedong-cloud-kpi__label"><?php esc_html_e( '当前服务商', 'onedong' ); ?></span>
+			</div>
+			<div class="onedong-cloud-kpi">
+				<span class="onedong-cloud-kpi__num"><?php echo esc_html( $saved_size_h ); ?></span>
+				<span class="onedong-cloud-kpi__label"><?php esc_html_e( '节省本地空间', 'onedong' ); ?></span>
+			</div>
+		</div>
+
+		<?php if ( $s['total'] > 0 ) : ?>
+			<div class="onedong-cloud-stats__cols">
+				<div class="onedong-cloud-bars">
+					<h3><?php esc_html_e( '服务商分布', 'onedong' ); ?></h3>
+					<?php
+					$pmax = 1;
+					foreach ( $s['by_provider'] as $c ) {
+						$pmax = max( $pmax, $c['count'] );
+					}
+					foreach ( $s['by_provider'] as $pid => $c ) :
+						$plabel = isset( $prov_def[ $pid ] ) ? $prov_def[ $pid ]['label'] : $pid;
+						$pct    = round( $c['count'] / $pmax * 100 );
+						?>
+						<div class="onedong-cloud-bar">
+							<span class="onedong-cloud-bar__label"><?php echo esc_html( $plabel ); ?></span>
+							<span class="onedong-cloud-bar__track"><span class="onedong-cloud-bar__fill" style="width:<?php echo (int) $pct; ?>%"></span></span>
+							<span class="onedong-cloud-bar__num"><?php echo esc_html( number_format_i18n( $c['count'] ) ); ?> · <?php echo esc_html( size_format( $c['size'], 1 ) ); ?></span>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<div class="onedong-cloud-bars">
+					<h3><?php esc_html_e( '文件类型分布', 'onedong' ); ?></h3>
+					<?php
+					$tmax = 1;
+					foreach ( $s['by_type'] as $c ) {
+						$tmax = max( $tmax, $c['count'] );
+					}
+					foreach ( $s['by_type'] as $tid => $c ) :
+						$tlabel = isset( $type_lbl[ $tid ] ) ? $type_lbl[ $tid ] : $tid;
+						$pct    = round( $c['count'] / $tmax * 100 );
+						?>
+						<div class="onedong-cloud-bar">
+							<span class="onedong-cloud-bar__label"><?php echo esc_html( $tlabel ); ?></span>
+							<span class="onedong-cloud-bar__track"><span class="onedong-cloud-bar__fill" style="width:<?php echo (int) $pct; ?>%"></span></span>
+							<span class="onedong-cloud-bar__num"><?php echo esc_html( number_format_i18n( $c['count'] ) ); ?> · <?php echo esc_html( size_format( $c['size'], 1 ) ); ?></span>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+
+			<?php if ( ! empty( $s['recent'] ) ) : ?>
+				<div class="onedong-cloud-recent">
+					<h3><?php esc_html_e( '最近 Offload', 'onedong' ); ?></h3>
+					<ul>
+						<?php foreach ( $s['recent'] as $r ) : ?>
+							<li>
+								<span class="onedong-cloud-recent__name"><?php echo esc_html( $r['title'] ? $r['title'] : __( '(无标题)', 'onedong' ) ); ?></span>
+								<span class="onedong-cloud-recent__meta"><?php echo esc_html( date_i18n( 'Y-m-d', strtotime( $r['date'] ) ) ); ?> · <?php echo esc_html( $r['size'] > 0 ? size_format( $r['size'], 1 ) : '—' ); ?></span>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+			<?php endif; ?>
+		<?php else : ?>
+			<p class="onedong-cloud-stats__empty"><?php esc_html_e( '暂无已 Offload 的附件。上传图片后会自动推送并在此统计。', 'onedong' ); ?></p>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+/**
+ * AJAX:刷新统计(清缓存重算,返回新 HTML 供前端替换)。
+ */
+function onedong_cloud_ajax_stats_refresh() {
+	check_ajax_referer( 'onedong_cloud_stats', 'nonce' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( array( 'message' => __( '权限不足。', 'onedong' ) ) );
+	}
+	onedong_cloud_stats( true ); // 强制重算并刷缓存
+	ob_start();
+	onedong_cloud_render_stats();
+	$html = ob_get_clean();
+	wp_send_json_success( array( 'html' => $html ) );
+}
+add_action( 'wp_ajax_onedong_cloud_stats_refresh', 'onedong_cloud_ajax_stats_refresh' );
+
+
+/* ============================================================
  * 8. 后台资源 + 日志
  * ============================================================ */
 function onedong_cloud_admin_assets( $hook ) {
 	if ( 'toplevel_page_onedong-cloud' !== $hook ) {
 		return;
 	}
+	wp_enqueue_style( 'onedong-cloud-admin', ONEDONG_URI . '/assets/css/cloud-storage-admin.css', array(), ONEDONG_VERSION );
 	wp_enqueue_script( 'onedong-cloud-admin', ONEDONG_URI . '/assets/js/cloud-storage-admin.js', array( 'jquery' ), ONEDONG_VERSION, true );
 	wp_localize_script( 'onedong-cloud-admin', 'OneDongCloud', array(
-		'ajax'    => admin_url( 'admin-ajax.php' ),
-		'nonce'   => wp_create_nonce( 'onedong_cloud_test' ),
-		'testing' => __( '测试中…', 'onedong' ),
-		'active'  => onedong_cloud_active_provider(),
+		'ajax'       => admin_url( 'admin-ajax.php' ),
+		'nonce'      => wp_create_nonce( 'onedong_cloud_test' ),
+		'statsNonce' => wp_create_nonce( 'onedong_cloud_stats' ),
+		'testing'    => __( '测试中…', 'onedong' ),
+		'active'     => onedong_cloud_active_provider(),
 	) );
 }
 add_action( 'admin_enqueue_scripts', 'onedong_cloud_admin_assets' );

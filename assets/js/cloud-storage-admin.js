@@ -70,5 +70,27 @@
 				$btn.prop( 'disabled', false );
 			} );
 		} );
+
+		// 统计刷新:点 → AJAX 重算 → 替换统计区块 HTML。事件委托到 wrap(replaceWith 后新按钮仍生效)。
+		$( '.onedong-cloud-wrap' ).on( 'click', '.onedong-cloud-stats-refresh', function () {
+			var $btn  = $( this ),
+				$stat = $( '#onedong-cloud-stats' );
+			if ( ! $stat.length || $btn.hasClass( 'is-loading' ) ) {
+				return;
+			}
+			$btn.addClass( 'is-loading' ).prop( 'disabled', true );
+			$.post( C.ajax, {
+				action: 'onedong_cloud_stats_refresh',
+				nonce:  C.statsNonce
+			} ).done( function ( res ) {
+				if ( res && res.success && res.data && res.data.html ) {
+					$stat.replaceWith( res.data.html );
+				} else {
+					$btn.removeClass( 'is-loading' ).prop( 'disabled', false );
+				}
+			} ).fail( function () {
+				$btn.removeClass( 'is-loading' ).prop( 'disabled', false );
+			} );
+		} );
 	} );
 }( jQuery ) );

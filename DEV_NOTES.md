@@ -2287,3 +2287,28 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 - **默认关闭 + 按需加载**:`onedong_festival_enable` 默认 0,未开或不命中时 `onedong_festival_assets` 不加载 festival.css、`onedong_festival_bar()` 不输出(零成本,不影响现有页面)。
 - **CDN**:改主题后外网要刷腾讯云 CDN;`ONEDONG_VERSION=6.3.0-ProMax` 自动给 CSS URL 加 `?ver=…` 破缓存。
 - ⚠️ 线上 dingxudong.com 历史跑 Once-main(非 OneDong);本功能需部署启用 OneDong + 刷 CDN 后 TD 方可见。
+
+## v6.3.1(2026-08-05)· 云存储数据统计仪表盘
+
+### 背景
+- TD 要在云存储后台看「已 Offload 多少文件、用了多少空间、各家 / 各类型分布、最近上传、省了多少本地空间」。
+
+### 改动
+- **`inc/cloud-storage.php`** 新增节 7b「数据统计」:
+  - `onedong_cloud_stats($force_refresh)`:SQL 查 `_onedong_cloud_provider` meta 拿全部已 offload 附件 ID → 一次查 posts 表(mime/date/title)→ 遍历聚合(总数 / 总大小 / 服务商分布 / 类型分布 / 最近 10 / 节省本地空间)。**transient 缓存 30 分钟**,刷新按钮 `$force_refresh=true` 跳过。
+  - `onedong_cloud_render_stats()`:渲染 KPI 卡片(4 个:文件数 / 总占用 / 当前服务商 / 节省本地空间)+ 服务商分布进度条 + 类型分布进度条 + 最近列表。设置页 h1/description 后、form 前调用(只读,不随表单提交)。
+  - `onedong_cloud_mime_group()` / `onedong_cloud_type_labels()`:mime → image/video/audio/document/other 分组 + 中文标签。
+  - AJAX `onedong_cloud_stats_refresh`(nonce `onedong_cloud_stats`):权限校验 + 强制重算 + ob_get_clean 返回新 HTML,前端替换 `#onedong-cloud-stats`。
+  - `onedong_cloud_admin_assets`:`wp_enqueue_style('onedong-cloud-admin')` 加载新 CSS;localize 加 `statsNonce`。
+- **`assets/css/cloud-storage-admin.css`(新增)**:KPI 卡片网格 + 进度条(`var(--wp-admin-theme-color)` 跟随用户 admin 配色,回退主题蓝 #3858f6)+ 最近列表 + 刷新按钮 spinner(`onedong-cloud-spin` keyframes)+ 响应式(≤782 双列 → 单列)。
+- **`assets/js/cloud-storage-admin.js`**:加刷新按钮逻辑 —— 事件委托到 `.onedong-cloud-wrap`(replaceWith 后新按钮仍生效)→ AJAX 重算 → 替换统计 HTML。
+- 版本 6.3.0→6.3.1-ProMax(刷 admin CSS/JS 缓存)。
+
+### 关键决策 / 坑
+- **数据源**:已 offload = postmeta `_onedong_cloud_provider` 有值(offload 成功才写 meta,失败保留本地 URL 不写);文件大小取附件 metadata 的 `filesize`(WP 生成 metadata 时记录,WP 5.x+);**老附件缺 filesize 记 0**(总大小可能略偏小,不影响计数)。
+- **节省本地空间**:`keep_local=0` 时 offload 后删本地 → 实测 `get_attached_file` + `!file_exists()` 判已删 → 累加其 filesize。比"按当前 keep_local 开关推断"准(中途改过开关也能反映实际磁盘)。
+- **服务商分布按历史实际 provider 统计**(非当前启用):换过服务商时能看出迁移残留。
+- **性能**:遍历全部已 offload 附件 + `wp_get_attachment_metadata`(有 WP 对象缓存)+ `file_exists`(磁盘 IO)。媒体库大时首次略慢,transient 30 分钟兜底 + 手动刷新按钮。每次刷新重算全量(未做增量),博客量级可接受。
+- **无新依赖**:纯 PHP + WP 内置(`size_format` / `number_format_i18n` / `date_i18n` / transient / wp_ajax)+ 纯 CSS(无图表库)。延续主题零依赖调性。
+- **本机无 PHP**:`php -l` 未跑;前后端标识符(nonce / action / class / id)已 grep 全量核对一致。待本地 WP 启用「云存储」后台页实测:① 仪表盘渲染;② 各项数字合理;③ 刷新按钮(AJAX 替换 HTML、按钮 spinner);④ 响应式(≤782)。
+- ⚠️ 线上需部署启用 OneDong + 刷 CDN。
