@@ -1,0 +1,173 @@
+/* 节气 / 节假日提示条 —— 消费 --fes-accent / --fes-accent-2 专属配色;素雅模式(不注入)回退 --primary。
+   仅用设计 token,深浅色 / data-skin 换肤自动跟随。结构对齐 announcement.css。 v6.3.0 */
+
+.site-festival {
+	/* 素雅模式或未注入时回退主题色;节日专属模式由 onedong_festival_bar() 内联 style 覆盖这两个变量 */
+	--fes-accent: var(--primary);
+	--fes-accent-2: var(--primary-strong);
+	margin: 1rem 0 0;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.site-festival__inner {
+	max-width: var(--site-width);
+	margin: 0 auto;
+	padding: 0 clamp(1rem, 4vw, 2rem); /* 与 header / 公告条 / 内容同款边缘对齐原语 */
+}
+
+.site-festival__card {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+	padding: 0.85rem 1rem 0.85rem 1.15rem;
+	overflow: hidden; /* 让 ::before 渐变左边条贴合圆角 */
+	background: var(--card-bg); /* 回退:不支持 color-mix 时的底色 */
+	background: linear-gradient(135deg,
+		color-mix(in srgb, var(--fes-accent) 10%, var(--card-bg)),
+		color-mix(in srgb, var(--fes-accent-2) 5%, var(--card-bg))); /* 极淡双色着色,深浅色自适应 */
+	border: 1px solid var(--line-strong); /* 回退 */
+	border: 1px solid color-mix(in srgb, var(--fes-accent) 22%, var(--line-strong));
+	border-radius: var(--radius-large);
+	box-shadow: var(--shadow);
+	color: var(--text);
+}
+
+/* 渐变左边强调条:伪元素,随卡片圆角贴合(避免 border-image 与 border-radius 冲突) */
+.site-festival__card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 4px;
+	background: linear-gradient(180deg, var(--fes-accent), var(--fes-accent-2));
+}
+
+.site-festival__icon {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 50%;
+	background: linear-gradient(135deg, var(--fes-accent), var(--fes-accent-2)); /* 节日色渐变图标底 */
+	color: #fff;
+	box-shadow: 0 2px 6px color-mix(in srgb, var(--fes-accent) 40%, transparent);
+}
+
+.site-festival__icon .icon {
+	width: 19px;
+	height: 19px;
+}
+
+.site-festival__body {
+	flex: 1 1 auto;
+	min-width: 0; /* 允许长文本换行,避免横向溢出 */
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	line-height: 1.45;
+}
+
+.site-festival__title {
+	font-weight: 600;
+	font-size: 1.02rem;
+}
+
+.site-festival__meta {
+	color: var(--text-muted);
+	font-size: 0.85rem;
+	word-break: break-word;
+}
+
+.site-festival__desc {
+	color: var(--text-faint);
+	font-size: 0.84rem;
+}
+
+.site-festival__close {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-max);
+	background: transparent;
+	color: var(--text-faint);
+	font-size: 1.35rem;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.site-festival__close:hover {
+	background: var(--btn-hover);
+	color: var(--text);
+}
+
+/* —— 进入动画:首次渲染轻微滑入淡入。用 backwards 填充(同公告条):
+     动画前套 from 态避闪现,动画后不锁 to 态,以免压制 .is-closing 的过渡。 —— */
+@keyframes onedong-festival-in {
+	from { opacity: 0; transform: translateY(-8px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+	.site-festival:not(.is-dismissed) {
+		animation: onedong-festival-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+	}
+}
+
+/* —— 关闭动画 / 隐藏 —— */
+.site-festival.is-closing {
+	opacity: 0;
+	transform: translateY(-6px);
+	pointer-events: none;
+}
+.site-festival.is-dismissed {
+	display: none;
+}
+
+/* —— 移动端自适应(768 主断点,与公告条一致) —— */
+@media (max-width: 768px) {
+	.site-festival {
+		margin-top: 0.75rem;
+	}
+	.site-festival__inner {
+		padding: 0 0.75rem; /* 回落与 .site-main 一致的扁平内边距,避免 clamp 双重内边距横向溢出 */
+	}
+	.site-festival__card {
+		flex-wrap: wrap;
+		gap: 0.5rem 0.7rem;
+		padding: 0.75rem 0.85rem 0.75rem 1rem;
+	}
+	/* 关闭键仅在可关闭时占位:绝对定位到右上,正文不被遮挡 */
+	.site-festival[data-dismissible="1"] .site-festival__card {
+		padding-right: 2.4rem;
+	}
+	.site-festival__close {
+		position: absolute;
+		top: 0.4rem;
+		right: 0.4rem;
+	}
+	.site-festival__icon {
+		align-self: flex-start;
+	}
+}
+
+@media (max-width: 480px) {
+	.site-festival__title {
+		font-size: 1rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-festival,
+	.site-festival__close {
+		transition: none;
+	}
+}

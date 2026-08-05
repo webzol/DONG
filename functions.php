@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.2.1-ProMax' );
+define( 'ONEDONG_VERSION', '6.3.0-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -20,6 +20,8 @@ require_once ONEDONG_DIR . '/inc/resources.php'; // 资源导航(onedong_resourc
 require_once ONEDONG_DIR . '/inc/captcha.php'; // 评论图形验证码(GD 图片)— v6.0.62
 require_once ONEDONG_DIR . '/inc/announcement.php'; // 全站顶部公告条 — v6.0.67
 require_once ONEDONG_DIR . '/inc/cloud-storage.php'; // 云存储 Offload(OSS/COS/七牛/又拍/OBS/S3)— v6.1.0
+require_once ONEDONG_DIR . '/inc/lunar.php'; // 农历 / 24 节气 天文算法(定朔 + 定气 + 无中气置闰)— v6.3.0
+require_once ONEDONG_DIR . '/inc/festival.php'; // 节气 / 节假日提示条(header 公告条之后)— v6.3.0
 
 /**
  * 主题初始化:注册主题支持与菜单位置
@@ -485,7 +487,20 @@ function onedong_get_icon( $name ) {
 		'info'     => '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
 		'alert'    => '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
 		'check-circle' => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
-		'gender'   => '<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M16 4h4v4"/>',
+		'gender'    => '<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M16 4h4v4"/>',
+		/* —— 节日 / 节气图标(inc/festival.php 节日条)— v6.3.0 —— */
+		'sprout'    => '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+		'rain'      => '<path d="M17 8a5 5 0 0 0-9.3-1.7A3.5 3.5 0 0 0 6 13h11a3 3 0 0 0 0-5z"/><path d="M8 17v3M12 18v3M16 17v3"/>',
+		'flower'    => '<circle cx="12" cy="12" r="1.6"/><path d="M12 10.5c1.4-1.9 1.4-3.9 0-5.9-1.4 2-1.4 4 0 5.9z"/><path d="M12 13.5c1.4 1.9 1.4 3.9 0 5.9-1.4-2-1.4-4 0-5.9z"/><path d="M10.5 12c-1.9 1.4-3.9 1.4-5.9 0 2-1.4 4-1.4 5.9 0z"/><path d="M13.5 12c1.9 1.4 3.9 1.4 5.9 0-2-1.4-4-1.4-5.9 0z"/>',
+		'sun-hot'   => '<circle cx="12" cy="12" r="5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4 4l2.1 2.1M17.9 17.9 20 20M20 4l-2.1 2.1M6.1 17.9 4 20"/>',
+		'wheat'     => '<path d="M12 22V4"/><path d="M7 8c2 0 4 1 5 3M17 8c-2 0-4 1-5 3M7 12c2 0 4 1 5 3M17 12c-2 0-4 1-5 3M8 16c1.8 0 3.2.7 4 2M16 16c-1.8 0-3.2.7-4 2"/>',
+		'leaf'      => '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+		'snowflake' => '<path d="M2 12h20M12 2v20M4.5 6.5l15 11M19.5 6.5l-15 11"/><path d="M12 5.5 10.5 4M12 5.5 13.5 4M12 18.5 10.5 20M12 18.5 13.5 20M5.5 12 4 10.5M5.5 12 4 13.5M18.5 12 20 10.5M18.5 12 20 13.5"/>',
+		'firework'  => '<circle cx="12" cy="12" r="1.4"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3M6.3 6.3 8.4 8.4M15.6 15.6 17.7 17.7M17.7 6.3 15.6 8.4M8.4 15.6 6.3 17.7"/>',
+		'lantern'   => '<path d="M12 3v2"/><path d="M8 5h8"/><path d="M7 12c0-3.3 2.2-6 5-6s5 2.7 5 6-2.2 6-5 6-5-2.7-5-6z"/><path d="M9.5 18c0 1.2 1 2 2.5 2s2.5-.8 2.5-2"/><path d="M12 20v2"/>',
+		'flag'      => '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/>',
+		'moon-full' => '<circle cx="12" cy="12" r="8"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1.3" fill="currentColor" stroke="none"/><circle cx="10" cy="14.5" r="0.7" fill="currentColor" stroke="none"/>',
+		'gift'      => '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 11 5 12 8c1-3 3-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
 	);
 	if ( ! isset( $paths[ $name ] ) ) {
 		return '';

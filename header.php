@@ -119,5 +119,6 @@
 <div class="nav-overlay" aria-hidden="true"></div>
 
 <?php onedong_announcement_bar(); // 全站顶部公告条 — v6.0.67 ?>
+<?php onedong_festival_bar(); // 节气 / 节假日提示条(公告条之后,无命中自动跳过)— v6.3.0 ?>
 
 <main id="main" class="site-main">

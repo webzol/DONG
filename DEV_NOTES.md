@@ -2256,3 +2256,34 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 - 根因:base.css 全局 `a:hover` 有下划线(Apple 风),而 `.moments-topic-head__back:hover` 未显式 `text-decoration` → 全局下划线生效。
 - 修:`moments.css` 的 `.moments-topic-head__back:hover` 显式 `text-decoration: none`(去下划线)+ `color` 由 `--text`(深灰)改为 `--primary`(蓝,激活色);背景仍 `--btn-hover`。
 - 版本 6.2.0→6.2.1-ProMax。
+
+## v6.3.0(2026-08-05)· 节气 / 节假日提示条(天文算法农历)
+
+### 背景
+- TD 要全站顶部(公告条下方)自动提示当天的节气 / 法定节假日 / 传统节日 / 现代 / 西方节日,每个节日一套专属配色 + 图标。
+- 关键决策:**日期由天文算法实时算,不逐年维护数据表**。
+
+### 改动
+- **`inc/lunar.php`(新增,纯 PHP 农历 / 节气算法)**:Meeus《Astronomical Algorithms》定朔(ch.49)+ 定气(VSOP87 截断 + FK5 + 章动 + 光行差)+ 无中气置闰 = 1929 年后紫金山天文台现行农历规则。对外:`onedong_lunar_from_solar(公历→农历,含干支/生肖/中文月日)`、`onedong_lunar_term_on(某日节气名,无则空串)`、`onedong_lunar_today_bj(北京今天)`。无大表 / 无扩展依赖(不需 intl / calendar)。有效区间 1900-2100。
+  - 为什么不用 `lunarInfo` / `sTermInfo` 十六进制大表:那是 201 项手抄十六进制,抄错一位静默算错日期且极难发现;天文算法无大表、可回归验证。
+  - **精度**:太阳视黄经用 VSOP87 截断(非 Meeus ch.25 简算式),残差 <0.0001° ≈ 8 秒,保证逼近午夜的节气「日」判定稳定(实测简算式 2026 雨水偏早 8 分钟,有整日翻天风险)。
+- **`tools/lunar-verify.mjs`(新增,Node 同源校验)**:与 lunar.php 逐行对应的 JS 实现,本机无 PHP 时跑回归。用例 **58/58 全过**:春节 2018-2033、闰月(含 **2033 闰十一月**边界)、节气跨 2000-2026、农历换算含闰月。**今天 2026-08-05 = 农历六月廿三 · 丙午马年**(立秋 8/7,可验「提前预告」)。
+- **`inc/festival.php`(新增,业务层)**:节日总表(24 节气 + 7 法定 + 11 传统 + 14 现代 / 西方,每个带 accent/accent2 专属色对 + 图标 + 物候短句);rule 支持 solar / lunar / term / nth(母亲节=5 月第 2 个周日)/ eve(除夕=次日正月初一);同日多命中按优先级(法定>传统>节气>现代)取主体,次命中(如清明同为节气)并入副标题去重。
+  - **提前预告**(`onedong_festival_lead` 0-7 天):「距中秋还有 3 天」。
+  - **逐日结果 transient 缓存**(2 天):天文计算不每请求重跑。
+  - **配色注入**:节日专属模式 PHP 内联 `--fes-accent / -2`,素雅模式不注入 → CSS 回退 `--primary`。
+  - **防页面缓存串天**:服务端写北京日期,内联 JS 反推访客侧北京日期比对,对不上隐藏(WP Super Cache 会把「今日立秋」缓存到第二天)。
+  - **关闭记忆**:localStorage 按「日期 + 节日 key」,次日换节日自动重现(anti-flash 预隐藏,无闪烁)。
+  - Customizer(section `onedong_festival`):总开关 / 4 类别开关 / 提前预告天数 / 配色模式 / 显示农历 / 显示短句 / 允许关闭。**默认总开关关**。
+- **`assets/css/festival.css`(新增)**:结构对齐 announcement.css;消费 `--fes-accent / -2` 做卡片双色渐变底 + 图标渐变圆底 + `::before` 渐变左边条(伪元素贴合圆角,避 `border-image` 与 `border-radius` 冲突);`.is-dismissed / .is-closing` 关闭动画;进入动画同公告条;深浅色 / zhipu 皮肤全 token 化跟随;移动端 768 / 480 断点。
+- **`functions.php`**:① require lunar.php + festival.php(festival 依赖 lunar 函数,顺序加载);② `onedong_get_icon` 补 12 个节日图标(sprout / rain / flower / sun-hot / wheat / leaf / snowflake / firework / lantern / flag / moon-full / gift,viewBox 24 / stroke 1.6 风格一致);③ 版本 6.2.1→6.3.0-ProMax。
+- **`header.php`**:公告条之后调 `onedong_festival_bar()`(无命中 / 总开关关时自动跳过,零输出)。
+
+### 关键决策 / 坑
+- **时区**:农历 / 节气以东八区定义,模块内部一律按 UTC+8 判「日」——日期加减走 `gmmktime` + `gmdate`(全程 UTC),**不用 `getdate()`**(它会按服务器本地时区解释时间戳,站点设在 UTC+13 会翻到次日);`onedong_lunar_today_bj()` 用 `DateTime` + `Asia/Shanghai`,不跟随站点时区(站点设成 UTC 也不会把立秋算到前一天)。
+- **2033 闰十一月**:著名边界,闰月落在「冬至→冬至」的下一轮窗口;`onedong_lunar_months` 排「冬月(year-1)→ 腊月(year)」一整轮,跨年查相邻轮解决(Node 校验 2033-12-25 = 闰冬月初四 ✓)。
+- **图标覆盖**:`onedong_get_icon` 未知名返回空串(**不报错但图标空白**),故节日用到的图标必须全补。festival.php 共用 15 个图标名,其中 12 个原没有;已 grep 全量核对 56 处引用全覆盖(12 新 + moon/heart/document 原有)。
+- **本机无 PHP**:`php -l` 未跑;算法层由 Node 同源校验 58/58 保证,业务层(festival.php 字符串 / 数组 / Customizer / wp 函数)人工核对 + 依赖齐备性 grep。待本地 WP 启用「外观 → 自定义 → 节气 / 节假日提示」实测:① 当天命中(可临时把 lead 设大或改系统日期触发);② 提前预告「距 X 还有 N 天」;③ 关闭记忆 + 防缓存串天;④ 专属配色 vs 素雅;⑤ 浅 / 暗 / zhipu 皮肤。
+- **默认关闭 + 按需加载**:`onedong_festival_enable` 默认 0,未开或不命中时 `onedong_festival_assets` 不加载 festival.css、`onedong_festival_bar()` 不输出(零成本,不影响现有页面)。
+- **CDN**:改主题后外网要刷腾讯云 CDN;`ONEDONG_VERSION=6.3.0-ProMax` 自动给 CSS URL 加 `?ver=…` 破缓存。
+- ⚠️ 线上 dingxudong.com 历史跑 Once-main(非 OneDong);本功能需部署启用 OneDong + 刷 CDN 后 TD 方可见。
