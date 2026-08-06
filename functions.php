@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问
 }
 
-define( 'ONEDONG_VERSION', '6.3.1-ProMax' );
+define( 'ONEDONG_VERSION', '6.3.2-ProMax' );
 define( 'ONEDONG_DIR', get_template_directory() );
 define( 'ONEDONG_URI', get_template_directory_uri() );
 
@@ -398,9 +398,11 @@ function onedong_scripts() {
 		);
 	}
 
-	// 资源导航(列表):全屏 Banner + 分类筛选 + 卡片网格 — v1.0.0
-	if ( is_post_type_archive( 'onedong_resource' ) ) {
+	// 资源导航(列表 + 提交页):卡片网格 / 悬浮提交入口 / 提交表单 — v6.3.2
+	if ( is_post_type_archive( 'onedong_resource' ) || ( function_exists( 'onedong_is_resource_submit_page' ) && onedong_is_resource_submit_page() ) ) {
 		wp_enqueue_style( 'onedong-resources', ONEDONG_URI . '/assets/css/resources.css', array( 'onedong-layout' ), $ver );
+	}
+	if ( is_post_type_archive( 'onedong_resource' ) ) {
 		wp_enqueue_script( 'onedong-resources', ONEDONG_URI . '/assets/js/resources.js', array(), $ver, true );
 	}
 
@@ -463,6 +465,7 @@ add_filter( 'excerpt_length', 'onedong_excerpt_length' );
  */
 function onedong_get_icon( $name ) {
 	$paths = array(
+		'plus'     => '<path d="M12 5v14M5 12h14"/>',
 		'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
 		'eye'      => '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
 		'chat'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',

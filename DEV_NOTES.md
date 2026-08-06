@@ -2312,3 +2312,23 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 - **无新依赖**:纯 PHP + WP 内置(`size_format` / `number_format_i18n` / `date_i18n` / transient / wp_ajax)+ 纯 CSS(无图表库)。延续主题零依赖调性。
 - **本机无 PHP**:`php -l` 未跑;前后端标识符(nonce / action / class / id)已 grep 全量核对一致。待本地 WP 启用「云存储」后台页实测:① 仪表盘渲染;② 各项数字合理;③ 刷新按钮(AJAX 替换 HTML、按钮 spinner);④ 响应式(≤782)。
 - ⚠️ 线上需部署启用 OneDong + 刷 CDN。
+
+## v6.3.2(2026-08-06)· 资源提交页修复 + 底部居中伸缩入口
+
+### 背景
+- TD 反馈资源页“提交资源”点击无效，希望入口贴近网站底部中央，默认紧凑，鼠标悬停时横向伸展。
+- 原未提交实现同时有 3 个断点：归档模板用未入队的 jQuery 绑定按钮；`resources/submit.php` 未接入 WordPress 模板层级；表单 AJAX 无 `action` 与 `wp_ajax_*` handler。
+
+### 改动
+- **`inc/resources.php`**：新增精确优先级 rewrite `^resources/submit/?$` + query var / `template_include`，保留 TD 指定 URL 且避开 `onedong_resource` 单篇 slug 冲突；flush option 升为 `onedong_res_flushed_v2`，部署后自动刷新一次规则。
+- **公开提交处理**：表单改走 `admin-post.php?action=onedong_resource_submit`，同时注册登录/未登录 handler；nonce + 蜜罐 + IP 1 分钟限频 + URL 协议 / 分类 / 字段长度校验 + URL 去重。成功创建 `pending` 资源，管理员审核发布后才进入前台。
+- **`resources/submit.php`**：改为纯 PHP 渐进增强表单，不依赖 jQuery / AJAX / 媒体库；可选远程图标，留空走默认图标；显示成功、重复、限频、校验失败等回跳反馈。
+- **`archive-onedong_resource.php` + `assets/css/resources.css`**：按钮改原生 `<a href>`，无 JS 也能跳转；固定在视口底部中央，默认 52px 紧凑“+”，hover / `:focus-visible` 时标签横向展开并轻微上浮；触屏保持紧凑点击即跳，z-index 低于移动导航，支持 safe-area、暗色 token 和 `prefers-reduced-motion`。
+- **`functions.php`**：提交路由也加载 resources.css；新增 `plus` SVG 图标；版本与 `style.css` 同步 6.3.1→6.3.2-ProMax。
+
+### 关键决策 / 坑
+- **不再用 `get_page_by_path('resources/submit')`**：主题文件不会自动创建 WP Page，该调用失败时可能拿到循环中的资源 permalink；代码托管路由不依赖数据库建页面。
+- **精确规则放 `top`**：`resources` 已是 CPT archive / single 前缀，`submit` 会被当成资源 slug；必须让精确规则先匹配。若线上仍 404，到“设置→固定链接”保存一次作为手动兜底。
+- **公开表单不开放媒体库**：匿名访客没有 `upload_files` 权限，前台加载 `wp.media` 既无效又扩大攻击面；仅收远程图标 URL。
+- **审核状态用 `pending` 而非 `draft`**：后台能明确看到待审核队列；`pre_get_posts` 与 WP 状态过滤保证未发布内容不出现在资源页。
+- 本机无 PHP，未运行 `php -l`；已用静态标识符 / 结构检查与 ZIP CRC 校验。待线上实测路由、提交、后台待审记录与发布后展示。

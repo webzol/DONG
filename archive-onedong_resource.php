@@ -6,11 +6,10 @@
  *
  * @package OneDong
  */
-
 get_header();
 ?>
 
-<div class="resources-page"<?php echo onedong_resource_card_style_attr(); // 卡片圆角(默认空 = 跟随网站) ?>>
+<div class="resources-page"<?php echo onedong_resource_card_style_attr(); // 卡片圆角(默认空 = 跟随网站) ?>
 	<?php onedong_resource_banner(); ?>
 
 	<div class="resources-main">
@@ -30,5 +29,9 @@ get_header();
 	</div>
 </div>
 
-<?php
-get_footer();
+<a class="resources-fab" href="<?php echo esc_url( onedong_resource_submit_url() ); ?>" aria-label="<?php esc_attr_e( '提交资源', 'onedong' ); ?>">
+	<span class="resources-fab__icon" aria-hidden="true"><?php onedong_icon( 'plus' ); ?></span>
+	<span class="resources-fab__label"><?php esc_html_e( '提交资源', 'onedong' ); ?></span>
+</a>
+
+<?php get_footer(); ?>

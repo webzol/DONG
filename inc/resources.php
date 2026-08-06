@@ -105,13 +105,155 @@ function onedong_register_resource_cpt() {
 
 	add_image_size( 'onedong-resource-icon', 96, 96, true ); // 卡片图标小尺寸(省流)
 
-	if ( ! get_option( 'onedong_res_flushed' ) ) {
+	// 精确规则必须放在 CPT 单篇规则之前,否则 submit 会被当作资源 slug。
+	add_rewrite_rule( '^resources/submit/?$', 'index.php?onedong_resource_submit=1', 'top' );
+
+	if ( ! get_option( 'onedong_res_flushed_v2' ) ) {
 		flush_rewrite_rules();
-		update_option( 'onedong_res_flushed', 1 );
+		update_option( 'onedong_res_flushed_v2', 1 );
 	}
 }
 add_action( 'init', 'onedong_register_resource_cpt' );
 add_action( 'after_switch_theme', 'flush_rewrite_rules' );
+
+/** 注册资源提交页查询变量。 */
+function onedong_resource_submit_query_vars( $vars ) {
+	$vars[] = 'onedong_resource_submit';
+	return $vars;
+}
+add_filter( 'query_vars', 'onedong_resource_submit_query_vars' );
+
+/** 是否为代码托管的资源提交页。 */
+function onedong_is_resource_submit_page() {
+	return '1' === (string) get_query_var( 'onedong_resource_submit' );
+}
+
+/** 资源提交页固定地址。 */
+function onedong_resource_submit_url() {
+	return home_url( '/resources/submit/' );
+}
+
+/** 阻止 WordPress 将代码托管的提交路由判为 404。 */
+function onedong_resource_submit_pre_handle_404( $preempt, $wp_query ) {
+	if ( ! onedong_is_resource_submit_page() ) {
+		return $preempt;
+	}
+	$wp_query->is_404 = false;
+	status_header( 200 );
+	return true;
+}
+add_filter( 'pre_handle_404', 'onedong_resource_submit_pre_handle_404', 10, 2 );
+
+/** 为资源提交路由选择独立模板。 */
+function onedong_resource_submit_template( $template ) {
+	if ( onedong_is_resource_submit_page() ) {
+		return ONEDONG_DIR . '/resources/submit.php';
+	}
+	return $template;
+}
+add_filter( 'template_include', 'onedong_resource_submit_template' );
+
+/** 修正资源提交页浏览器标题。 */
+function onedong_resource_submit_document_title( $parts ) {
+	if ( onedong_is_resource_submit_page() ) {
+		$parts['title'] = __( '提交资源', 'onedong' );
+	}
+	return $parts;
+}
+add_filter( 'document_title_parts', 'onedong_resource_submit_document_title' );
+
+/** 将资源提交结果带回表单页。 */
+function onedong_resource_submit_redirect( $result ) {
+	wp_safe_redirect( add_query_arg( 'resource_submit', sanitize_key( $result ), onedong_resource_submit_url() ) );
+	exit;
+}
+
+/**
+ * 接收公开资源推荐。所有提交均保存为 pending,由管理员审核后发布。
+ */
+function onedong_handle_resource_submit() {
+	$nonce = isset( $_POST['onedong_resource_submit_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['onedong_resource_submit_nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'onedong_resource_submit' ) ) {
+		onedong_resource_submit_redirect( 'invalid' );
+	}
+
+	// 隐藏蜜罐字段被填写时静默拒绝,降低自动表单垃圾。
+	if ( ! empty( $_POST['onedong_resource_website'] ) ) {
+		onedong_resource_submit_redirect( 'success' );
+	}
+
+	$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+	$rate_key    = 'onedong_res_submit_' . md5( $remote_addr );
+	if ( get_transient( $rate_key ) ) {
+		onedong_resource_submit_redirect( 'rate_limited' );
+	}
+
+	$title       = isset( $_POST['onedong_resource_title'] ) ? sanitize_text_field( wp_unslash( $_POST['onedong_resource_title'] ) ) : '';
+	$description = isset( $_POST['onedong_resource_description'] ) ? wp_kses_post( wp_unslash( $_POST['onedong_resource_description'] ) ) : '';
+	$url         = isset( $_POST['onedong_resource_url'] ) ? esc_url_raw( wp_unslash( $_POST['onedong_resource_url'] ) ) : '';
+	$cat         = isset( $_POST['onedong_resource_cat'] ) ? absint( $_POST['onedong_resource_cat'] ) : 0;
+	$icon_url    = isset( $_POST['onedong_resource_icon_url'] ) ? esc_url_raw( wp_unslash( $_POST['onedong_resource_icon_url'] ) ) : '';
+	$title       = wp_html_excerpt( $title, 120, '' );
+	$description = wp_html_excerpt( $description, 1000, '' );
+	$scheme      = wp_parse_url( $url, PHP_URL_SCHEME );
+	$term        = $cat ? get_term( $cat, 'onedong_resource_cat' ) : null;
+
+	if ( '' === $title || '' === $url || ! in_array( $scheme, array( 'http', 'https' ), true ) || ! $term || is_wp_error( $term ) || '0' === get_term_meta( $cat, '_onedong_rescat_enabled', true ) ) {
+		onedong_resource_submit_redirect( 'invalid' );
+	}
+	if ( $icon_url && ! in_array( wp_parse_url( $icon_url, PHP_URL_SCHEME ), array( 'http', 'https' ), true ) ) {
+		onedong_resource_submit_redirect( 'invalid' );
+	}
+
+	$duplicate = get_posts(
+		array(
+			'post_type'      => 'onedong_resource',
+			'post_status'    => array( 'publish', 'pending', 'draft' ),
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_key'       => '_onedong_resource_url',
+			'meta_value'     => $url,
+		)
+	);
+	if ( $duplicate ) {
+		onedong_resource_submit_redirect( 'duplicate' );
+	}
+
+	$post_id = wp_insert_post(
+		array(
+			'post_type'    => 'onedong_resource',
+			'post_status'  => 'pending',
+			'post_title'   => wp_html_excerpt( $title, 120, '' ),
+			'post_content' => $description,
+			'meta_input'   => array(
+				'_onedong_resource_url'         => $url,
+				'_onedong_resource_order'       => 0,
+				'_onedong_resource_enabled'     => '1',
+				'_onedong_resource_icon_mode'   => $icon_url ? 'remote' : 'default',
+				'_onedong_resource_icon_id'     => 0,
+				'_onedong_resource_icon_url'    => $icon_url,
+				'_onedong_resource_badge'       => '',
+				'_onedong_resource_badge_color' => 'blue',
+			),
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		onedong_resource_submit_redirect( 'error' );
+	}
+
+	$terms_set = wp_set_object_terms( $post_id, array( $cat ), 'onedong_resource_cat', false );
+	if ( is_wp_error( $terms_set ) ) {
+		wp_delete_post( $post_id, true );
+		onedong_resource_submit_redirect( 'error' );
+	}
+
+	set_transient( $rate_key, 1, MINUTE_IN_SECONDS );
+	onedong_resource_submit_redirect( 'success' );
+}
+add_action( 'admin_post_onedong_resource_submit', 'onedong_handle_resource_submit' );
+add_action( 'admin_post_nopriv_onedong_resource_submit', 'onedong_handle_resource_submit' );
 
 
 /* ============================================================
