@@ -775,51 +775,17 @@ function onedong_resource_get_cats() {
 	return $cats;
 }
 
-/** 生成 Banner 内联 style(纯颜色,绝不输出图片)。 */
+/** 生成当前标题区域高度变量；历史背景 / 间距 / 圆角设置不再输出。 */
 function onedong_resource_banner_style() {
-	$o   = onedong_resources_opts();
-	$h   = max( 120, min( 600, (int) $o['banner_height'] ) );
-	$gap = max( 0, min( 200, (int) $o['banner_top_gap'] ) );
-	$brr  = $o['banner_radius'];
-	if ( 'site' === $brr ) {
-		$brad = 'var(--radius-large)';
-	} else {
-		$brad = '' === $brr ? '0px' : ( ( '999' === $brr ) ? '999px' : ( (int) $brr ) . 'px' );
-	}
-	$op  = max( 0, min( 100, (int) $o['banner_opacity'] ) );
-	$bg  = 'var(--primary)';
-	switch ( $o['banner_mode'] ) {
-		case 'solid':
-			$c   = sanitize_hex_color( $o['banner_color'] );
-			$bg  = $c ? $c : 'var(--primary)';
-			break;
-		case 'gradient':
-			$from = sanitize_hex_color( $o['banner_gradient_from'] ) ? : '#3858F6';
-			$to   = sanitize_hex_color( $o['banner_gradient_to'] ) ? : '#2b47d1';
-			$ang  = max( 0, min( 360, (int) $o['banner_gradient_angle'] ) );
-			$bg   = sprintf( 'linear-gradient(%ddeg, %s, %s)', $ang, $from, $to );
-			break;
-		case 'image':
-			$iid = (int) $o['banner_image'];
-			if ( $iid ) {
-				$src = wp_get_attachment_image_src( $iid, 'full' );
-				if ( $src ) {
-					// 图片走 --res-bg 变量 + CSS ::before(支持呼吸缩放);section 底色用 primary 兜底
-					return 'background:var(--primary);--res-bg:url(' . esc_url( $src[0] ) . ');--res-h:' . $h . 'px;--res-gap:' . $gap . 'px;--res-banner-radius:' . $brad . ';';
-				}
-			}
-			break;
-	}
-	if ( in_array( $o['banner_mode'], array( 'default', 'solid' ), true ) && $op < 100 ) {
-		$bg = sprintf( 'color-mix(in srgb, %s %d%%, transparent)', $bg, $op );
-	}
-	return 'background:' . $bg . ';--res-h:' . $h . 'px;--res-gap:' . $gap . 'px;--res-banner-radius:' . $brad . ';';
+	$o = onedong_resources_opts();
+	$h = max( 120, min( 600, (int) $o['banner_height'] ) );
+	return '--res-h:' . $h . 'px;';
 }
 
 function onedong_resource_banner() {
 	$o = onedong_resources_opts();
 	?>
-	<header class="resource-page-heading">
+	<header class="resource-page-heading" style="<?php echo esc_attr( onedong_resource_banner_style() ); ?>">
 		<h1 class="resource-page-heading__title"><?php echo esc_html( $o['banner_title'] ); ?></h1>
 		<?php if ( $o['banner_subtitle'] ) : ?>
 			<p class="resource-page-heading__subtitle"><?php echo wp_kses_post( $o['banner_subtitle'] ); ?></p>

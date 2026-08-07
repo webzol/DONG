@@ -2377,3 +2377,17 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 ### 关键决策 / 坑
 - 白色卡片跨深浅模式固定不变，因此不能继续直接使用会随主题切换的 `--text` / `--text-muted` / `--primary`；改用卡片局部变量，保证正文与小字号强调文字对比度稳定。
 - 本机无 PHP，未运行 `php -l`；本次 PHP 仅变更版本常量。已执行 CSS / 版本静态断言、`git diff --check` 与 ZIP CRC 校验。待 TD 部署后刷新 CDN，检查默认 / 深色 / zhipu 皮肤和移动端显示。
+
+## v6.3.7(2026-08-07)· 资源页标题高度恢复后台联动
+
+### 背景
+- v6.3.3 将旧 Banner 改为独立标题结构后，后台“Banner 高度(px)”仍可保存，但前台 `.resource-page-heading` 使用固定 padding，导致高度设置失效。
+
+### 改动
+- **`inc/resources.php`**：将 `onedong_resource_banner_style()` 收窄为高度专用 helper，只输出经过 `120–600px` 限制的 `--res-h`；当前标题标签通过 `esc_attr()` 安全接收该变量。
+- **`assets/css/resources.css`**：标题区域使用 `min-height: var(--res-h, 280px)` 并以 flex 垂直居中；移动端在保留小配置值的同时按视口自动缩小并封顶 190px。
+- 版本 `6.3.6→6.3.7`，同步更新 `style.css` 与 `ONEDONG_VERSION`。
+
+### 关键决策 / 坑
+- 只恢复“高度”配置，不重新消费历史 Banner 颜色、图片、渐变、透明度、顶部间距、圆角与动效设置，避免破坏 v6.3.6 的主题色标题带设计。
+- 使用 `min-height` 而非固定 `height`，长标题或副标题可继续撑高，不会裁切；本机无 PHP，未运行 `php -l`，已执行静态断言、`git diff --check` 与 ZIP CRC 校验。

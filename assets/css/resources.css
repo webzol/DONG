@@ -18,9 +18,14 @@
 /* —— 页面主题色标题带(v6.3.6):主标题 / 副标题居中展示 —— */
 .resource-page-heading {
 	max-width: none;
+	min-height: var(--res-h, 280px);
 	margin: 0;
-	padding: clamp(2.25rem, 6vw, 4.5rem) clamp(1rem, 4vw, 2rem);
+	padding: 1.5rem clamp(1rem, 4vw, 2rem);
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 	background: var(--primary);
 	text-align: center;
 }
@@ -428,7 +433,8 @@
 	.resource-banner__inner--card { padding: 1rem 1.2rem; max-width: 100%; } /* v6.0.65:玻璃卡移动端撑满、内边距收 */
 
 	.resource-page-heading {
-		padding: 1.75rem 1rem;
+		min-height: min(var(--res-h, 280px), clamp(130px, 38vw, 190px));
+		padding: 1.25rem 1rem;
 	}
 
 	.resource-page-heading__title {
