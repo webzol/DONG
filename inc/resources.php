@@ -33,6 +33,7 @@ function onedong_resources_defaults() {
 		'banner_card_radius'    => '',
 		'banner_radius'         => '',
 		'banner_opacity'        => 100,
+		'banner_enabled'        => '1',
 		'banner_title'          => __( '资源导航', 'onedong' ),
 		'banner_subtitle'       => __( '精选优质资源,持续更新。', 'onedong' ),
 	);
@@ -589,6 +590,7 @@ function onedong_resources_settings_init() {
 	) ) );
 	add_settings_field( 'banner_opacity', __( '背景透明度(纯色)', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_banner_section', array( 'key' => 'banner_opacity', 'type' => 'number', 'min' => 0, 'max' => 100, 'desc' => __( '0-100,仅「系统默认 / 自定义纯色」生效;100 为不透明。', 'onedong' ) ) );
 
+	add_settings_field( 'banner_enabled', __( '显示标题区域', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_enabled', 'type' => 'checkbox', 'desc' => __( '关闭或主标题为空时，整个标题区域（含副标题和背景）不显示。', 'onedong' ) ) );
 	add_settings_field( 'banner_title', __( '主标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_title', 'type' => 'text' ) );
 	add_settings_field( 'banner_subtitle', __( '副标题', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_text_section', array( 'key' => 'banner_subtitle', 'type' => 'textarea' ) );
 	add_settings_field( 'card_radius', __( '卡片圆角', 'onedong' ), 'onedong_resources_field_cb', $page, 'onedong_resources_card_section', array( 'key' => 'card_radius', 'type' => 'select', 'options' => array(
@@ -705,6 +707,7 @@ function onedong_resources_sanitize( $in ) {
 	$out['banner_gradient_to']   = sanitize_hex_color( isset( $in['banner_gradient_to'] ) ? $in['banner_gradient_to'] : '' ) ? : $out['banner_gradient_to'];
 	$out['banner_gradient_angle'] = max( 0, min( 360, (int) ( isset( $in['banner_gradient_angle'] ) ? $in['banner_gradient_angle'] : 90 ) ) );
 	$out['banner_height']      = max( 120, min( 600, (int) ( isset( $in['banner_height'] ) ? $in['banner_height'] : 280 ) ) );
+	$out['banner_enabled']     = isset( $in['banner_enabled'] ) ? '1' : '0';
 	$out['banner_title']       = isset( $in['banner_title'] ) ? sanitize_text_field( $in['banner_title'] ) : $out['banner_title'];
 	$out['banner_subtitle']    = isset( $in['banner_subtitle'] ) ? wp_kses_post( $in['banner_subtitle'] ) : '';
 	return $out;
@@ -783,10 +786,14 @@ function onedong_resource_banner_style() {
 }
 
 function onedong_resource_banner() {
-	$o = onedong_resources_opts();
+	$o     = onedong_resources_opts();
+	$title = trim( (string) $o['banner_title'] );
+	if ( '1' !== (string) $o['banner_enabled'] || '' === $title ) {
+		return;
+	}
 	?>
 	<header class="resource-page-heading" style="<?php echo esc_attr( onedong_resource_banner_style() ); ?>">
-		<h1 class="resource-page-heading__title"><?php echo esc_html( $o['banner_title'] ); ?></h1>
+		<h1 class="resource-page-heading__title"><?php echo esc_html( $title ); ?></h1>
 		<?php if ( $o['banner_subtitle'] ) : ?>
 			<p class="resource-page-heading__subtitle"><?php echo wp_kses_post( $o['banner_subtitle'] ); ?></p>
 		<?php endif; ?>

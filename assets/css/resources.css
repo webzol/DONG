@@ -4,8 +4,9 @@
    自动跟随 :root[data-theme="dark"] 深浅色。
    ============================================================ */
 
-/* —— 全宽容器(Banner 跨满屏,内容区居中限宽)—— */
+/* —— 资源页容器:标题横幅与内容区共用同一水平 gutter —— */
 .resources-page {
+	--resources-gutter: clamp(1rem, 4vw, 2rem);
 	width: 100%;
 	background: var(--bg);
 }
@@ -17,10 +18,11 @@
 
 /* —— 页面主题色标题带(v6.3.6):主标题 / 副标题居中展示 —— */
 .resource-page-heading {
-	max-width: none;
+	width: calc(100% - var(--resources-gutter) - var(--resources-gutter));
+	max-width: calc(var(--site-width, 1280px) - var(--resources-gutter) - var(--resources-gutter));
 	min-height: var(--res-h, 280px);
-	margin: 0;
-	padding: 1.5rem clamp(1rem, 4vw, 2rem);
+	margin: 0 auto;
+	padding: 1.5rem var(--resources-gutter);
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -159,7 +161,7 @@
 .resources-main {
 	max-width: var(--site-width, 1280px);       /* 满内容区 */
 	margin: 0 auto;
-	padding: 2rem clamp(1rem, 4vw, 2rem) 4rem;  /* v6.0.43:水平 padding 用 clamp,与 .site-header__inner / footer / site-content 一致 → header logo/toggle 与内容区左右对齐 */
+	padding: 2rem var(--resources-gutter) 4rem; /* 与标题横幅共用 gutter,左右边缘保持一致 */
 }
 
 /* —— 分类筛选栏 —— */
