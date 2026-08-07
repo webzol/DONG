@@ -817,19 +817,14 @@ function onedong_resource_banner_style() {
 }
 
 function onedong_resource_banner() {
-	$o       = onedong_resources_opts();
-	$mode    = $o['banner_mode'];
-	$animate = ( '1' === $o['banner_animate'] ) && in_array( $mode, array( 'gradient', 'image' ), true );
-	$card    = '1' === $o['banner_card'];
+	$o = onedong_resources_opts();
 	?>
-	<section class="resource-banner" data-mode="<?php echo esc_attr( $mode ); ?>"<?php echo $animate ? ' data-animate' : ''; ?> style="<?php echo esc_attr( onedong_resource_banner_style() ); ?>">
-		<div class="resource-banner__inner<?php echo $card ? ' resource-banner__inner--card' : ''; ?>"<?php echo $card ? ' style="' . esc_attr( onedong_resource_banner_card_style() ) . '"' : ''; ?>>
-			<h1 class="resource-banner__title"><?php echo esc_html( $o['banner_title'] ); ?></h1>
-			<?php if ( $o['banner_subtitle'] ) : ?>
-				<p class="resource-banner__subtitle"><?php echo wp_kses_post( $o['banner_subtitle'] ); ?></p>
-			<?php endif; ?>
-		</div>
-	</section>
+	<header class="resource-page-heading">
+		<h1 class="resource-page-heading__title"><?php echo esc_html( $o['banner_title'] ); ?></h1>
+		<?php if ( $o['banner_subtitle'] ) : ?>
+			<p class="resource-page-heading__subtitle"><?php echo wp_kses_post( $o['banner_subtitle'] ); ?></p>
+		<?php endif; ?>
+	</header>
 	<?php
 }
 
