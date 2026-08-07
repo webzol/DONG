@@ -2357,7 +2357,7 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 ### 改动
 - **`archive-onedong_resource.php`**：补全 `.resources-page` 开标签缺失的 `>`，保留 `onedong_resource_card_style_attr()` 卡片圆角内联变量。
 - **`assets/css/resources.css`**：新增资源页作用域 `[hidden] { display: none !important; }`，防止 `.resource-empty` 等作者样式覆盖浏览器原生隐藏规则；现有筛选 JavaScript 无需修改。
-- 版本 `6.3.4→6.3.5`，同步更新 `style.css` 与 `ONEDONG_VERSION`。
+- 版本 `6.3.3→6.3.5`，同步更新 `style.css` 与 `ONEDONG_VERSION`。（注：不存在 6.3.4 版本；提交 `02b0adb` 信息误写为「v6.3.4 紧急修复」，其实际内容是 6.3.2→6.3.3，故版本号从 6.3.3 直接跳至 6.3.5。）
 
 ### 关键决策 / 坑
 - `HTMLElement.hidden = true` 最终依赖 `[hidden]` 的 CSS 隐藏语义；当作者样式给元素设置非 `none` 的 display 时，浏览器 UA 规则可能被覆盖，因此空状态虽然带 `hidden` 仍会显示。
@@ -2405,3 +2405,20 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 ### 关键决策 / 坑
 - 旧站点 option 中没有 `banner_enabled` 时，由 `wp_parse_args()` 合并默认 `'1'`，升级后继续显示，无需数据库迁移。
 - 主标题为空的自动隐藏优先级高于副标题：仅填写副标题不会生成空语义 `<h1>` 或蓝色占位；本机无 PHP，未运行 `php -l`，已执行静态断言、`git diff --check` 与 ZIP CRC 校验。
+
+## 打包工具（2026-08-07）· `tools/pack.ps1` + Compress-Archive 反斜杠坑
+
+### 背景
+- v6.3.8 补打发布包时发现：Windows PowerShell 5.1 的 `Compress-Archive` 写出的 zip **条目分隔符全是反斜杠**（`onedong\functions.php`），62 条全中。此前各版本 DEV_NOTES 里「0 反斜杠」的校验项就是在防这个。
+- 反斜杠条目名违反 ZIP 规范（APPNDX 要求 `/`），WordPress 后台「上传主题」用 PHP `ZipArchive` 解压时会把整个路径当成一个文件名，导致主题结构错乱 / 装不上。
+
+### 改动
+- 新增 **`tools/pack.ps1`**：用 `System.IO.Compression.ZipArchive` 手工 `CreateEntry()`，条目名显式 `-replace '\\','/'`，顶层固定目录 `onedong/`。排除 `.git`、`tools`、`DEV_NOTES.md`、`.gitignore`、`*.zip`。参数化 `-Src` / `-Ver` / `-Root`。
+- 产物先落 `$env:TEMP` 再 `Copy-Item` 进主题目录，避开历史上「本机守卫拦 `E:\OneDong` 下已存在 zip 的截断」问题（本次 `Remove-Item` 未被拦，但仍保留先建后拷的顺序）。
+- 打出 `onedong-v6.3.8.zip`：**61 条 / 0 反斜杠 / 顶层 onedong / 0 损坏**，zip 内 `style.css` 与 `functions.php` 版本均为 `6.3.8`。
+
+### 关键决策 / 坑
+- **`tools/` 不进包**：`lunar-verify.mjs` 与 `pack.ps1` 都是开发期脚本，`inc/lunar.php` 仅在注释里引用前者，运行时不依赖。故条目数从早期版本的 56 条变为 61 条属正常（期间新增 festival/lunar/cloud-storage/resources 等模块），非漏打。
+- **`.gitignore` 也排除**：它是仓库管理文件，不属主题运行时。
+- 校验清单固定四项：条目数与磁盘运行时文件数一致、0 反斜杠、0 条目在 `onedong/` 之外、逐条流式读取 0 损坏（CRC）。
+- **不存在 v6.3.4 版本**：提交 `02b0adb` 信息误写「v6.3.4 紧急修复」，实际内容是 `6.3.2→6.3.3`；下个提交直接跳 6.3.5。已在 v6.3.5 节内加注说明，DEV_NOTES 本身无缺节。
