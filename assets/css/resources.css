@@ -10,6 +10,11 @@
 	background: var(--bg);
 }
 
+/* hidden 属性由筛选脚本切换,不可被组件 display 样式覆盖 */
+.resources-page [hidden] {
+	display: none !important;
+}
+
 /* —— 页面独立标题(v6.3.3):不再叠在 Banner 背景中 —— */
 .resource-page-heading {
 	max-width: var(--site-width, 1280px);

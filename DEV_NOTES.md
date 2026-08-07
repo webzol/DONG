@@ -2348,3 +2348,18 @@ v6.1.9 样式修通后,TD 要话题归档页头(`#茶室` 标题 + 动态数 + �
 - 后台历史 Banner 颜色 / 图片 / 动效配置暂时保留在 option 与设置界面中，避免升级时破坏已有配置；前台 v6.3.3 起不再消费这些背景配置。若后续确认永久废弃，可再单独清理后台死配置。
 - 独立标题在 `.resources-main` 之外，但复用完全相同的 max-width 与 clamp gutter，确保标题、筛选器和第一列卡片左缘对齐。
 - 固定交付流程更新：每次 OneDong 修改后均需递增版本、记录 DEV_NOTES、校验、打包 ZIP、提交并推送 GitHub；服务器部署 / CDN 仍由 TD 自管。
+
+## v6.3.5(2026-08-07)· 资源页结构与空状态修复
+
+### 背景
+- 线上 `/resources` 能显示资源卡片，但页面底部仍同时出现“该分类下暂无资源。”，且标题区域 DOM 结构异常。
+
+### 改动
+- **`archive-onedong_resource.php`**：补全 `.resources-page` 开标签缺失的 `>`，保留 `onedong_resource_card_style_attr()` 卡片圆角内联变量。
+- **`assets/css/resources.css`**：新增资源页作用域 `[hidden] { display: none !important; }`，防止 `.resource-empty` 等作者样式覆盖浏览器原生隐藏规则；现有筛选 JavaScript 无需修改。
+- 版本 `6.3.4→6.3.5`，同步更新 `style.css` 与 `ONEDONG_VERSION`。
+
+### 关键决策 / 坑
+- `HTMLElement.hidden = true` 最终依赖 `[hidden]` 的 CSS 隐藏语义；当作者样式给元素设置非 `none` 的 display 时，浏览器 UA 规则可能被覆盖，因此空状态虽然带 `hidden` 仍会显示。
+- `[hidden]` 规则限制在 `.resources-page` 内，避免影响主题其他模块；使用 `!important` 确保组件样式无法反向覆盖隐藏状态。
+- 本机无 PHP，未运行 `php -l`；已执行静态结构 / 标识符检查、`git diff --check` 与 ZIP CRC 校验。待 TD 部署后刷新 CDN，并实测全部 / 有资源分类 / 空分类切换及深浅色、移动端表现。
